@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Bell, BookOpen, ChevronDown, CircleHelp, Database, FileText, Filter, FolderKanban, KeyRound, LayoutDashboard, MoreHorizontal, Search, ShieldCheck, SlidersHorizontal, Users, WalletCards } from 'lucide-react'
+import { adminPages, buildAdminRoute, parseAdminRoute } from './admin'
 import { assignPermissionToRole, assignRoleToUser, createRole, createUser, deleteRole, deleteUser, getCurrentUser, getPermissions, getRolePermissions, getRoles, getUserRoles, getUsers, login, logout, Permission, refreshAccessToken, removePermissionFromRole, removeRoleFromUser, Role, updateRole, updateUser, User } from './api'
 import { PermissionCatalog } from './components/PermissionCatalog'
 import { RoleDetail } from './components/RoleDetail'
@@ -17,16 +18,6 @@ const initialResources: Resource[] = [
   { id: 4, name: 'Counters', type: 'Collection', domain: 'Finance', status: 'Active', updated: 'Live', owner: 'J. Chen', icon: WalletCards },
   { id: 5, name: 'Groups', type: 'Collection', domain: 'Finance', status: 'Draft', updated: 'Live', owner: 'J. Chen', icon: FolderKanban },
   { id: 6, name: 'Rules', type: 'Logic set', domain: 'Finance', status: 'Active', updated: 'Live', owner: 'M. Patel', icon: FileText },
-]
-
-const navItems = [
-  { label: 'Overview', icon: LayoutDashboard },
-  { label: 'Users', icon: Users, group: 'Authentication' },
-  { label: 'Roles', icon: ShieldCheck, group: 'Authentication' },
-  { label: 'Permissions', icon: KeyRound, group: 'Authentication' },
-  { label: 'Counters', icon: WalletCards, group: 'Finance' },
-  { label: 'Groups', icon: FolderKanban, group: 'Finance' },
-  { label: 'Rules', icon: FileText, group: 'Finance' },
 ]
 
 type UserForm = { username: string; password: string; is_admin: boolean }
@@ -65,12 +56,9 @@ function App() {
   const can = useCallback((permission: PermissionName) => user?.is_admin === true || user?.permissions.includes(permission) === true, [user])
 
   const syncViewFromLocation = () => {
-    const params = new URLSearchParams(window.location.search)
-    const view = params.get('view') ?? 'overview'
-    const nextUserId = params.get('userId') ? Number(params.get('userId')) : null
-    const nextRoleId = params.get('roleId') ? Number(params.get('roleId')) : null
+    const route = parseAdminRoute(window.location.search)
 
-    if (view === 'users') {
+    if (route.view === 'users') {
       setActiveNav('Users')
       setSelectedUser(null)
       setSelectedUserId(null)
@@ -78,14 +66,14 @@ function App() {
       setSelectedRoleId(null)
       return
     }
-    if (view === 'user') {
+    if (route.view === 'user') {
       setActiveNav('User details')
-      setSelectedUserId(nextUserId)
+      setSelectedUserId(route.userId)
       setSelectedRole(null)
       setSelectedRoleId(null)
       return
     }
-    if (view === 'roles') {
+    if (route.view === 'roles') {
       setActiveNav('Roles')
       setSelectedUser(null)
       setSelectedUserId(null)
@@ -93,14 +81,14 @@ function App() {
       setSelectedRoleId(null)
       return
     }
-    if (view === 'role') {
+    if (route.view === 'role') {
       setActiveNav('Role details')
       setSelectedUser(null)
       setSelectedUserId(null)
-      setSelectedRoleId(nextRoleId)
+      setSelectedRoleId(route.roleId)
       return
     }
-    if (view === 'permissions') {
+    if (route.view === 'permissions') {
       setActiveNav('Permissions')
       setSelectedUser(null)
       setSelectedUserId(null)
@@ -116,14 +104,8 @@ function App() {
     setSelectedRoleId(null)
   }
 
-  const setRoute = (view: string, values: { userId?: number | null; roleId?: number | null } = {}) => {
-    const url = new URL(window.location.href)
-    url.searchParams.set('view', view)
-    if (values.userId === null || values.userId === undefined) url.searchParams.delete('userId')
-    else url.searchParams.set('userId', String(values.userId))
-    if (values.roleId === null || values.roleId === undefined) url.searchParams.delete('roleId')
-    else url.searchParams.set('roleId', String(values.roleId))
-    window.history.pushState({}, '', `${url.pathname}${url.search}`)
+  const setRoute = (view: 'overview' | 'users' | 'user' | 'roles' | 'role' | 'permissions', values: { userId?: number | null; roleId?: number | null } = {}) => {
+    window.history.pushState({}, '', buildAdminRoute(view, values))
     syncViewFromLocation()
   }
 
@@ -307,12 +289,12 @@ function App() {
   if (checkingSession) return <div className="auth-screen"><div className="auth-panel"><span className="brand-mark"><Database size={18} /></span><p>Connecting to Ledgerline...</p></div></div>
   if (!user) return <div className="auth-screen"><form className="auth-panel" onSubmit={submitLogin}><div className="brand auth-brand"><span className="brand-mark"><Database size={18} /></span><span>ledgerline</span></div><p className="eyebrow">SECURE CONSOLE</p><h1>Sign in to your workspace</h1><p className="subtitle">Use your FastAPI account to continue.</p><label>Username<input autoFocus value={username} onChange={(event) => setUsername(event.target.value)} required /></label><label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>{loginError && <p className="auth-error">{loginError}</p>}<button className="primary-button auth-submit" disabled={loggingIn}>{loggingIn ? 'Signing in...' : 'Sign in'}</button></form></div>
 
-  const visibleNav = navItems.filter((item) => item.label === 'Overview' || (item.label === 'Users' && can('users:read')) || (item.label === 'Roles' && can('role_permissions:read')) || (item.label === 'Permissions' && can('permissions:read')) || (item.label === 'Counters' && can('counters:read')) || (item.label === 'Groups' && can('groups:read')) || (item.label === 'Rules' && can('rules:read')))
-  return <div className="app-shell"><aside className="sidebar"><div className="brand"><span className="brand-mark"><Database size={18} /></span><span>ledgerline</span></div><div className="workspace-switcher"><span className="workspace-dot" /><span>Acme workspace</span><ChevronDown size={15} /></div><nav className="nav-list">{visibleNav.map((item) => { const Icon = item.icon; return <div key={item.label}>{item.group && visibleNav.find((nav) => nav.group === item.group)?.label === item.label && <span className="nav-group">{item.group}</span>}<button className={`nav-item ${activeNav === item.label ? 'active' : ''}`} onClick={() => {
-                            if (item.label === 'Overview') navigateToOverview()
-                            if (item.label === 'Users') navigateToUsers()
-                            if (item.label === 'Roles') navigateToRoles()
-                            if (item.label === 'Permissions') navigateToPermissions()
+  const visibleNav = adminPages.filter((item) => item.id === 'overview' || (item.permission && can(item.permission)))
+  return <div className="app-shell"><aside className="sidebar"><div className="brand"><span className="brand-mark"><Database size={18} /></span><span>ledgerline</span></div><div className="workspace-switcher"><span className="workspace-dot" /><span>Acme workspace</span><ChevronDown size={15} /></div><nav className="nav-list">{visibleNav.map((item) => { const Icon = item.icon; return <div key={item.id}>{item.group && visibleNav.find((nav) => nav.group === item.group)?.id === item.id && <span className="nav-group">{item.group}</span>}<button className={`nav-item ${activeNav === item.label ? 'active' : ''}`} onClick={() => {
+                            if (item.id === 'overview') navigateToOverview()
+                            if (item.id === 'users') navigateToUsers()
+                            if (item.id === 'roles') navigateToRoles()
+                            if (item.id === 'permissions') navigateToPermissions()
                           }}><Icon size={17} /><span>{item.label}</span></button></div> })}</nav><div className="sidebar-bottom"><button className="nav-item"><BookOpen size={17} /><span>Documentation</span></button><button className="nav-item"><CircleHelp size={17} /><span>Help center</span></button><button className="profile" onClick={() => logout().then(() => setUser(null))}><div className="avatar">{user.username.slice(0, 2).toUpperCase()}</div><div><strong>{user.username}</strong><small>{user.is_admin ? 'Admin' : 'Member'}</small></div><MoreHorizontal size={17} /></button></div></aside>
     <main className="main-content"><header className="topbar"><div className="breadcrumbs"><span>Workspace</span><span>/</span><strong>{activeNav}</strong></div><div className="top-actions"><button className="icon-button" aria-label="Notifications"><Bell size={18} /></button><button className="help-button"><CircleHelp size={16} /> Support</button></div></header><section className="page-header"><div><p className="eyebrow">RESOURCE MANAGEMENT</p><h1>{activeNav === 'Overview' ? 'Your resource library' : activeNav}</h1><p className="subtitle">Manage the building blocks behind your application.</p></div></section><section className="stat-grid"><div className="stat-card"><span className="stat-label">Total resources</span><strong>{resources.length}</strong><span className="stat-note">Live backend resources</span></div><div className="stat-card"><span className="stat-label">Authentication</span><strong>{resources.filter((item) => item.domain === 'Auth').length}</strong><span className="stat-note">Users, roles & access</span></div><div className="stat-card"><span className="stat-label">Finance</span><strong>{resources.filter((item) => item.domain === 'Finance').length}</strong><span className="stat-note">Rules & operations</span></div><div className="stat-card accent"><span className="stat-label">Active resources</span><strong>{resources.filter((item) => item.status === 'Active').length}</strong><span className="stat-note">Ready for production</span></div></section>
       {activeNav === 'Users' && <UsersPage users={users} canCreate={can('users:create')} canEdit={can('users:update')} canDelete={can('users:delete')} onCreate={() => openUserEditor(null)} onOpen={openUser} onEdit={openUserEditor} onDelete={removeUser} error={userError} />}
