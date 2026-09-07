@@ -49,7 +49,9 @@ function App() {
   const [userRoleMap, setUserRoleMap] = useState<Record<number, Role[]>>({})
   const [rolePermissionMap, setRolePermissionMap] = useState<Record<number, Permission[]>>({})
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
+  const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null)
   const [userForm, setUserForm] = useState<UserForm>({ username: '', password: '', is_admin: false })
   const [roleForm, setRoleForm] = useState<RoleForm>({ name: '', description: '' })
   const [editingUser, setEditingUser] = useState<User | null>(null)
@@ -62,37 +64,165 @@ function App() {
 
   const can = (permission: PermissionName) => user?.is_admin === true || user?.permissions.includes(permission) === true
 
+  const syncViewFromLocation = () => {
+    const params = new URLSearchParams(window.location.search)
+    const view = params.get('view') ?? 'overview'
+    const nextUserId = params.get('userId') ? Number(params.get('userId')) : null
+    const nextRoleId = params.get('roleId') ? Number(params.get('roleId')) : null
+
+    if (view === 'users') {
+      setActiveNav('Users')
+      setSelectedUser(null)
+      setSelectedUserId(null)
+      setSelectedRole(null)
+      setSelectedRoleId(null)
+      return
+    }
+    if (view === 'user') {
+      setActiveNav('User details')
+      setSelectedUserId(nextUserId)
+      setSelectedRole(null)
+      setSelectedRoleId(null)
+      return
+    }
+    if (view === 'roles') {
+      setActiveNav('Roles')
+      setSelectedUser(null)
+      setSelectedUserId(null)
+      setSelectedRole(null)
+      setSelectedRoleId(null)
+      return
+    }
+    if (view === 'role') {
+      setActiveNav('Role details')
+      setSelectedUser(null)
+      setSelectedUserId(null)
+      setSelectedRoleId(nextRoleId)
+      return
+    }
+    if (view === 'permissions') {
+      setActiveNav('Permissions')
+      setSelectedUser(null)
+      setSelectedUserId(null)
+      setSelectedRole(null)
+      setSelectedRoleId(null)
+      return
+    }
+
+    setActiveNav('Overview')
+    setSelectedUser(null)
+    setSelectedUserId(null)
+    setSelectedRole(null)
+    setSelectedRoleId(null)
+  }
+
+  const setRoute = (view: string, values: { userId?: number | null; roleId?: number | null } = {}) => {
+    const url = new URL(window.location.href)
+    url.searchParams.set('view', view)
+    if (values.userId === null || values.userId === undefined) url.searchParams.delete('userId')
+    else url.searchParams.set('userId', String(values.userId))
+    if (values.roleId === null || values.roleId === undefined) url.searchParams.delete('roleId')
+    else url.searchParams.set('roleId', String(values.roleId))
+    window.history.pushState({}, '', `${url.pathname}${url.search}`)
+    syncViewFromLocation()
+  }
+
+  const navigateToOverview = () => setRoute('overview')
+  const navigateToUsers = () => setRoute('users')
+  const navigateToRoles = () => setRoute('roles')
+  const navigateToPermissions = () => setRoute('permissions')
+
+  const [usersLoaded, setUsersLoaded] = useState(false)
+  const [rolesLoaded, setRolesLoaded] = useState(false)
+  const [permissionsLoaded, setPermissionsLoaded] = useState(false)
+
+  const ensureUsers = async () => {
+    if (!user || !can('users:read') || usersLoaded) return
+    const nextUsers = await getUsers()
+    setUsers(nextUsers)
+    setUsersLoaded(true)
+  }
+
+  const ensureRoles = async () => {
+    if (!user || !can('role_permissions:read') || rolesLoaded) return
+    const nextRoles = await getRoles()
+    setRoles(nextRoles)
+    setRolesLoaded(true)
+  }
+
+  const ensurePermissions = async () => {
+    if (!user || !can('permissions:read') || permissionsLoaded) return
+    const nextPermissions = await getPermissions()
+    setPermissions(nextPermissions)
+    setPermissionsLoaded(true)
+  }
+
+  const ensureUserRoles = async (userId: number) => {
+    if (userRoleMap[userId] !== undefined) return
+    const nextRoles = await getUserRoles(userId)
+    setUserRoleMap((current) => ({ ...current, [userId]: nextRoles }))
+  }
+
+  const ensureRolePermissions = async (roleId: number) => {
+    if (rolePermissionMap[roleId] !== undefined) return
+    const nextPermissions = await getRolePermissions(roleId)
+    setRolePermissionMap((current) => ({ ...current, [roleId]: nextPermissions }))
+  }
+
   useEffect(() => {
     refreshAccessToken().then((hasSession) => hasSession ? getCurrentUser().then(setUser).catch(() => undefined) : undefined).finally(() => setCheckingSession(false))
   }, [])
 
-  const loadData = async () => {
+  useEffect(() => {
+    const handlePopState = () => syncViewFromLocation()
+    window.addEventListener('popstate', handlePopState)
+    syncViewFromLocation()
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  useEffect(() => {
+    if (!user) return
+
+    if (activeNav === 'Users' || activeNav === 'User details') void ensureUsers()
+    if (activeNav === 'Roles' || activeNav === 'Role details') void ensureRoles()
+    if (activeNav === 'Permissions' || activeNav === 'Role details') void ensurePermissions()
+
+    if (activeNav === 'User details' && selectedUserId !== null) void ensureUserRoles(selectedUserId)
+    if (activeNav === 'Role details' && selectedRoleId !== null) void ensureRolePermissions(selectedRoleId)
+  }, [activeNav, selectedUserId, selectedRoleId, user, can, usersLoaded, rolesLoaded, permissionsLoaded, userRoleMap, rolePermissionMap])
+
+  useEffect(() => {
+    if (selectedUserId === null) {
+      setSelectedUser(null)
+      return
+    }
+    setSelectedUser(users.find((item) => item.id === selectedUserId) ?? null)
+  }, [selectedUserId, users])
+
+  useEffect(() => {
+    if (selectedRoleId === null) {
+      setSelectedRole(null)
+      return
+    }
+    setSelectedRole(roles.find((item) => item.id === selectedRoleId) ?? null)
+  }, [selectedRoleId, roles])
+
+  useEffect(() => {
+    if (!user) return
     const nextResources: Resource[] = []
     if (can('users:read')) {
-      const nextUsers = await getUsers()
-      setUsers(nextUsers)
-      const memberships = await Promise.all(nextUsers.map(async (item) => [item.id, await getUserRoles(item.id)] as const))
-      setUserRoleMap(Object.fromEntries(memberships))
-      nextResources.push({ ...initialResources[0], type: `${nextUsers.length} accounts` })
+      nextResources.push({ ...initialResources[0], type: `${users.length} accounts` })
     }
     if (can('role_permissions:read')) {
-      const nextRoles = await getRoles()
-      setRoles(nextRoles)
-      const memberships = await Promise.all(nextRoles.map(async (item) => [item.id, await getRolePermissions(item.id)] as const))
-      setRolePermissionMap(Object.fromEntries(memberships))
-      nextResources.push({ ...initialResources[1], type: `${nextRoles.length} policy sets` })
+      nextResources.push({ ...initialResources[1], type: `${roles.length} policy sets` })
     }
     if (can('permissions:read')) {
-      const nextPermissions = await getPermissions()
-      setPermissions(nextPermissions)
-      nextResources.push({ ...initialResources[2], type: `${nextPermissions.length} permissions` })
+      nextResources.push({ ...initialResources[2], type: `${permissions.length} permissions` })
     }
     const financePermissions: Record<string, PermissionName> = { Counters: 'counters:read', Groups: 'groups:read', Rules: 'rules:read' }
     nextResources.push(...initialResources.slice(3).filter((resource) => can(financePermissions[resource.name])))
     setResources(nextResources)
-  }
-
-  useEffect(() => { if (user) loadData().catch(() => setResources([])) }, [user])
+  }, [can, permissions, roles, user, users])
 
   const toggleUserRole = async (userId: number, roleId: number) => {
     const assigned = (userRoleMap[userId] ?? []).some((item) => item.id === roleId)
@@ -126,8 +256,20 @@ function App() {
     } catch (error) { setAssignmentError(error instanceof Error ? error.message : 'Unable to update role permissions') }
   }
 
-  const openUser = (item: User) => { setSelectedUser(item); setActiveNav('User details') }
-  const openRole = (item: Role) => { setSelectedRole(item); setActiveNav('Role details') }
+  const openUser = (item: User) => {
+    setSelectedUser(item)
+    setSelectedUserId(item.id)
+    setSelectedRole(null)
+    setSelectedRoleId(null)
+    setRoute('user', { userId: item.id })
+  }
+  const openRole = (item: Role) => {
+    setSelectedRole(item)
+    setSelectedRoleId(item.id)
+    setSelectedUser(null)
+    setSelectedUserId(null)
+    setRoute('role', { roleId: item.id })
+  }
   const openUserEditor = (item: User | null) => { setEditingUser(item); setUserForm({ username: item?.username ?? '', password: '', is_admin: item?.is_admin ?? false }); setUserError(''); setUserModalOpen(true) }
   const openRoleEditor = (item: Role | null) => { setEditingRole(item); setRoleForm({ name: item?.name ?? '', description: item?.description ?? '' }); setRoleError(''); setRoleModalOpen(true) }
 
@@ -162,12 +304,17 @@ function App() {
   if (!user) return <div className="auth-screen"><form className="auth-panel" onSubmit={submitLogin}><div className="brand auth-brand"><span className="brand-mark"><Database size={18} /></span><span>ledgerline</span></div><p className="eyebrow">SECURE CONSOLE</p><h1>Sign in to your workspace</h1><p className="subtitle">Use your FastAPI account to continue.</p><label>Username<input autoFocus value={username} onChange={(event) => setUsername(event.target.value)} required /></label><label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>{loginError && <p className="auth-error">{loginError}</p>}<button className="primary-button auth-submit" disabled={loggingIn}>{loggingIn ? 'Signing in...' : 'Sign in'}</button></form></div>
 
   const visibleNav = navItems.filter((item) => item.label === 'Overview' || (item.label === 'Users' && can('users:read')) || (item.label === 'Roles' && can('role_permissions:read')) || (item.label === 'Permissions' && can('permissions:read')) || (item.label === 'Counters' && can('counters:read')) || (item.label === 'Groups' && can('groups:read')) || (item.label === 'Rules' && can('rules:read')))
-  return <div className="app-shell"><aside className="sidebar"><div className="brand"><span className="brand-mark"><Database size={18} /></span><span>ledgerline</span></div><div className="workspace-switcher"><span className="workspace-dot" /><span>Acme workspace</span><ChevronDown size={15} /></div><nav className="nav-list">{visibleNav.map((item) => { const Icon = item.icon; return <div key={item.label}>{item.group && visibleNav.find((nav) => nav.group === item.group)?.label === item.label && <span className="nav-group">{item.group}</span>}<button className={`nav-item ${activeNav === item.label ? 'active' : ''}`} onClick={() => setActiveNav(item.label)}><Icon size={17} /><span>{item.label}</span></button></div> })}</nav><div className="sidebar-bottom"><button className="nav-item"><BookOpen size={17} /><span>Documentation</span></button><button className="nav-item"><CircleHelp size={17} /><span>Help center</span></button><button className="profile" onClick={() => logout().then(() => setUser(null))}><div className="avatar">{user.username.slice(0, 2).toUpperCase()}</div><div><strong>{user.username}</strong><small>{user.is_admin ? 'Admin' : 'Member'}</small></div><MoreHorizontal size={17} /></button></div></aside>
+  return <div className="app-shell"><aside className="sidebar"><div className="brand"><span className="brand-mark"><Database size={18} /></span><span>ledgerline</span></div><div className="workspace-switcher"><span className="workspace-dot" /><span>Acme workspace</span><ChevronDown size={15} /></div><nav className="nav-list">{visibleNav.map((item) => { const Icon = item.icon; return <div key={item.label}>{item.group && visibleNav.find((nav) => nav.group === item.group)?.label === item.label && <span className="nav-group">{item.group}</span>}<button className={`nav-item ${activeNav === item.label ? 'active' : ''}`} onClick={() => {
+                            if (item.label === 'Overview') navigateToOverview()
+                            if (item.label === 'Users') navigateToUsers()
+                            if (item.label === 'Roles') navigateToRoles()
+                            if (item.label === 'Permissions') navigateToPermissions()
+                          }}><Icon size={17} /><span>{item.label}</span></button></div> })}</nav><div className="sidebar-bottom"><button className="nav-item"><BookOpen size={17} /><span>Documentation</span></button><button className="nav-item"><CircleHelp size={17} /><span>Help center</span></button><button className="profile" onClick={() => logout().then(() => setUser(null))}><div className="avatar">{user.username.slice(0, 2).toUpperCase()}</div><div><strong>{user.username}</strong><small>{user.is_admin ? 'Admin' : 'Member'}</small></div><MoreHorizontal size={17} /></button></div></aside>
     <main className="main-content"><header className="topbar"><div className="breadcrumbs"><span>Workspace</span><span>/</span><strong>{activeNav}</strong></div><div className="top-actions"><button className="icon-button" aria-label="Notifications"><Bell size={18} /></button><button className="help-button"><CircleHelp size={16} /> Support</button></div></header><section className="page-header"><div><p className="eyebrow">RESOURCE MANAGEMENT</p><h1>{activeNav === 'Overview' ? 'Your resource library' : activeNav}</h1><p className="subtitle">Manage the building blocks behind your application.</p></div></section><section className="stat-grid"><div className="stat-card"><span className="stat-label">Total resources</span><strong>{resources.length}</strong><span className="stat-note">Live backend resources</span></div><div className="stat-card"><span className="stat-label">Authentication</span><strong>{resources.filter((item) => item.domain === 'Auth').length}</strong><span className="stat-note">Users, roles & access</span></div><div className="stat-card"><span className="stat-label">Finance</span><strong>{resources.filter((item) => item.domain === 'Finance').length}</strong><span className="stat-note">Rules & operations</span></div><div className="stat-card accent"><span className="stat-label">Active resources</span><strong>{resources.filter((item) => item.status === 'Active').length}</strong><span className="stat-note">Ready for production</span></div></section>
       {activeNav === 'Users' && <UsersPage users={users} canCreate={can('users:create')} canEdit={can('users:update')} canDelete={can('users:delete')} onCreate={() => openUserEditor(null)} onOpen={openUser} onEdit={openUserEditor} onDelete={removeUser} error={userError} />}
-      {activeNav === 'User details' && selectedUser && <UserDetail user={selectedUser} roles={roles} assignedRoles={userRoleMap[selectedUser.id] ?? []} canEdit={can('users:update')} canAssign={can('role_permissions:read')} onBack={() => setActiveNav('Users')} onEdit={() => openUserEditor(selectedUser)} onOpenRole={openRole} onToggleRole={(roleId) => toggleUserRole(selectedUser.id, roleId)} error={assignmentError} />}
+      {activeNav === 'User details' && selectedUser && <UserDetail user={selectedUser} roles={roles} assignedRoles={userRoleMap[selectedUser.id] ?? []} canEdit={can('users:update')} canAssign={can('role_permissions:read')} onBack={() => setRoute('users')} onEdit={() => openUserEditor(selectedUser)} onOpenRole={openRole} onToggleRole={(roleId) => toggleUserRole(selectedUser.id, roleId)} error={assignmentError} />}
       {activeNav === 'Roles' && <RolesPage roles={roles} canCreate={can('role:create')} canEdit={can('role:update')} canDelete={can('role:delete')} onCreate={() => openRoleEditor(null)} onOpen={openRole} onEdit={openRoleEditor} onDelete={removeRole} error={roleError} />}
-      {activeNav === 'Role details' && selectedRole && <RoleDetail role={selectedRole} permissions={permissions} assignedPermissions={rolePermissionMap[selectedRole.id] ?? []} canEdit={can('role:update')} canAssign={can('role_permissions:read')} onBack={() => setActiveNav('Roles')} onEdit={() => openRoleEditor(selectedRole)} onTogglePermission={(permissionId) => toggleRolePermission(selectedRole.id, permissionId)} error={assignmentError} />}
+      {activeNav === 'Role details' && selectedRole && <RoleDetail role={selectedRole} permissions={permissions} assignedPermissions={rolePermissionMap[selectedRole.id] ?? []} canEdit={can('role:update')} canAssign={can('role_permissions:read')} onBack={() => setRoute('roles')} onEdit={() => openRoleEditor(selectedRole)} onTogglePermission={(permissionId) => toggleRolePermission(selectedRole.id, permissionId)} error={assignmentError} />}
       {activeNav === 'Permissions' && <PermissionCatalog permissions={permissions} />}
       {activeNav === 'Overview' && <section className="resource-section"><div className="section-heading"><div><h2>All resources</h2><p>Collections and policy sets across your workspace.</p></div><button className="filter-button"><SlidersHorizontal size={15} /> Customize</button></div><div className="toolbar"><div className="search-box"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search resources" /></div><div className="filter-tabs">{(['All', 'Auth', 'Finance'] as const).map((item) => <button key={item} className={domain === item ? 'selected' : ''} onClick={() => setDomain(item)}>{item === 'Auth' ? 'Authentication' : item}</button>)}</div><button className="filter-icon" aria-label="Filter"><Filter size={16} /></button></div><div className="table-wrap"><table><thead><tr><th>Resource</th><th>Domain</th><th>Status</th><th>Last updated</th><th>Owner</th></tr></thead><tbody>{filteredResources.map((resource) => { const Icon = resource.icon; return <tr key={resource.id}><td><div className="resource-name"><span className={`resource-icon ${resource.domain.toLowerCase()}`}><Icon size={17} /></span><div><strong>{resource.name}</strong><small>{resource.type}</small></div></div></td><td>{resource.domain}</td><td>{resource.status}</td><td>{resource.updated}</td><td>{resource.owner}</td></tr> })}</tbody></table>{filteredResources.length === 0 && <div className="empty-state">No resources match your search.</div>}</div></section>}
       <footer><span>Ledgerline console</span><span>Updated moments ago</span></footer></main>
