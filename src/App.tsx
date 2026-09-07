@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Bell, BookOpen, ChevronDown, CircleHelp, Database, FileText, Filter, FolderKanban, KeyRound, LayoutDashboard, MoreHorizontal, Search, ShieldCheck, SlidersHorizontal, Users, WalletCards } from 'lucide-react'
 import { assignPermissionToRole, assignRoleToUser, createRole, createUser, deleteRole, deleteUser, getCurrentUser, getPermissions, getRolePermissions, getRoles, getUserRoles, getUsers, login, logout, Permission, refreshAccessToken, removePermissionFromRole, removeRoleFromUser, Role, updateRole, updateUser, User } from './api'
 import { PermissionCatalog } from './components/PermissionCatalog'
@@ -62,7 +62,7 @@ function App() {
   const [roleError, setRoleError] = useState('')
   const [assignmentError, setAssignmentError] = useState('')
 
-  const can = (permission: PermissionName) => user?.is_admin === true || user?.permissions.includes(permission) === true
+  const can = useCallback((permission: PermissionName) => user?.is_admin === true || user?.permissions.includes(permission) === true, [user])
 
   const syncViewFromLocation = () => {
     const params = new URLSearchParams(window.location.search)
@@ -132,40 +132,44 @@ function App() {
   const navigateToRoles = () => setRoute('roles')
   const navigateToPermissions = () => setRoute('permissions')
 
-  const [usersLoaded, setUsersLoaded] = useState(false)
-  const [rolesLoaded, setRolesLoaded] = useState(false)
-  const [permissionsLoaded, setPermissionsLoaded] = useState(false)
+  const userPageLoadedRef = useRef(false)
+  const rolePageLoadedRef = useRef(false)
+  const permissionPageLoadedRef = useRef(false)
+  const loadedUserRoleIdsRef = useRef<Set<number>>(new Set())
+  const loadedRolePermissionIdsRef = useRef<Set<number>>(new Set())
 
   const ensureUsers = async () => {
-    if (!user || !can('users:read') || usersLoaded) return
+    if (!user || !can('users:read') || userPageLoadedRef.current) return
     const nextUsers = await getUsers()
     setUsers(nextUsers)
-    setUsersLoaded(true)
+    userPageLoadedRef.current = true
   }
 
   const ensureRoles = async () => {
-    if (!user || !can('role_permissions:read') || rolesLoaded) return
+    if (!user || !can('role_permissions:read') || rolePageLoadedRef.current) return
     const nextRoles = await getRoles()
     setRoles(nextRoles)
-    setRolesLoaded(true)
+    rolePageLoadedRef.current = true
   }
 
   const ensurePermissions = async () => {
-    if (!user || !can('permissions:read') || permissionsLoaded) return
+    if (!user || !can('permissions:read') || permissionPageLoadedRef.current) return
     const nextPermissions = await getPermissions()
     setPermissions(nextPermissions)
-    setPermissionsLoaded(true)
+    permissionPageLoadedRef.current = true
   }
 
   const ensureUserRoles = async (userId: number) => {
-    if (userRoleMap[userId] !== undefined) return
+    if (userRoleMap[userId] !== undefined || loadedUserRoleIdsRef.current.has(userId)) return
     const nextRoles = await getUserRoles(userId)
+    loadedUserRoleIdsRef.current.add(userId)
     setUserRoleMap((current) => ({ ...current, [userId]: nextRoles }))
   }
 
   const ensureRolePermissions = async (roleId: number) => {
-    if (rolePermissionMap[roleId] !== undefined) return
+    if (rolePermissionMap[roleId] !== undefined || loadedRolePermissionIdsRef.current.has(roleId)) return
     const nextPermissions = await getRolePermissions(roleId)
+    loadedRolePermissionIdsRef.current.add(roleId)
     setRolePermissionMap((current) => ({ ...current, [roleId]: nextPermissions }))
   }
 
@@ -189,7 +193,7 @@ function App() {
 
     if (activeNav === 'User details' && selectedUserId !== null) void ensureUserRoles(selectedUserId)
     if (activeNav === 'Role details' && selectedRoleId !== null) void ensureRolePermissions(selectedRoleId)
-  }, [activeNav, selectedUserId, selectedRoleId, user, can, usersLoaded, rolesLoaded, permissionsLoaded, userRoleMap, rolePermissionMap])
+  }, [activeNav, selectedUserId, selectedRoleId, user, can])
 
   useEffect(() => {
     if (selectedUserId === null) {
