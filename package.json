@@ -9,12 +9,15 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.9.1",
     "@vitejs/plugin-react": "latest",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "react-hook-form": "^7.87.0",
     "typescript": "latest",
-    "vite": "latest"
+    "vite": "latest",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@types/react": "^19.2.18",

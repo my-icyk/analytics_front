@@ -1,4 +1,4 @@
-import type { Counter, CounterPage } from '../types/counter'
+import type { Counter, CounterCreate, CounterPage, CounterUpdate } from '../types/counter'
 import { request } from './client'
 
 export function getCounters(cursorId: number | null) {
@@ -10,4 +10,12 @@ export function getCounters(cursorId: number | null) {
 
 export function getCounter(counterId: number) {
   return request<Counter>(`/api/v1/counters_update/${counterId}`)
+}
+
+export function createCounter(payload: CounterCreate) {
+  return request<Counter>('/api/v1/counters_update/', { method: 'POST', body: JSON.stringify(payload) })
+}
+
+export function updateCounter(counterId: number, payload: CounterUpdate) {
+  return request<Counter>(`/api/v1/counters_update/${counterId}`, { method: 'PATCH', body: JSON.stringify(payload) })
 }

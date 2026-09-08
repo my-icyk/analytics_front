@@ -11,6 +11,8 @@ export type PermissionName =
   | 'role_permissions:read'
   | 'permissions:read'
   | 'counters:read'
+  | 'counters:create'
+  | 'counters:update'
   | 'groups:read'
   | 'rules:read'
 

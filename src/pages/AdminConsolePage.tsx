@@ -22,6 +22,8 @@ import { RoleDetailPage } from './RoleDetailPage'
 import { PermissionCatalogPage } from './PermissionCatalogPage'
 import { CountersPage } from './CountersPage'
 import { CounterDetailPage } from './CounterDetailPage'
+import { CounterUpdateForm } from '../components/CountersUpdate/CounterUpdateForm'
+import type { CounterUpdateFormValues } from '../components/CountersUpdate/CounterUpdateForm.schema'
 
 const initialResources: Resource[] = [
   { id: 1, name: 'Users', type: 'Collection', domain: 'Auth', status: 'Active', updated: 'Live', owner: 'System', icon: Database },
@@ -65,6 +67,10 @@ function App() {
   const [roleError, setRoleError] = useState('')
   const [assignmentError, setAssignmentError] = useState('')
   const [counterError, setCounterError] = useState('')
+  const [editingCounter, setEditingCounter] = useState<Counter | null>(null)
+  const [counterModalOpen, setCounterModalOpen] = useState(false)
+  const [counterFormError, setCounterFormError] = useState('')
+  const [counterRefreshKey, setCounterRefreshKey] = useState(0)
 
   const userPageLoadedRef = useRef(false)
   const rolePageLoadedRef = useRef(false)
@@ -237,6 +243,19 @@ function App() {
   }
   const openUserEditor = (item: User | null) => { setEditingUser(item); setUserForm({ username: item?.username ?? '', password: '', is_admin: item?.is_admin ?? false }); setUserError(''); setUserModalOpen(true) }
   const openRoleEditor = (item: Role | null) => { setEditingRole(item); setRoleForm({ name: item?.name ?? '', description: item?.description ?? '' }); setRoleError(''); setRoleModalOpen(true) }
+  const openCounterEditor = (item: Counter | null) => { setEditingCounter(item); setCounterFormError(''); setCounterModalOpen(true) }
+
+  const saveCounter = async (values: CounterUpdateFormValues) => {
+    const payload = { ...values, comment: values.comment ?? '' }
+    try {
+      const saved = editingCounter ? await counterService.updateCounter(editingCounter.id, payload) : await counterService.createCounter(payload)
+      loadedCounterIdsRef.current.add(saved.id)
+      counterMapRef.current[saved.id] = saved
+      if (selectedCounter?.id === saved.id) setSelectedCounter(saved)
+      setCounterModalOpen(false)
+      setCounterRefreshKey((current) => current + 1)
+    } catch (error) { setCounterFormError(error instanceof Error ? error.message : 'Unable to save counter') }
+  }
 
   const saveUser = async () => {
     if (!userForm.username.trim() || (!editingUser && !userForm.password)) return
@@ -276,12 +295,13 @@ function App() {
       {activeNav === 'Roles' && <RolesPage canCreate={can('role:create')} canEdit={can('role:update')} canDelete={can('role:delete')} onCreate={() => openRoleEditor(null)} onOpen={openRole} onEdit={openRoleEditor} onDelete={removeRole} error={roleError} />}
       {activeNav === 'Role details' && selectedRole && <RoleDetailPage role={selectedRole} permissions={permissions} assignedPermissions={rolePermissionMap[selectedRole.id] ?? []} canEdit={can('role:update')} canAssign={can('role_permissions:read')} onBack={() => setRoute('roles')} onEdit={() => openRoleEditor(selectedRole)} onTogglePermission={(permissionId) => toggleRolePermission(selectedRole.id, permissionId)} error={assignmentError} />}
       {activeNav === 'Permissions' && <PermissionCatalogPage permissions={permissions} />}
-      {activeNav === 'Counters' && <CountersPage onOpen={openCounter} error={counterError} />}
-      {activeNav === 'Counter details' && selectedCounter && <CounterDetailPage counter={selectedCounter} onBack={() => setRoute('counters')} error={counterError} />}
+      {activeNav === 'Counters' && <CountersPage key={counterRefreshKey} canCreate={can('counters:create')} canEdit={can('counters:update')} onCreate={() => openCounterEditor(null)} onOpen={openCounter} onEdit={openCounterEditor} error={counterError} />}
+      {activeNav === 'Counter details' && selectedCounter && <CounterDetailPage counter={selectedCounter} canEdit={can('counters:update')} onBack={() => setRoute('counters')} onEdit={() => openCounterEditor(selectedCounter)} error={counterError} />}
       {activeNav === 'Overview' && <section className="resource-section"><div className="section-heading"><div><h2>All resources</h2><p>Collections and policy sets across your workspace.</p></div><button className="filter-button"><SlidersHorizontal size={15} /> Customize</button></div><div className="toolbar"><div className="search-box"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search resources" /></div><div className="filter-tabs">{(['All', 'Auth', 'Finance'] as const).map((item) => <button key={item} className={domain === item ? 'selected' : ''} onClick={() => setDomain(item)}>{item === 'Auth' ? 'Authentication' : item}</button>)}</div><button className="filter-icon" aria-label="Filter"><Filter size={16} /></button></div><div className="table-wrap"><table><thead><tr><th>Resource</th><th>Domain</th><th>Status</th><th>Last updated</th><th>Owner</th></tr></thead><tbody>{filteredResources.map((resource) => { const Icon = resource.icon; return <tr key={resource.id}><td><div className="resource-name"><span className={`resource-icon ${resource.domain.toLowerCase()}`}><Icon size={17} /></span><div><strong>{resource.name}</strong><small>{resource.type}</small></div></div></td><td>{resource.domain}</td><td>{resource.status}</td><td>{resource.updated}</td><td>{resource.owner}</td></tr> })}</tbody></table>{filteredResources.length === 0 && <div className="empty-state">No resources match your search.</div>}</div></section>}
       <footer><span>Ledgerline console</span><span>Updated moments ago</span></footer></main>
     {userModalOpen && <UserFormModal user={editingUser} isAdmin={user.is_admin} form={userForm} error={userError} onChange={setUserForm} onClose={() => setUserModalOpen(false)} onSubmit={saveUser} />}
     {roleModalOpen && <RoleFormModal role={editingRole} form={roleForm} error={roleError} onChange={setRoleForm} onClose={() => setRoleModalOpen(false)} onSubmit={saveRole} />}
+    {counterModalOpen && <CounterUpdateForm counter={editingCounter} error={counterFormError} onClose={() => setCounterModalOpen(false)} onSubmit={saveCounter} />}
   </div>
 }
 
