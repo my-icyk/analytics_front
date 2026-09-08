@@ -1,8 +1,9 @@
 import { Plus } from 'lucide-react'
+import { DataTable, type DataTableColumn } from '../components/DataTable/DataTable'
+import { roleService } from '../services/roleService'
 import type { Role } from '../types/auth/role'
 
 type RolesPageProps = {
-  roles: Role[]
   canCreate: boolean
   canEdit: boolean
   canDelete: boolean
@@ -13,6 +14,13 @@ type RolesPageProps = {
   error: string
 }
 
-export function RolesPage({ roles, canCreate, canEdit, canDelete, onCreate, onOpen, onEdit, onDelete, error }: RolesPageProps) {
-  return <section className="management-panel"><div className="section-heading"><div><h2>Roles</h2><p>Roles currently available in the backend.</p></div>{canCreate && <button className="primary-button" onClick={onCreate}><Plus size={17} /> New role</button>}</div>{error && <p className="auth-error">{error}</p>}<div className="table-wrap"><table><thead><tr><th>Name</th><th>Description</th><th>Created</th><th>Actions</th></tr></thead><tbody>{roles.map((role) => <tr key={role.id}><td><button className="link-button" onClick={() => onOpen(role)}><strong>{role.name}</strong></button></td><td>{role.description || 'No description'}</td><td>{new Date(role.created_at).toLocaleDateString()}</td><td className="table-actions">{canEdit && <button className="secondary-button compact-button" onClick={() => onEdit(role)}>Edit</button>}{canDelete && <button className="danger-button" onClick={() => onDelete(role)}>Delete</button>}</td></tr>)}</tbody></table>{roles.length === 0 && <div className="empty-state">No roles available.</div>}</div></section>
+export function RolesPage({ canCreate, canEdit, canDelete, onCreate, onOpen, onEdit, onDelete, error }: RolesPageProps) {
+  const columns: DataTableColumn<Role>[] = [
+    { key: 'name', header: 'Name', render: (role) => <button className="link-button" onClick={() => onOpen(role)}><strong>{role.name}</strong></button> },
+    { key: 'description', header: 'Description', render: (role) => role.description || 'No description' },
+    { key: 'created', header: 'Created', render: (role) => new Date(role.created_at).toLocaleDateString() },
+    { key: 'actions', header: 'Actions', render: (role) => <div className="table-actions">{canEdit && <button className="secondary-button compact-button" onClick={() => onEdit(role)}>Edit</button>}{canDelete && <button className="danger-button" onClick={() => onDelete(role)}>Delete</button>}</div> },
+  ]
+
+  return <section className="management-panel"><div className="section-heading"><div><h2>Roles</h2><p>Roles currently available in the backend.</p></div>{canCreate && <button className="primary-button" onClick={onCreate}><Plus size={17} /> New role</button>}</div><DataTable columns={columns} rowKey={(role) => role.id} fetchPage={(cursorId) => roleService.listRolesPage(cursorId, 20)} emptyMessage="No roles available." error={error} /></section>
 }

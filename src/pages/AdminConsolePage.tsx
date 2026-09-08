@@ -3,12 +3,14 @@ import { Bell, BookOpen, ChevronDown, CircleHelp, Database, Filter, MoreHorizont
 import { buildAdminRoute, parseAdminRoute, adminPages } from '../constants/admin'
 import { authService } from '../services/authService'
 import { assignmentService } from '../services/assignmentService'
+import { counterService } from '../services/counterService'
 import { permissionService } from '../services/permissionService'
 import { roleService } from '../services/roleService'
 import { userService } from '../services/userService'
 import type { Permission, PermissionName } from '../types/auth/permission'
 import type { Role } from '../types/auth/role'
 import type { User } from '../types/auth/user'
+import type { Counter } from '../types/counter'
 import type { Resource } from '../types/resource'
 import type { RoleForm, UserForm } from '../types/forms'
 import { UserFormModal } from '../components/users/UserFormModal'
@@ -18,6 +20,8 @@ import { RolesPage } from './RolesPage'
 import { UserDetailPage } from './UserDetailPage'
 import { RoleDetailPage } from './RoleDetailPage'
 import { PermissionCatalogPage } from './PermissionCatalogPage'
+import { CountersPage } from './CountersPage'
+import { CounterDetailPage } from './CounterDetailPage'
 
 const initialResources: Resource[] = [
   { id: 1, name: 'Users', type: 'Collection', domain: 'Auth', status: 'Active', updated: 'Live', owner: 'System', icon: Database },
@@ -49,6 +53,8 @@ function App() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null)
+  const [selectedCounter, setSelectedCounter] = useState<Counter | null>(null)
+  const [selectedCounterId, setSelectedCounterId] = useState<number | null>(null)
   const [userForm, setUserForm] = useState<UserForm>({ username: '', password: '', is_admin: false })
   const [roleForm, setRoleForm] = useState<RoleForm>({ name: '', description: '' })
   const [editingUser, setEditingUser] = useState<User | null>(null)
@@ -58,63 +64,37 @@ function App() {
   const [userError, setUserError] = useState('')
   const [roleError, setRoleError] = useState('')
   const [assignmentError, setAssignmentError] = useState('')
+  const [counterError, setCounterError] = useState('')
 
   const userPageLoadedRef = useRef(false)
   const rolePageLoadedRef = useRef(false)
   const permissionPageLoadedRef = useRef(false)
   const loadedUserRoleIdsRef = useRef<Set<number>>(new Set())
   const loadedRolePermissionIdsRef = useRef<Set<number>>(new Set())
+  const loadedCounterIdsRef = useRef<Set<number>>(new Set())
+  const counterMapRef = useRef<Record<number, Counter>>({})
 
   const can = useCallback((permission: PermissionName) => user?.is_admin === true || user?.permissions.includes(permission) === true, [user])
 
   const syncViewFromLocation = () => {
     const route = parseAdminRoute(window.location.search)
-    if (route.view === 'users') {
-      setActiveNav('Users')
-      setSelectedUser(null)
-      setSelectedUserId(null)
-      setSelectedRole(null)
-      setSelectedRoleId(null)
-      return
-    }
-    if (route.view === 'user') {
-      setActiveNav('User details')
-      setSelectedUserId(route.userId)
-      setSelectedRole(null)
-      setSelectedRoleId(null)
-      return
-    }
-    if (route.view === 'roles') {
-      setActiveNav('Roles')
-      setSelectedUser(null)
-      setSelectedUserId(null)
-      setSelectedRole(null)
-      setSelectedRoleId(null)
-      return
-    }
-    if (route.view === 'role') {
-      setActiveNav('Role details')
-      setSelectedUser(null)
-      setSelectedUserId(null)
-      setSelectedRoleId(route.roleId)
-      return
-    }
-    if (route.view === 'permissions') {
-      setActiveNav('Permissions')
-      setSelectedUser(null)
-      setSelectedUserId(null)
-      setSelectedRole(null)
-      setSelectedRoleId(null)
-      return
-    }
-    setActiveNav('Overview')
     setSelectedUser(null)
     setSelectedUserId(null)
     setSelectedRole(null)
     setSelectedRoleId(null)
+    setSelectedCounter(null)
+    setSelectedCounterId(null)
+    if (route.view === 'users') { setActiveNav('Users'); return }
+    if (route.view === 'user') { setActiveNav('User details'); setSelectedUserId(route.userId); return }
+    if (route.view === 'roles') { setActiveNav('Roles'); return }
+    if (route.view === 'role') { setActiveNav('Role details'); setSelectedRoleId(route.roleId); return }
+    if (route.view === 'permissions') { setActiveNav('Permissions'); return }
+    if (route.view === 'counters') { setActiveNav('Counters'); return }
+    if (route.view === 'counter') { setActiveNav('Counter details'); setSelectedCounterId(route.counterId); return }
+    setActiveNav('Overview')
   }
 
-  const setRoute = (view: 'overview' | 'users' | 'user' | 'roles' | 'role' | 'permissions', values: { userId?: number | null; roleId?: number | null } = {}) => {
+  const setRoute = (view: 'overview' | 'users' | 'user' | 'roles' | 'role' | 'permissions' | 'counters' | 'counter', values: { userId?: number | null; roleId?: number | null; counterId?: number | null } = {}) => {
     window.history.pushState({}, '', buildAdminRoute(view, values))
     syncViewFromLocation()
   }
@@ -154,6 +134,20 @@ function App() {
     setRolePermissionMap((current) => ({ ...current, [roleId]: nextPermissions }))
   }
 
+  const ensureCounter = async (counterId: number) => {
+    if (loadedCounterIdsRef.current.has(counterId)) {
+      setSelectedCounter(counterMapRef.current[counterId] ?? null)
+      return
+    }
+    try {
+      const counter = await counterService.getCounter(counterId)
+      loadedCounterIdsRef.current.add(counterId)
+      counterMapRef.current[counterId] = counter
+      setCounterError('')
+      setSelectedCounter(counter)
+    } catch (error) { setCounterError(error instanceof Error ? error.message : 'Unable to load counter') }
+  }
+
   useEffect(() => {
     authService.refreshSession().then((hasSession) => hasSession ? authService.getCurrentUser().then(setUser).catch(() => undefined) : undefined).finally(() => setCheckingSession(false))
   }, [])
@@ -172,7 +166,8 @@ function App() {
     if (activeNav === 'Permissions' || activeNav === 'Role details') void ensurePermissions()
     if (activeNav === 'User details' && selectedUserId !== null) void ensureUserRoles(selectedUserId)
     if (activeNav === 'Role details' && selectedRoleId !== null) void ensureRolePermissions(selectedRoleId)
-  }, [activeNav, selectedUserId, selectedRoleId, user, can])
+    if (activeNav === 'Counter details' && selectedCounterId !== null) void ensureCounter(selectedCounterId)
+  }, [activeNav, selectedUserId, selectedRoleId, selectedCounterId, user, can])
 
   useEffect(() => {
     if (selectedUserId === null) {
@@ -235,6 +230,11 @@ function App() {
     setSelectedUserId(null)
     setRoute('role', { roleId: item.id })
   }
+  const openCounter = (item: Counter) => {
+    setSelectedCounter(item)
+    setSelectedCounterId(item.id)
+    setRoute('counter', { counterId: item.id })
+  }
   const openUserEditor = (item: User | null) => { setEditingUser(item); setUserForm({ username: item?.username ?? '', password: '', is_admin: item?.is_admin ?? false }); setUserError(''); setUserModalOpen(true) }
   const openRoleEditor = (item: Role | null) => { setEditingRole(item); setRoleForm({ name: item?.name ?? '', description: item?.description ?? '' }); setRoleError(''); setRoleModalOpen(true) }
 
@@ -269,13 +269,15 @@ function App() {
   if (!user) return <div className="auth-screen"><form className="auth-panel" onSubmit={submitLogin}><div className="brand auth-brand"><span className="brand-mark"><Database size={18} /></span><span>ledgerline</span></div><p className="eyebrow">SECURE CONSOLE</p><h1>Sign in to your workspace</h1><p className="subtitle">Use your FastAPI account to continue.</p><label>Username<input autoFocus value={username} onChange={(event) => setUsername(event.target.value)} required /></label><label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>{loginError && <p className="auth-error">{loginError}</p>}<button className="primary-button auth-submit" disabled={loggingIn}>{loggingIn ? 'Signing in...' : 'Sign in'}</button></form></div>
 
   const visibleNav = adminPages.filter((item) => item.id === 'overview' || (item.permission && can(item.permission)))
-  return <div className="app-shell"><aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}><div className="sidebar-header"><div className="brand"><span className="brand-mark"><Database size={18} /></span><span>ledgerline</span></div><button className="sidebar-toggle" type="button" onClick={() => setSidebarCollapsed((current) => !current)} aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}>{sidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}</button></div><div className="workspace-switcher"><span className="workspace-dot" /><span>Acme workspace</span><ChevronDown size={15} /></div><nav className="nav-list">{visibleNav.map((item) => { const Icon = item.icon; return <div key={item.id}>{item.group && visibleNav.find((nav) => nav.group === item.group)?.id === item.id && <span className="nav-group">{item.group}</span>}<button className={`nav-item ${activeNav === item.label ? 'active' : ''}`} onClick={() => { if (item.id === 'overview') setRoute('overview'); if (item.id === 'users') setRoute('users'); if (item.id === 'roles') setRoute('roles'); if (item.id === 'permissions') setRoute('permissions'); }}><Icon size={17} /><span>{item.label}</span></button></div> })}</nav><div className="sidebar-bottom"><button className="nav-item"><BookOpen size={17} /><span>Documentation</span></button><button className="nav-item"><CircleHelp size={17} /><span>Help center</span></button><button className="profile" onClick={() => authService.logout().then(() => setUser(null))}><div className="avatar">{user.username.slice(0, 2).toUpperCase()}</div><div><strong>{user.username}</strong><small>{user.is_admin ? 'Admin' : 'Member'}</small></div><MoreHorizontal size={17} /></button></div></aside>
+  return <div className="app-shell"><aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}><div className="sidebar-header"><div className="brand"><span className="brand-mark"><Database size={18} /></span><span>ledgerline</span></div><button className="sidebar-toggle" type="button" onClick={() => setSidebarCollapsed((current) => !current)} aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}>{sidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}</button></div><div className="workspace-switcher"><span className="workspace-dot" /><span>Acme workspace</span><ChevronDown size={15} /></div><nav className="nav-list">{visibleNav.map((item) => { const Icon = item.icon; return <div key={item.id}>{item.group && visibleNav.find((nav) => nav.group === item.group)?.id === item.id && <span className="nav-group">{item.group}</span>}<button className={`nav-item ${activeNav === item.label ? 'active' : ''}`} onClick={() => { if (item.id === 'overview') setRoute('overview'); if (item.id === 'users') setRoute('users'); if (item.id === 'roles') setRoute('roles'); if (item.id === 'permissions') setRoute('permissions'); if (item.id === 'counters') setRoute('counters'); }}><Icon size={17} /><span>{item.label}</span></button></div> })}</nav><div className="sidebar-bottom"><button className="nav-item"><BookOpen size={17} /><span>Documentation</span></button><button className="nav-item"><CircleHelp size={17} /><span>Help center</span></button><button className="profile" onClick={() => authService.logout().then(() => setUser(null))}><div className="avatar">{user.username.slice(0, 2).toUpperCase()}</div><div><strong>{user.username}</strong><small>{user.is_admin ? 'Admin' : 'Member'}</small></div><MoreHorizontal size={17} /></button></div></aside>
     <main className="main-content"><header className="topbar"><div className="breadcrumbs"><span>Workspace</span><span>/</span><strong>{activeNav}</strong></div><div className="top-actions"><button className="icon-button" type="button" onClick={() => setSidebarCollapsed((current) => !current)} aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}>{sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}</button><button className="icon-button" aria-label="Notifications"><Bell size={18} /></button><button className="help-button"><CircleHelp size={16} /> Support</button></div></header><section className="page-header"><div><p className="eyebrow">RESOURCE MANAGEMENT</p><h1>{activeNav === 'Overview' ? 'Your resource library' : activeNav}</h1><p className="subtitle">Manage the building blocks behind your application.</p></div></section><section className="stat-grid"><div className="stat-card"><span className="stat-label">Total resources</span><strong>{resources.length}</strong><span className="stat-note">Live backend resources</span></div><div className="stat-card"><span className="stat-label">Authentication</span><strong>{resources.filter((item) => item.domain === 'Auth').length}</strong><span className="stat-note">Users, roles & access</span></div><div className="stat-card"><span className="stat-label">Finance</span><strong>{resources.filter((item) => item.domain === 'Finance').length}</strong><span className="stat-note">Rules & operations</span></div><div className="stat-card accent"><span className="stat-label">Active resources</span><strong>{resources.filter((item) => item.status === 'Active').length}</strong><span className="stat-note">Ready for production</span></div></section>
-      {activeNav === 'Users' && <UsersPage users={users} canCreate={can('users:create')} canEdit={can('users:update')} canDelete={can('users:delete')} onCreate={() => openUserEditor(null)} onOpen={openUser} onEdit={openUserEditor} onDelete={removeUser} error={userError} />}
+      {activeNav === 'Users' && <UsersPage canCreate={can('users:create')} canEdit={can('users:update')} canDelete={can('users:delete')} onCreate={() => openUserEditor(null)} onOpen={openUser} onEdit={openUserEditor} onDelete={removeUser} error={userError} />}
       {activeNav === 'User details' && selectedUser && <UserDetailPage user={selectedUser} roles={roles} assignedRoles={userRoleMap[selectedUser.id] ?? []} canEdit={can('users:update')} canAssign={can('role_permissions:read')} onBack={() => setRoute('users')} onEdit={() => openUserEditor(selectedUser)} onOpenRole={openRole} onToggleRole={(roleId) => toggleUserRole(selectedUser.id, roleId)} error={assignmentError} />}
-      {activeNav === 'Roles' && <RolesPage roles={roles} canCreate={can('role:create')} canEdit={can('role:update')} canDelete={can('role:delete')} onCreate={() => openRoleEditor(null)} onOpen={openRole} onEdit={openRoleEditor} onDelete={removeRole} error={roleError} />}
+      {activeNav === 'Roles' && <RolesPage canCreate={can('role:create')} canEdit={can('role:update')} canDelete={can('role:delete')} onCreate={() => openRoleEditor(null)} onOpen={openRole} onEdit={openRoleEditor} onDelete={removeRole} error={roleError} />}
       {activeNav === 'Role details' && selectedRole && <RoleDetailPage role={selectedRole} permissions={permissions} assignedPermissions={rolePermissionMap[selectedRole.id] ?? []} canEdit={can('role:update')} canAssign={can('role_permissions:read')} onBack={() => setRoute('roles')} onEdit={() => openRoleEditor(selectedRole)} onTogglePermission={(permissionId) => toggleRolePermission(selectedRole.id, permissionId)} error={assignmentError} />}
       {activeNav === 'Permissions' && <PermissionCatalogPage permissions={permissions} />}
+      {activeNav === 'Counters' && <CountersPage onOpen={openCounter} error={counterError} />}
+      {activeNav === 'Counter details' && selectedCounter && <CounterDetailPage counter={selectedCounter} onBack={() => setRoute('counters')} error={counterError} />}
       {activeNav === 'Overview' && <section className="resource-section"><div className="section-heading"><div><h2>All resources</h2><p>Collections and policy sets across your workspace.</p></div><button className="filter-button"><SlidersHorizontal size={15} /> Customize</button></div><div className="toolbar"><div className="search-box"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search resources" /></div><div className="filter-tabs">{(['All', 'Auth', 'Finance'] as const).map((item) => <button key={item} className={domain === item ? 'selected' : ''} onClick={() => setDomain(item)}>{item === 'Auth' ? 'Authentication' : item}</button>)}</div><button className="filter-icon" aria-label="Filter"><Filter size={16} /></button></div><div className="table-wrap"><table><thead><tr><th>Resource</th><th>Domain</th><th>Status</th><th>Last updated</th><th>Owner</th></tr></thead><tbody>{filteredResources.map((resource) => { const Icon = resource.icon; return <tr key={resource.id}><td><div className="resource-name"><span className={`resource-icon ${resource.domain.toLowerCase()}`}><Icon size={17} /></span><div><strong>{resource.name}</strong><small>{resource.type}</small></div></div></td><td>{resource.domain}</td><td>{resource.status}</td><td>{resource.updated}</td><td>{resource.owner}</td></tr> })}</tbody></table>{filteredResources.length === 0 && <div className="empty-state">No resources match your search.</div>}</div></section>}
       <footer><span>Ledgerline console</span><span>Updated moments ago</span></footer></main>
     {userModalOpen && <UserFormModal user={editingUser} isAdmin={user.is_admin} form={userForm} error={userError} onChange={setUserForm} onClose={() => setUserModalOpen(false)} onSubmit={saveUser} />}
