@@ -13,6 +13,7 @@ export type PermissionName =
   | 'counters:read'
   | 'counters:create'
   | 'counters:update'
+  | 'counters:delete'
   | 'groups:read'
   | 'rules:read'
 

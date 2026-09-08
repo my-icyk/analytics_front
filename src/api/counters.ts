@@ -17,5 +17,9 @@ export function createCounter(payload: CounterCreate) {
 }
 
 export function updateCounter(counterId: number, payload: CounterUpdate) {
-  return request<Counter>(`/api/v1/counters_update/${counterId}`, { method: 'PATCH', body: JSON.stringify(payload) })
+  return request<Counter>(`/api/v1/counters_update/${counterId}`, { method: 'PUT', body: JSON.stringify(payload) })
+}
+
+export function deleteCounter(counterId: number) {
+  return request<void>(`/api/v1/counters_update/${counterId}`, { method: 'DELETE' })
 }

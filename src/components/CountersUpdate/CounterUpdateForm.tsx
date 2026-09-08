@@ -21,7 +21,7 @@ export function CounterUpdateForm({ counter, error, onClose, onSubmit }: Counter
   })
 
   useEffect(() => {
-    reset(counter ? {amount: counter.amount, start_date: counter.start_date, end_date: counter.end_date, auto: counter.auto, comment: counter.comment } : emptyValues)
+    reset(counter ? { id_counter: counter.id_counter, amount: counter.amount, start_date: counter.start_date, end_date: counter.end_date, auto: counter.auto, comment: counter.comment } : emptyValues)
   }, [counter, reset])
 
   return (
@@ -31,6 +31,13 @@ export function CounterUpdateForm({ counter, error, onClose, onSubmit }: Counter
         {error && <p className="auth-error">{error}</p>}
         <form onSubmit={handleSubmit(onSubmit)}>
 
+          {counter && <label>Record ID
+            <input type="text" value={counter.id} disabled readOnly />
+          </label>}
+          <label>Counter ID
+            <input type="number" {...register("id_counter", { valueAsNumber: true })} />
+            {errors.id_counter && <span className="auth-error">{errors.id_counter.message}</span>}
+          </label>
           <label>Amount
             <input type="number" step="any" {...register("amount", { valueAsNumber: true })} />
             {errors.amount && <span className="auth-error">{errors.amount.message}</span>}

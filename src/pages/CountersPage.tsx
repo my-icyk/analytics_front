@@ -6,13 +6,15 @@ import type { Counter } from '../types/counter'
 type CountersPageProps = {
   canCreate: boolean
   canEdit: boolean
+  canDelete: boolean
   onCreate: () => void
   onOpen: (counter: Counter) => void
   onEdit: (counter: Counter) => void
+  onDelete: (counter: Counter) => void
   error: string
 }
 
-export function CountersPage({ canCreate, canEdit, onCreate, onOpen, onEdit, error }: CountersPageProps) {
+export function CountersPage({ canCreate, canEdit, canDelete, onCreate, onOpen, onEdit, onDelete, error }: CountersPageProps) {
   const columns: DataTableColumn<Counter>[] = [
     { key: 'id_counter', header: 'Counter ID', render: (item) => <button className="link-button" onClick={() => onOpen(item)}><strong>{item.id_counter}</strong></button> },
     { key: 'amount', header: 'Amount', render: (item) => item.amount },
@@ -20,7 +22,7 @@ export function CountersPage({ canCreate, canEdit, onCreate, onOpen, onEdit, err
     { key: 'end_date', header: 'End date', render: (item) => item.end_date },
     { key: 'auto', header: 'Mode', render: (item) => <span className={`status ${item.auto ? 'active' : 'draft'}`}><span />{item.auto ? 'Auto' : 'Manual'}</span> },
     { key: 'comment', header: 'Comment', render: (item) => item.comment || '—' },
-    { key: 'actions', header: 'Actions', render: (item) => <div className="table-actions">{canEdit && <button className="secondary-button compact-button" onClick={() => onEdit(item)}>Edit</button>}</div> },
+    { key: 'actions', header: 'Actions', render: (item) => <div className="table-actions">{canEdit && <button className="secondary-button compact-button" onClick={() => onEdit(item)}>Edit</button>}{canDelete && <button className="danger-button" onClick={() => onDelete(item)}>Delete</button>}</div> },
   ]
 
   return <section className="management-panel">

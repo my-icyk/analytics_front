@@ -1,10 +1,11 @@
-import { createCounter, getCounter, getCounters, updateCounter } from '../api/counters'
+import { createCounter, deleteCounter, getCounter, getCounters, updateCounter } from '../api/counters'
 import type { Counter } from '../types/counter'
 
 export const counterService = {
   getCounter,
   createCounter,
   updateCounter,
+  deleteCounter,
   listCountersPage,
 }
 
