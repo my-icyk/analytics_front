@@ -1,0 +1,53 @@
+.scripts-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.content-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 10px;
+}
+
+.content-card h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+}
+
+.product-search {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.product-search .form-input {
+    width: 300px;
+}
+
+.product-info {
+    display: grid;
+    gap: 20px;
+}
+
+.product-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.product-info-label {
+    font-size: 10px;
+    color: #6b7280;
+}
+
+.product-info-value {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.error-message {
+    margin-top: 12px;
+    color: #dc2626;
+}
