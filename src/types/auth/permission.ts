@@ -23,4 +23,6 @@ export type PermissionName =
   | 'groups:read'
   | 'rules:read'
 
+
+
 export type Permission = { id: number; name: string }

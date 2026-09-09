@@ -1,8 +1,20 @@
 import type { LucideIcon } from 'lucide-react'
-import { FileText, FolderKanban, KeyRound, ShieldCheck, Users, WalletCards } from 'lucide-react'
+import { FileText, FolderKanban, KeyRound, ShieldCheck, Users, WalletCards, Activity } from 'lucide-react'
 import type { PermissionName } from '../types/auth/permission'
 
-export type AdminView = 'overview' | 'me' | 'users' | 'user' | 'roles' | 'role' | 'permissions' | 'counters' | 'counter'
+export type AdminView =
+  | 'overview'
+  | 'me'
+  | 'users'
+  | 'user'
+  | 'roles'
+  | 'role'
+  | 'permissions'
+  | 'counters'
+  | 'counter'
+  | 'groups'
+  | 'rules'
+  | 'scripts'
 
 export type AdminRouteState = {
   view: AdminView
@@ -12,7 +24,7 @@ export type AdminRouteState = {
 }
 
 export type AdminPageDefinition = {
-  id: AdminView | 'groups' | 'rules'
+  id: AdminView
   label: string
   icon: LucideIcon
   group?: string
@@ -26,6 +38,7 @@ export const adminPages: AdminPageDefinition[] = [
   { id: 'counters', label: 'Counters', icon: WalletCards, group: 'Tables', permission: 'counters_update:read' },
   { id: 'groups', label: 'Groups', icon: FolderKanban, group: 'Finance', permission: 'groups:read' },
   { id: 'rules', label: 'Rules', icon: FileText, group: 'Finance', permission: 'rules:read' },
+  { id: 'scripts', label: 'Scripts', icon: Activity, group: 'General', permission: 'users:delete' }
 ]
 
 export function parseAdminRoute(pathname: string, search: string): AdminRouteState {
@@ -43,10 +56,11 @@ export function parseAdminRoute(pathname: string, search: string): AdminRouteSta
   if (view === 'roles') return { view: 'roles', userId: null, roleId: null, counterId: null }
   if (view === 'role') return { view: 'role', userId: null, roleId, counterId: null }
   if (view === 'counter') return { view: 'counter', userId: null, roleId: null, counterId }
-  return { view: 'users', userId: null, roleId: null, counterId: null }
+  if (view === 'scripts') return { view: 'scripts', userId: null, roleId: null, counterId: null }
+  return { view: 'me', userId: null, roleId: null, counterId: null }
 }
 
-export function buildAdminRoute(view: AdminView | 'groups' | 'rules', params: { userId?: number | null; roleId?: number | null; counterId?: number | null } = {}) {
+export function buildAdminRoute(view: AdminView, params: { userId?: number | null; roleId?: number | null; counterId?: number | null } = {}) {
   const url = new URL(window.location.href)
 
   if (view === 'me') {
@@ -81,6 +95,7 @@ export function buildAdminRoute(view: AdminView | 'groups' | 'rules', params: { 
     url.searchParams.delete('roleId')
     return `${url.pathname}${url.search}`
   }
+
 
   url.searchParams.delete('userId')
   url.searchParams.delete('roleId')

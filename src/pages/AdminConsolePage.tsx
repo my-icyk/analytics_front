@@ -37,6 +37,7 @@ import { CounterDetailPage } from "./CounterDetailPage";
 import { CounterUpdateForm } from "../components/CountersUpdate/CounterUpdateForm";
 import type { CounterUpdateFormValues } from "../components/CountersUpdate/CounterUpdateForm.schema";
 import { MePage } from "./MePage";
+import { ScriptsPage } from "./ScriptsPage";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -140,6 +141,10 @@ function App() {
       setActiveNav("Counters");
       return;
     }
+    if (route.view === "scripts") {
+      setActiveNav("Scripts");
+      return;
+    }
     if (route.view === "counter") {
       setActiveNav("Counter details");
       setSelectedCounterId(route.counterId);
@@ -157,6 +162,7 @@ function App() {
       | "role"
       | "permissions"
       | "counters"
+      | "scripts"
       | "counter",
     values: {
       userId?: number | null;
@@ -608,6 +614,7 @@ function App() {
                     if (item.id === "roles") setRoute("roles");
                     if (item.id === "permissions") setRoute("permissions");
                     if (item.id === "counters") setRoute("counters");
+                    if (item.id === "scripts") setRoute("scripts");
                   }}
                 >
                   <Icon size={17} />
@@ -755,10 +762,7 @@ function App() {
             error={counterError}
           />
         )}
-        <footer>
-          <span>Ledgerline console</span>
-          <span>Updated moments ago</span>
-        </footer>
+        {activeNav === "Scripts" && <ScriptsPage />}
       </main>
       {userModalOpen && (
         <UserFormModal
