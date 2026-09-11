@@ -1,4 +1,4 @@
-import { assignRoleToUser, createUser, deleteUser, getUserRoles, getUsers, removeRoleFromUser, updateUser } from '../api/users'
+import { assignRoleToUser, createUser, deleteUser, getUserRoles, getUsers, grantAdmin, removeRoleFromUser, revokeAdmin, updateUser } from '../api/users'
 import type { Role } from '../types/auth/role'
 import type { User, UserCreate, UserUpdate } from '../types/auth/user'
 
@@ -11,6 +11,8 @@ export const userService = {
   getUserRoles,
   assignRoleToUser,
   removeRoleFromUser,
+  grantAdmin,
+  revokeAdmin,
 }
 
 // Client-side cursor slice over getUsers(); shaped to swap later for real backend cursor params.

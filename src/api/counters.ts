@@ -5,21 +5,21 @@ export function getCounters(cursorId: number | null) {
   const params = new URLSearchParams()
   if (cursorId != null) params.set('cursor_id', String(cursorId))
   const query = params.toString()
-  return request<CounterPage>(`/api/v1/counters_update/${query ? `?${query}` : ''}`)
+  return request<CounterPage>(`/api/v1/counter-updates${query ? `?${query}` : ''}`)
 }
 
 export function getCounter(counterId: number) {
-  return request<Counter>(`/api/v1/counters_update/${counterId}`)
+  return request<Counter>(`/api/v1/counter-updates/${counterId}`)
 }
 
 export function createCounter(payload: CounterCreate) {
-  return request<Counter>('/api/v1/counters_update/', { method: 'POST', body: JSON.stringify(payload) })
+  return request<Counter>('/api/v1/counter-updates', { method: 'POST', body: JSON.stringify(payload) })
 }
 
 export function updateCounter(counterId: number, payload: CounterUpdate) {
-  return request<Counter>(`/api/v1/counters_update/${counterId}`, { method: 'PUT', body: JSON.stringify(payload) })
+  return request<Counter>(`/api/v1/counter-updates/${counterId}`, { method: 'PUT', body: JSON.stringify(payload) })
 }
 
 export function deleteCounter(counterId: number) {
-  return request<void>(`/api/v1/counters_update/${counterId}`, { method: 'DELETE' })
+  return request<void>(`/api/v1/counter-updates/${counterId}`, { method: 'DELETE' })
 }

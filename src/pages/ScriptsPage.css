@@ -1,53 +1,105 @@
-.scripts-content {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+.scripts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin-top: 6px;
 }
 
-.content-card {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    padding: 10px;
+.script-block {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  overflow: hidden;
 }
 
-.content-card h3 {
-    margin: 0 0 16px;
-    font-size: 16px;
+.script-block-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(215, 237, 180, 0.18);
 }
 
-.product-search {
-    display: flex;
-    gap: 12px;
-    align-items: center;
+.script-block-header h3 {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: -0.3px;
+  color: var(--ink);
 }
 
-.product-search .form-input {
-    width: 300px;
+.script-block-header p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 11px;
 }
 
-.product-info {
-    display: grid;
-    gap: 20px;
+.script-block-body {
+  padding: 20px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.product-info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+.script-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 
-.product-info-label {
-    font-size: 10px;
-    color: #6b7280;
+.script-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  outline-color: var(--green);
+  color: var(--ink);
+  background: white;
+  font-size: 12px;
 }
 
-.product-info-value {
-    font-size: 15px;
-    font-weight: 600;
+.script-error {
+  margin: 0;
+  color: #b34d3d;
+  font-size: 11px;
+  font-weight: 600;
 }
 
-.error-message {
-    margin-top: 12px;
-    color: #dc2626;
+.script-output {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
+
+.script-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.script-summary-label {
+  display: block;
+  color: #8b9387;
+  font: 500 10px "DM Mono", monospace;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.script-summary strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.script-message {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #d9e5cf;
+  border-left: 3px solid var(--green);
+  border-radius: 6px;
+  background: #e8f0e1;
+  color: #365a45;
+  font-size: 12px;
+  font-weight: 600;
+}
+

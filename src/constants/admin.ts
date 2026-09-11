@@ -32,13 +32,13 @@ export type AdminPageDefinition = {
 }
 
 export const adminPages: AdminPageDefinition[] = [
-  { id: 'users', label: 'Users', icon: Users, group: 'Authentication', permission: 'users:read' },
-  { id: 'roles', label: 'Roles', icon: ShieldCheck, group: 'Authentication', permission: 'roles:read' },
-  { id: 'permissions', label: 'Permissions', icon: KeyRound, group: 'Authentication', permission: 'permissions:read' },
-  { id: 'counters', label: 'Counters', icon: WalletCards, group: 'Tables', permission: 'counters_update:read' },
+  { id: 'users', label: 'Users', icon: Users, group: 'Authentication', permission: 'user:read' },
+  { id: 'roles', label: 'Roles', icon: ShieldCheck, group: 'Authentication', permission: 'role:read' },
+  { id: 'permissions', label: 'Permissions', icon: KeyRound, group: 'Authentication', permission: 'permission:read' },
+  { id: 'counters', label: 'Counters', icon: WalletCards, group: 'Tables', permission: 'counter_update:read' },
   { id: 'groups', label: 'Groups', icon: FolderKanban, group: 'Finance', permission: 'groups:read' },
   { id: 'rules', label: 'Rules', icon: FileText, group: 'Finance', permission: 'rules:read' },
-  { id: 'scripts', label: 'Scripts', icon: Activity, group: 'General', permission: 'users:delete' }
+  { id: 'scripts', label: 'Scripts', icon: Activity, group: 'General', permission: 'user:delete' }
 ]
 
 export function parseAdminRoute(pathname: string, search: string): AdminRouteState {

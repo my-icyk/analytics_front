@@ -2,6 +2,11 @@ const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replac
 
 let accessToken: string | null = null
 let refreshPromise: Promise<boolean> | null = null
+let onSessionExpired: (() => void) | null = null
+
+export function setSessionExpiredHandler(handler: (() => void) | null) {
+  onSessionExpired = handler
+}
 
 export async function request<T>(path: string, options: RequestInit = {}, retry = true): Promise<T> {
   const headers = new Headers(options.headers)
@@ -31,7 +36,7 @@ export async function refreshAccessToken() {
   if (!refreshPromise) {
     refreshPromise = request<{ access_token: string; token_type: string }>('/api/v1/auth/refresh', { method: 'POST' }, false)
       .then((tokens) => { accessToken = tokens.access_token; return true })
-      .catch(() => { accessToken = null; return false })
+      .catch(() => { accessToken = null; onSessionExpired?.(); return false })
       .finally(() => { refreshPromise = null })
   }
   return refreshPromise

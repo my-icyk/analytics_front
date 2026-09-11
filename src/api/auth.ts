@@ -13,8 +13,7 @@ export async function logout() {
 }
 
 export async function getCurrentUser() {
-  const response = await request<CurrentUserResponse>('/api/v1/users/me')
-  return { ...response.user, permissions: response.permissions }
+  return request<CurrentUserResponse>('/api/v1/users/me')
 }
 
 export async function refreshSession() {

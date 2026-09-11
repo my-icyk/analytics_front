@@ -175,21 +175,21 @@ function App() {
   };
 
   const ensureUsers = async () => {
-    if (!user || !can("users:read") || userPageLoadedRef.current) return;
+    if (!user || !can("user:read") || userPageLoadedRef.current) return;
     const nextUsers = await userService.listUsers();
     setUsers(nextUsers);
     userPageLoadedRef.current = true;
   };
 
   const ensureRoles = async () => {
-    if (!user || !can("roles:read") || rolePageLoadedRef.current) return;
+    if (!user || !can("role:read") || rolePageLoadedRef.current) return;
     const nextRoles = await roleService.listRoles();
     setRoles(nextRoles);
     rolePageLoadedRef.current = true;
   };
 
   const ensurePermissions = async () => {
-    if (!user || !can("permissions:read") || permissionPageLoadedRef.current)
+    if (!user || !can("permission:read") || permissionPageLoadedRef.current)
       return;
     const nextPermissions = await permissionService.listPermissions();
     setPermissions(nextPermissions);
@@ -240,6 +240,7 @@ function App() {
   };
 
   useEffect(() => {
+    authService.setSessionExpiredHandler(() => setUser(null));
     authService
       .refreshSession()
       .then((hasSession) =>
@@ -251,6 +252,7 @@ function App() {
           : undefined,
       )
       .finally(() => setCheckingSession(false));
+    return () => authService.setSessionExpiredHandler(null);
   }, []);
 
   useEffect(() => {
@@ -263,15 +265,15 @@ function App() {
   useEffect(() => {
     if (!user) return;
     if (activeNav === "Users" || activeNav === "User details")
-      void ensureUsers();
+      void ensureUsers().catch(() => undefined);
     if (activeNav === "Roles" || activeNav === "Role details")
-      void ensureRoles();
+      void ensureRoles().catch(() => undefined);
     if (activeNav === "Permissions" || activeNav === "Role details")
-      void ensurePermissions();
+      void ensurePermissions().catch(() => undefined);
     if (activeNav === "User details" && selectedUserId !== null)
-      void ensureUserRoles(selectedUserId);
+      void ensureUserRoles(selectedUserId).catch(() => undefined);
     if (activeNav === "Role details" && selectedRoleId !== null)
-      void ensureRolePermissions(selectedRoleId);
+      void ensureRolePermissions(selectedRoleId).catch(() => undefined);
     if (activeNav === "Counter details" && selectedCounterId !== null)
       void ensureCounter(selectedCounterId);
   }, [activeNav, selectedUserId, selectedRoleId, selectedCounterId, user, can]);
@@ -312,6 +314,26 @@ function App() {
     } catch (error) {
       setAssignmentError(
         error instanceof Error ? error.message : "Unable to update user roles",
+      );
+    }
+  };
+
+  const toggleUserAdmin = async (targetUser: User) => {
+    try {
+      const updated = targetUser.is_admin
+        ? await userService.revokeAdmin(targetUser.id)
+        : await userService.grantAdmin(targetUser.id);
+      setAssignmentError("");
+      setUsers((current) =>
+        current.map((item) =>
+          item.id === updated.id ? { ...item, ...updated } : item,
+        ),
+      );
+    } catch (error) {
+      setAssignmentError(
+        error instanceof Error
+          ? error.message
+          : "Unable to update admin access",
       );
     }
   };
@@ -684,9 +706,9 @@ function App() {
         {activeNav === "Me" && <MePage user={user} />}
         {activeNav === "Users" && (
           <UsersPage
-            canCreate={can("users:create")}
-            canEdit={can("users:update")}
-            canDelete={can("users:delete")}
+            canCreate={can("user:create")}
+            canEdit={can("user:update")}
+            canDelete={can("user:delete")}
             onCreate={() => openUserEditor(null)}
             onOpen={openUser}
             onEdit={openUserEditor}
@@ -699,20 +721,22 @@ function App() {
             user={selectedUser}
             roles={roles}
             assignedRoles={userRoleMap[selectedUser.id] ?? []}
-            canEdit={can("users:update")}
-            canAssign={can("user_roles:update")}
+            canEdit={can("user:update")}
+            canAssign={can("user_role:assign") || can("user_role:revoke")}
+            canManageAdmin={can("user:manage_admin")}
             onBack={() => setRoute("users")}
             onEdit={() => openUserEditor(selectedUser)}
             onOpenRole={openRole}
             onToggleRole={(roleId) => toggleUserRole(selectedUser.id, roleId)}
+            onToggleAdmin={() => toggleUserAdmin(selectedUser)}
             error={assignmentError}
           />
         )}
         {activeNav === "Roles" && (
           <RolesPage
-            canCreate={can("roles:create")}
-            canEdit={can("roles:update")}
-            canDelete={can("roles:delete")}
+            canCreate={can("role:create")}
+            canEdit={can("role:update")}
+            canDelete={can("role:delete")}
             onCreate={() => openRoleEditor(null)}
             onOpen={openRole}
             onEdit={openRoleEditor}
@@ -725,8 +749,10 @@ function App() {
             role={selectedRole}
             permissions={permissions}
             assignedPermissions={rolePermissionMap[selectedRole.id] ?? []}
-            canEdit={can("roles:update")}
-            canAssign={can("role_permissions:update")}
+            canEdit={can("role:update")}
+            canAssign={
+              can("role_permission:assign") || can("role_permission:revoke")
+            }
             onBack={() => setRoute("roles")}
             onEdit={() => openRoleEditor(selectedRole)}
             onTogglePermission={(permissionId) =>
@@ -741,9 +767,9 @@ function App() {
         {activeNav === "Counters" && (
           <CountersPage
             key={counterRefreshKey}
-            canCreate={can("counters_update:create")}
-            canEdit={can("counters_update:update")}
-            canDelete={can("counters_update:delete")}
+            canCreate={can("counter_update:create")}
+            canEdit={can("counter_update:update")}
+            canDelete={can("counter_update:delete")}
             onCreate={() => openCounterEditor(null)}
             onOpen={openCounter}
             onEdit={openCounterEditor}
@@ -754,15 +780,15 @@ function App() {
         {activeNav === "Counter details" && selectedCounter && (
           <CounterDetailPage
             counter={selectedCounter}
-            canEdit={can("counters_update:update")}
-            canDelete={can("counters_update:delete")}
+            canEdit={can("counter_update:update")}
+            canDelete={can("counter_update:delete")}
             onBack={() => setRoute("counters")}
             onEdit={() => openCounterEditor(selectedCounter)}
             onDelete={() => removeCounter(selectedCounter)}
             error={counterError}
           />
         )}
-        {activeNav === "Scripts" && <ScriptsPage />}
+        {activeNav === "Scripts" && <ScriptsPage username={user.username} />}
       </main>
       {userModalOpen && (
         <UserFormModal
