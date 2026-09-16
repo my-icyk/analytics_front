@@ -1,28 +1,46 @@
 export type PermissionName =
-  | 'system:health:read'
-  | 'user:create'
-  | 'user:read'
-  | 'user:update'
-  | 'user:delete'
-  | 'user:manage_admin'
-  | 'role:create'
-  | 'role:read'
-  | 'role:update'
-  | 'role:delete'
-  | 'user_role:assign'
-  | 'user_role:revoke'
-  | 'user_role:read'
-  | 'role_permission:assign'
-  | 'role_permission:revoke'
-  | 'role_permission:read'
-  | 'permission:read'
-  | 'counter_update:create'
-  | 'counter_update:read'
-  | 'counter_update:update'
-  | 'counter_update:delete'
-  | 'product_prices:read'
+  | "system:health:read"
+  | "user:create"
+  | "user:read"
+  | "user:update"
+  | "user:delete"
+  | "user:manage_admin"
+  | "role:create"
+  | "role:read"
+  | "role:update"
+  | "role:delete"
+  | "user_role:assign"
+  | "user_role:revoke"
+  | "user_role:read"
+  | "role_permission:assign"
+  | "role_permission:revoke"
+  | "role_permission:read"
+  | "permission:read"
+  | "counter_update:create"
+  | "counter_update:read"
+  | "counter_update:update"
+  | "counter_update:delete"
+  | "product_prices:read"
   // placeholders: no backend endpoints yet, kept so Groups/Rules nav items can compile
-  | 'groups:read'
-  | 'rules:read'
+  | "groups:read"
+  | "rules:read"
 
-export type Permission = { id: number; name: string }
+  // finance permission
+  | "finance:division:create"
+  | "finance:division:read"
+  | "finance:division:update"
+  | "finance:division:delete"
+  | "finance:group:create"
+  | "finance:group:read"
+  | "finance:group:update"
+  | "finance:group:delete"
+  | "finance:rule:create"
+  | "finance:rule:read"
+  | "finance:rule:update"
+  | "finance:rule:delete"
+  | "finance:rule_target:create"
+  | "finance:rule_target:read"
+  | "finance:rule_target:update"
+  | "finance:rule_target:delete";
+
+export type Permission = { id: number; name: string };
