@@ -38,6 +38,20 @@ import { CounterUpdateForm } from "../components/CountersUpdate/CounterUpdateFor
 import type { CounterUpdateFormValues } from "../components/CountersUpdate/CounterUpdateForm.schema";
 import { MePage } from "./MePage";
 import { ScriptsPage } from "./ScriptsPage";
+import { GroupsPage } from "./GroupsPage";
+import { GroupDetailPage } from "./GroupDetailPage";
+import { RuleDetailPage } from "./RuleDetailPage";
+import { financeService } from "../services/financeService";
+import type {
+  Division,
+  Group,
+  GroupCreate,
+  GroupType,
+  Rule,
+  RuleCreate,
+  Target,
+  TargetCreate,
+} from "../types/finance";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -85,9 +99,27 @@ function App() {
   const [counterFormError, setCounterFormError] = useState("");
   const [counterRefreshKey, setCounterRefreshKey] = useState(0);
 
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [divisions, setDivisions] = useState<Division[]>([]);
+  const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+  const [selectedRule, setSelectedRule] = useState<Rule | null>(null);
+  const [selectedRuleId, setSelectedRuleId] = useState<number | null>(null);
+  const [groupRulesMap, setGroupRulesMap] = useState<Record<number, Rule[]>>(
+    {},
+  );
+  const [ruleTargetsMap, setRuleTargetsMap] = useState<
+    Record<number, Target[]>
+  >({});
+  const [financeError, setFinanceError] = useState("");
+
   const userPageLoadedRef = useRef(false);
   const rolePageLoadedRef = useRef(false);
   const permissionPageLoadedRef = useRef(false);
+  const groupsPageLoadedRef = useRef(false);
+  const loadedGroupRulesIdsRef = useRef<Set<number>>(new Set());
+  const loadedRuleTargetsIdsRef = useRef<Set<number>>(new Set());
   const loadedUserRoleIdsRef = useRef<Set<number>>(new Set());
   const loadedRolePermissionIdsRef = useRef<Set<number>>(new Set());
   const loadedCounterIdsRef = useRef<Set<number>>(new Set());
@@ -111,6 +143,10 @@ function App() {
     setSelectedRoleId(null);
     setSelectedCounter(null);
     setSelectedCounterId(null);
+    setSelectedGroup(null);
+    setSelectedGroupId(null);
+    setSelectedRule(null);
+    setSelectedRuleId(null);
     if (route.view === "me") {
       setActiveNav("Me");
       return;
@@ -141,6 +177,20 @@ function App() {
       setActiveNav("Counters");
       return;
     }
+    if (route.view === "groups") {
+      setActiveNav("Groups");
+      return;
+    }
+    if (route.view === "group") {
+      setActiveNav("Group details");
+      setSelectedGroupId(route.groupId);
+      return;
+    }
+    if (route.view === "rule") {
+      setActiveNav("Rule details");
+      setSelectedRuleId(route.ruleId);
+      return;
+    }
     if (route.view === "scripts") {
       setActiveNav("Scripts");
       return;
@@ -163,11 +213,16 @@ function App() {
       | "permissions"
       | "counters"
       | "scripts"
-      | "counter",
+      | "counter"
+      | "groups"
+      | "group"
+      | "rule",
     values: {
       userId?: number | null;
       roleId?: number | null;
       counterId?: number | null;
+      groupId?: number | null;
+      ruleId?: number | null;
     } = {},
   ) => {
     window.history.pushState({}, "", buildAdminRoute(view, values));
@@ -239,6 +294,87 @@ function App() {
     }
   };
 
+  const ensureGroups = async () => {
+    if (
+      !user ||
+      (!can("finance:group:read") && !user.is_admin) ||
+      groupsPageLoadedRef.current
+    )
+      return;
+    try {
+      const [nextGroups, nextDivisions, nextGroupTypes] = await Promise.all([
+        financeService.getGroups(),
+        financeService.getDivisions(),
+        financeService.getGroupTypes(),
+      ]);
+      setGroups(nextGroups);
+      setDivisions(nextDivisions);
+      setGroupTypes(nextGroupTypes);
+      groupsPageLoadedRef.current = true;
+      setFinanceError("");
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to load finance data",
+      );
+    }
+  };
+
+  const ensureGroup = async (groupId: number) => {
+    try {
+      await ensureGroups();
+      const existing = groups.find((g) => g.id === groupId);
+      if (existing) {
+        setSelectedGroup(existing);
+      } else {
+        const fetched = await financeService.getGroup(groupId);
+        setSelectedGroup(fetched);
+        setGroups((cur) =>
+          cur.some((g) => g.id === fetched.id) ? cur : [...cur, fetched],
+        );
+      }
+      setFinanceError("");
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to load group",
+      );
+    }
+  };
+
+  const ensureGroupRules = async (groupId: number) => {
+    if (loadedGroupRulesIdsRef.current.has(groupId)) return;
+    try {
+      const nextRules = await financeService.getRules(groupId);
+      loadedGroupRulesIdsRef.current.add(groupId);
+      setGroupRulesMap((cur) => ({ ...cur, [groupId]: nextRules }));
+      setFinanceError("");
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to load group rules",
+      );
+    }
+  };
+
+  const ensureRule = async (ruleId: number) => {
+    try {
+      await ensureGroups();
+      let rule = selectedRule;
+      if (!rule || rule.id !== ruleId) {
+        rule = await financeService.getRule(ruleId);
+        setSelectedRule(rule);
+      }
+      if (!loadedRuleTargetsIdsRef.current.has(ruleId)) {
+        const targets = await financeService.getTargets(ruleId);
+        loadedRuleTargetsIdsRef.current.add(ruleId);
+        setRuleTargetsMap((cur) => ({ ...cur, [ruleId]: targets }));
+      }
+      setFinanceError("");
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to load rule details",
+      );
+    }
+  };
+
   useEffect(() => {
     authService.setSessionExpiredHandler(() => setUser(null));
     authService
@@ -276,7 +412,28 @@ function App() {
       void ensureRolePermissions(selectedRoleId).catch(() => undefined);
     if (activeNav === "Counter details" && selectedCounterId !== null)
       void ensureCounter(selectedCounterId);
-  }, [activeNav, selectedUserId, selectedRoleId, selectedCounterId, user, can]);
+    if (
+      activeNav === "Groups" ||
+      activeNav === "Group details" ||
+      activeNav === "Rule details"
+    )
+      void ensureGroups().catch(() => undefined);
+    if (activeNav === "Group details" && selectedGroupId !== null) {
+      void ensureGroup(selectedGroupId).catch(() => undefined);
+      void ensureGroupRules(selectedGroupId).catch(() => undefined);
+    }
+    if (activeNav === "Rule details" && selectedRuleId !== null)
+      void ensureRule(selectedRuleId).catch(() => undefined);
+  }, [
+    activeNav,
+    selectedUserId,
+    selectedRoleId,
+    selectedCounterId,
+    selectedGroupId,
+    selectedRuleId,
+    user,
+    can,
+  ]);
 
   useEffect(() => {
     if (selectedUserId === null) {
@@ -293,6 +450,175 @@ function App() {
     }
     setSelectedRole(roles.find((item) => item.id === selectedRoleId) ?? null);
   }, [selectedRoleId, roles]);
+
+  useEffect(() => {
+    if (selectedGroupId === null) {
+      setSelectedGroup(null);
+      return;
+    }
+    const found = groups.find((item) => item.id === selectedGroupId);
+    if (found) setSelectedGroup(found);
+  }, [selectedGroupId, groups]);
+
+  const handleCreateGroup = async (payload: GroupCreate) => {
+    try {
+      const created = await financeService.createGroup(payload);
+      setGroups((cur) => [...cur, created]);
+      setFinanceError("");
+      setRoute("group", { groupId: created.id });
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to create group",
+      );
+      throw err;
+    }
+  };
+
+  const handleUpdateGroup = async (groupId: number, payload: GroupCreate) => {
+    try {
+      const updated = await financeService.updateGroup(groupId, payload);
+      setGroups((cur) => cur.map((g) => (g.id === groupId ? updated : g)));
+      if (selectedGroupId === groupId) setSelectedGroup(updated);
+      setFinanceError("");
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to update group",
+      );
+      throw err;
+    }
+  };
+
+  const handleDeleteGroup = async (groupToDelete: Group) => {
+    try {
+      await financeService.removeGroup(groupToDelete.id);
+      setGroups((cur) => cur.filter((g) => g.id !== groupToDelete.id));
+      setFinanceError("");
+      if (selectedGroupId === groupToDelete.id) setRoute("groups");
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to delete group",
+      );
+    }
+  };
+
+  const handleCreateRule = async (payload: RuleCreate) => {
+    try {
+      const created = await financeService.createRule(payload);
+      setGroupRulesMap((cur) => ({
+        ...cur,
+        [payload.group_id]: [...(cur[payload.group_id] ?? []), created],
+      }));
+      setFinanceError("");
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to create rule",
+      );
+      throw err;
+    }
+  };
+
+  const handleUpdateRule = async (ruleId: number, payload: RuleCreate) => {
+    try {
+      const updated = await financeService.updateRule(ruleId, payload);
+      setGroupRulesMap((cur) => ({
+        ...cur,
+        [payload.group_id]: (cur[payload.group_id] ?? []).map((r) =>
+          r.id === ruleId ? updated : r,
+        ),
+      }));
+      if (selectedRuleId === ruleId) setSelectedRule(updated);
+      setFinanceError("");
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to update rule",
+      );
+      throw err;
+    }
+  };
+
+  const handleDeleteRule = async (ruleToDelete: Rule) => {
+    try {
+      await financeService.removeRule(ruleToDelete.id);
+      setGroupRulesMap((cur) => ({
+        ...cur,
+        [ruleToDelete.group_id]: (cur[ruleToDelete.group_id] ?? []).filter(
+          (r) => r.id !== ruleToDelete.id,
+        ),
+      }));
+      setFinanceError("");
+      if (selectedRuleId === ruleToDelete.id)
+        setRoute("group", { groupId: ruleToDelete.group_id });
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to delete rule",
+      );
+    }
+  };
+
+  const handleCreateTarget = async (payload: TargetCreate) => {
+    try {
+      const created = await financeService.assignTarget(
+        payload.rule_id,
+        payload,
+      );
+      setRuleTargetsMap((cur) => ({
+        ...cur,
+        [payload.rule_id]: [...(cur[payload.rule_id] ?? []), created],
+      }));
+      setFinanceError("");
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to create target",
+      );
+      throw err;
+    }
+  };
+
+  const handleUpdateTarget = async (
+    ruleId: number,
+    targetId: number,
+    payload: TargetCreate,
+  ) => {
+    try {
+      const updated = await financeService.updateTarget(
+        ruleId,
+        targetId,
+        payload,
+      );
+      setRuleTargetsMap((cur) => ({
+        ...cur,
+        [ruleId]: (cur[ruleId] ?? []).map((t) =>
+          t.id === targetId ? updated : t,
+        ),
+      }));
+      setFinanceError("");
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to update target",
+      );
+      throw err;
+    }
+  };
+
+  const handleDeleteTarget = async (targetToDelete: Target) => {
+    try {
+      await financeService.revokeTarget(
+        targetToDelete.rule_id,
+        targetToDelete.id,
+      );
+      setRuleTargetsMap((cur) => ({
+        ...cur,
+        [targetToDelete.rule_id]: (cur[targetToDelete.rule_id] ?? []).filter(
+          (t) => t.id !== targetToDelete.id,
+        ),
+      }));
+      setFinanceError("");
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to delete target",
+      );
+    }
+  };
 
   const toggleUserRole = async (userId: number, roleId: number) => {
     const assigned = (userRoleMap[userId] ?? []).some(
@@ -636,6 +962,7 @@ function App() {
                     if (item.id === "roles") setRoute("roles");
                     if (item.id === "permissions") setRoute("permissions");
                     if (item.id === "counters") setRoute("counters");
+                    if (item.id === "groups") setRoute("groups");
                     if (item.id === "scripts") setRoute("scripts");
                   }}
                 >
@@ -786,6 +1113,68 @@ function App() {
             onEdit={() => openCounterEditor(selectedCounter)}
             onDelete={() => removeCounter(selectedCounter)}
             error={counterError}
+          />
+        )}
+        {activeNav === "Groups" && (
+          <GroupsPage
+            groups={groups}
+            divisions={divisions}
+            groupTypes={groupTypes}
+            canCreate={can("finance:group:create")}
+            canEdit={can("finance:group:update")}
+            canDelete={can("finance:group:delete")}
+            onOpenGroup={(g) => setRoute("group", { groupId: g.id })}
+            onCreateGroup={handleCreateGroup}
+            onUpdateGroup={handleUpdateGroup}
+            onDeleteGroup={handleDeleteGroup}
+            error={financeError}
+          />
+        )}
+        {activeNav === "Group details" && selectedGroup && (
+          <GroupDetailPage
+            group={selectedGroup}
+            allGroups={groups}
+            divisions={divisions}
+            groupTypes={groupTypes}
+            rules={groupRulesMap[selectedGroup.id] ?? []}
+            canEditGroup={can("finance:group:update")}
+            canDeleteGroup={can("finance:group:delete")}
+            canCreateRule={can("finance:rule:create")}
+            canEditRule={can("finance:rule:update")}
+            canDeleteRule={can("finance:rule:delete")}
+            onBack={() => setRoute("groups")}
+            onSelectGroup={(groupId) => setRoute("group", { groupId })}
+            onUpdateGroup={handleUpdateGroup}
+            onDeleteGroup={handleDeleteGroup}
+            onOpenRule={(r) => setRoute("rule", { ruleId: r.id })}
+            onCreateRule={handleCreateRule}
+            onUpdateRule={handleUpdateRule}
+            onDeleteRule={handleDeleteRule}
+            error={financeError}
+          />
+        )}
+        {activeNav === "Rule details" && selectedRule && (
+          <RuleDetailPage
+            rule={selectedRule}
+            group={
+              groups.find((g) => g.id === selectedRule.group_id) ??
+              selectedGroup
+            }
+            allGroups={groups}
+            targets={ruleTargetsMap[selectedRule.id] ?? []}
+            canEditRule={can("finance:rule:update")}
+            canDeleteRule={can("finance:rule:delete")}
+            canCreateTarget={can("finance:rule_target:create")}
+            canEditTarget={can("finance:rule_target:update")}
+            canDeleteTarget={can("finance:rule_target:delete")}
+            onBack={() => setRoute("group", { groupId: selectedRule.group_id })}
+            onOpenGroup={(groupId) => setRoute("group", { groupId })}
+            onUpdateRule={handleUpdateRule}
+            onDeleteRule={handleDeleteRule}
+            onCreateTarget={handleCreateTarget}
+            onUpdateTarget={handleUpdateTarget}
+            onDeleteTarget={handleDeleteTarget}
+            error={financeError}
           />
         )}
         {activeNav === "Scripts" && <ScriptsPage username={user.username} />}

@@ -55,13 +55,13 @@ export type Target = {
   rule_id: number;
   group_id: number;
   allocation_type: AllocationType;
-  percent_value: number;
+  percent_value: number | null;
 };
 export type TargetCreate = {
   rule_id: number;
   group_id: number;
   allocation_type: AllocationType;
-  percent_value: number;
+  percent_value: number | null;
 };
 
 export type TargetUpdate = TargetCreate;
