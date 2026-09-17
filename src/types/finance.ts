@@ -23,6 +23,13 @@ export type Group = {
   group_type: GroupType;
 };
 
+export type GroupPage = {
+  items: Group[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
 export type GroupCreate = {
   name: string;
   division_id: number;
@@ -36,6 +43,8 @@ export type GroupFilterParams = {
   division_id?: number | number[];
   group_type_id?: number | number[];
   search?: string;
+  limit?: number;
+  offset?: number;
 };
 
 export type Rule = {

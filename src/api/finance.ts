@@ -51,31 +51,36 @@ export function getGroupTypes() {
 export function getGroups(
   filters?: import("../types/finance").GroupFilterParams,
 ) {
-  if (!filters) {
-    return request<Group[]>(GROUPS_ENDPOINT);
-  }
   const params = new URLSearchParams();
-  if (filters.id !== undefined) {
-    const ids = Array.isArray(filters.id) ? filters.id : [filters.id];
-    ids.forEach((id) => params.append("id", String(id)));
-  }
-  if (filters.division_id !== undefined) {
-    const ids = Array.isArray(filters.division_id)
-      ? filters.division_id
-      : [filters.division_id];
-    ids.forEach((id) => params.append("division_id", String(id)));
-  }
-  if (filters.group_type_id !== undefined) {
-    const ids = Array.isArray(filters.group_type_id)
-      ? filters.group_type_id
-      : [filters.group_type_id];
-    ids.forEach((id) => params.append("group_type_id", String(id)));
-  }
-  if (filters.search && filters.search.trim()) {
-    params.set("search", filters.search.trim());
+  if (filters) {
+    if (filters.id !== undefined) {
+      const ids = Array.isArray(filters.id) ? filters.id : [filters.id];
+      ids.forEach((id) => params.append("group_ids", String(id)));
+    }
+    if (filters.division_id !== undefined) {
+      const ids = Array.isArray(filters.division_id)
+        ? filters.division_id
+        : [filters.division_id];
+      ids.forEach((id) => params.append("division_ids", String(id)));
+    }
+    if (filters.group_type_id !== undefined) {
+      const ids = Array.isArray(filters.group_type_id)
+        ? filters.group_type_id
+        : [filters.group_type_id];
+      ids.forEach((id) => params.append("group_type_ids", String(id)));
+    }
+    if (filters.search && filters.search.trim()) {
+      params.set("search", filters.search.trim());
+    }
+    if (filters.limit !== undefined) {
+      params.set("limit", String(filters.limit));
+    }
+    if (filters.offset !== undefined) {
+      params.set("offset", String(filters.offset));
+    }
   }
   const queryString = params.toString();
-  return request<Group[]>(
+  return request<import("../types/finance").GroupPage>(
     `${GROUPS_ENDPOINT}${queryString ? `?${queryString}` : ""}`,
   );
 }

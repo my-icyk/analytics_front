@@ -302,12 +302,12 @@ function App() {
     )
       return;
     try {
-      const [nextGroups, nextDivisions, nextGroupTypes] = await Promise.all([
-        financeService.getGroups(),
+      const [groupsPage, nextDivisions, nextGroupTypes] = await Promise.all([
+        financeService.getGroups({ limit: 100 }),
         financeService.getDivisions(),
         financeService.getGroupTypes(),
       ]);
-      setGroups(nextGroups);
+      setGroups(groupsPage.items);
       setDivisions(nextDivisions);
       setGroupTypes(nextGroupTypes);
       groupsPageLoadedRef.current = true;

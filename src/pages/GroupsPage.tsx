@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Edit3,
   ExternalLink,
   FilterX,
@@ -12,6 +16,7 @@ import type {
   Group,
   GroupCreate,
   GroupFilterParams,
+  GroupPage,
   GroupType,
 } from "../types/finance";
 import { GroupFormModal } from "../components/finance/GroupFormModal";
@@ -28,7 +33,7 @@ type GroupsPageProps = {
   onCreateGroup: (payload: GroupCreate) => Promise<void>;
   onUpdateGroup: (groupId: number, payload: GroupCreate) => Promise<void>;
   onDeleteGroup: (group: Group) => Promise<void>;
-  onFilterChange?: (filters: GroupFilterParams) => Promise<Group[]> | void;
+  onFilterChange?: (filters: GroupFilterParams) => Promise<GroupPage> | void;
   error: string;
 };
 
@@ -48,6 +53,9 @@ export function GroupsPage({
 }: GroupsPageProps) {
   const [displayedGroups, setDisplayedGroups] =
     useState<Group[]>(initialGroups);
+  const [total, setTotal] = useState<number>(initialGroups.length);
+  const [limit, setLimit] = useState<number>(20);
+  const [offset, setOffset] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState("");
 
@@ -68,68 +76,91 @@ export function GroupsPage({
 
   const isMountedRef = useRef(false);
 
-  // Sync displayed groups if initialGroups changes from parent
+  // Sync displayed groups if initialGroups changes from parent and no onFilterChange
   useEffect(() => {
     if (!onFilterChange) {
       setDisplayedGroups(initialGroups);
+      setTotal(initialGroups.length);
     }
   }, [initialGroups, onFilterChange]);
 
-  // Execute server-side filter request when filter props change
-  const fetchFilteredGroups = useCallback(async () => {
-    if (!onFilterChange) return;
-    setLoading(true);
-    setLocalError("");
-    try {
-      const filters: GroupFilterParams = {};
-      if (selectedGroupIds.length > 0) {
-        filters.id = selectedGroupIds.map((v) => Number(v));
-      }
-      if (selectedDivisionIds.length > 0) {
-        filters.division_id = selectedDivisionIds.map((v) => Number(v));
-      }
-      if (selectedGroupTypeIds.length > 0) {
-        filters.group_type_id = selectedGroupTypeIds.map((v) => Number(v));
-      }
-      if (search.trim()) {
-        filters.search = search.trim();
-      }
+  // Execute server-side filter request when filter props or pagination change
+  const fetchFilteredGroups = useCallback(
+    async (currentOffset = offset, currentLimit = limit) => {
+      if (!onFilterChange) return;
+      setLoading(true);
+      setLocalError("");
+      try {
+        const filters: GroupFilterParams = {
+          limit: currentLimit,
+          offset: currentOffset,
+        };
+        if (selectedGroupIds.length > 0) {
+          filters.id = selectedGroupIds.map((v) => Number(v));
+        }
+        if (selectedDivisionIds.length > 0) {
+          filters.division_id = selectedDivisionIds.map((v) => Number(v));
+        }
+        if (selectedGroupTypeIds.length > 0) {
+          filters.group_type_id = selectedGroupTypeIds.map((v) => Number(v));
+        }
+        if (search.trim()) {
+          filters.search = search.trim();
+        }
 
-      const result = await onFilterChange(filters);
-      if (result) {
-        setDisplayedGroups(result);
+        const result = await onFilterChange(filters);
+        if (result && "items" in result) {
+          setDisplayedGroups(result.items);
+          setTotal(result.total);
+          setOffset(result.offset);
+          setLimit(result.limit);
+        }
+      } catch (err) {
+        setLocalError(
+          err instanceof Error
+            ? err.message
+            : "Failed to filter groups from server",
+        );
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setLocalError(
-        err instanceof Error
-          ? err.message
-          : "Failed to filter groups from server",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [
-    onFilterChange,
-    selectedGroupIds,
-    selectedDivisionIds,
-    selectedGroupTypeIds,
-    search,
-  ]);
+    },
+    [
+      onFilterChange,
+      offset,
+      limit,
+      selectedGroupIds,
+      selectedDivisionIds,
+      selectedGroupTypeIds,
+      search,
+    ],
+  );
 
-  // Trigger server-side fetching with debounce for search
+  // Trigger server-side fetching when search or slicers change (resets offset to 0)
   useEffect(() => {
     if (!isMountedRef.current) {
       isMountedRef.current = true;
+      if (onFilterChange) {
+        void fetchFilteredGroups(0, limit);
+      }
       return;
     }
     if (!onFilterChange) return;
 
     const timer = setTimeout(() => {
-      void fetchFilteredGroups();
+      setOffset(0);
+      void fetchFilteredGroups(0, limit);
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [fetchFilteredGroups, onFilterChange]);
+  }, [
+    selectedGroupIds,
+    selectedDivisionIds,
+    selectedGroupTypeIds,
+    search,
+    limit,
+    onFilterChange,
+  ]);
 
   const divisionOptions: SlicerOption[] = useMemo(() => {
     return divisions.map((d) => ({
@@ -231,7 +262,7 @@ export function GroupsPage({
       }
       setModalOpen(false);
       if (onFilterChange) {
-        void fetchFilteredGroups();
+        void fetchFilteredGroups(offset, limit);
       }
     } catch (err) {
       setModalError(
@@ -247,10 +278,35 @@ export function GroupsPage({
     ) {
       await onDeleteGroup(group);
       if (onFilterChange) {
-        void fetchFilteredGroups();
+        const nextOffset =
+          displayedGroups.length === 1 && offset > 0
+            ? Math.max(0, offset - limit)
+            : offset;
+        setOffset(nextOffset);
+        void fetchFilteredGroups(nextOffset, limit);
       }
     }
   };
+
+  const handlePageChange = (newOffset: number) => {
+    setOffset(newOffset);
+    if (onFilterChange) {
+      void fetchFilteredGroups(newOffset, limit);
+    }
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setOffset(0);
+    if (onFilterChange) {
+      void fetchFilteredGroups(0, newLimit);
+    }
+  };
+
+  const currentPage = Math.floor(offset / limit) + 1;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const canPrev = offset > 0;
+  const canNext = offset + limit < total;
 
   const displayError = error || localError;
 
@@ -401,11 +457,89 @@ export function GroupsPage({
         )}
         {!loading && visibleGroups.length === 0 && (
           <div className="empty-state">
-            {initialGroups.length === 0
+            {total === 0
               ? "No finance groups found."
               : "No groups matching active slicers & search."}
           </div>
         )}
+      </div>
+
+      <div className="table-pagination">
+        <div className="pagination-info">
+          {total === 0 ? (
+            <span>0 groups</span>
+          ) : (
+            <span>
+              Showing <strong>{offset + 1}</strong>–
+              <strong>{Math.min(offset + limit, total)}</strong> of{" "}
+              <strong>{total}</strong> groups
+            </span>
+          )}
+        </div>
+
+        <div className="pagination-controls">
+          <div className="pagination-size">
+            <span>Show:</span>
+            <select
+              value={limit}
+              onChange={(e) => handleLimitChange(Number(e.target.value))}
+              disabled={loading}
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
+
+          <div className="pagination-buttons">
+            <button
+              type="button"
+              className="pagination-btn"
+              title="First page"
+              aria-label="First page"
+              disabled={!canPrev || loading}
+              onClick={() => handlePageChange(0)}
+            >
+              <ChevronsLeft size={14} />
+            </button>
+            <button
+              type="button"
+              className="pagination-btn"
+              title="Previous page"
+              aria-label="Previous page"
+              disabled={!canPrev || loading}
+              onClick={() => handlePageChange(Math.max(0, offset - limit))}
+            >
+              <ChevronLeft size={14} />
+            </button>
+
+            <span className="pagination-current">
+              {currentPage} / {totalPages}
+            </span>
+
+            <button
+              type="button"
+              className="pagination-btn"
+              title="Next page"
+              aria-label="Next page"
+              disabled={!canNext || loading}
+              onClick={() => handlePageChange(offset + limit)}
+            >
+              <ChevronRight size={14} />
+            </button>
+            <button
+              type="button"
+              className="pagination-btn"
+              title="Last page"
+              aria-label="Last page"
+              disabled={!canNext || loading}
+              onClick={() => handlePageChange((totalPages - 1) * limit)}
+            >
+              <ChevronsRight size={14} />
+            </button>
+          </div>
+        </div>
       </div>
 
       {modalOpen && (
