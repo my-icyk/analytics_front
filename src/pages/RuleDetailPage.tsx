@@ -240,18 +240,22 @@ export function RuleDetailPage({
                     <div className="table-actions">
                       {canEditTarget && (
                         <button
-                          className="secondary-button compact-button"
+                          className="secondary-button icon-action-button"
+                          title="Edit target"
+                          aria-label="Edit target"
                           onClick={() => handleOpenEditTarget(target)}
                         >
-                          Edit
+                          <Edit3 size={14} />
                         </button>
                       )}
                       {canDeleteTarget && (
                         <button
-                          className="danger-button compact-button"
+                          className="danger-button icon-action-button"
+                          title="Remove target"
+                          aria-label="Remove target"
                           onClick={() => handleDeleteTarget(target)}
                         >
-                          Remove
+                          <Trash2 size={14} />
                         </button>
                       )}
                     </div>

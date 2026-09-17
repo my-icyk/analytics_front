@@ -48,8 +48,36 @@ export function getGroupTypes() {
   return request<GroupType[]>(`${GROUPS_ENDPOINT}/types`);
 }
 
-export function getGroups() {
-  return request<Group[]>(GROUPS_ENDPOINT);
+export function getGroups(
+  filters?: import("../types/finance").GroupFilterParams,
+) {
+  if (!filters) {
+    return request<Group[]>(GROUPS_ENDPOINT);
+  }
+  const params = new URLSearchParams();
+  if (filters.id !== undefined) {
+    const ids = Array.isArray(filters.id) ? filters.id : [filters.id];
+    ids.forEach((id) => params.append("id", String(id)));
+  }
+  if (filters.division_id !== undefined) {
+    const ids = Array.isArray(filters.division_id)
+      ? filters.division_id
+      : [filters.division_id];
+    ids.forEach((id) => params.append("division_id", String(id)));
+  }
+  if (filters.group_type_id !== undefined) {
+    const ids = Array.isArray(filters.group_type_id)
+      ? filters.group_type_id
+      : [filters.group_type_id];
+    ids.forEach((id) => params.append("group_type_id", String(id)));
+  }
+  if (filters.search && filters.search.trim()) {
+    params.set("search", filters.search.trim());
+  }
+  const queryString = params.toString();
+  return request<Group[]>(
+    `${GROUPS_ENDPOINT}${queryString ? `?${queryString}` : ""}`,
+  );
 }
 
 export function getGroup(groupId: number) {

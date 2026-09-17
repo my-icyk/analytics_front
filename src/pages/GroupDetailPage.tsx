@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Edit3, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Edit3, ExternalLink, Plus, Trash2 } from "lucide-react";
 import type {
   Division,
   Group,
@@ -246,25 +246,31 @@ export function GroupDetailPage({
                   <td>
                     <div className="table-actions">
                       <button
-                        className="secondary-button compact-button"
+                        className="secondary-button icon-action-button"
+                        title="Manage targets"
+                        aria-label="Manage targets"
                         onClick={() => onOpenRule(rule)}
                       >
-                        Manage targets
+                        <ExternalLink size={14} />
                       </button>
                       {canEditRule && (
                         <button
-                          className="secondary-button compact-button"
+                          className="secondary-button icon-action-button"
+                          title="Edit rule"
+                          aria-label="Edit rule"
                           onClick={() => handleOpenEditRule(rule)}
                         >
-                          Edit
+                          <Edit3 size={14} />
                         </button>
                       )}
                       {canDeleteRule && (
                         <button
-                          className="danger-button compact-button"
+                          className="danger-button icon-action-button"
+                          title="Delete rule"
+                          aria-label="Delete rule"
                           onClick={() => handleDeleteRule(rule)}
                         >
-                          Delete
+                          <Trash2 size={14} />
                         </button>
                       )}
                     </div>

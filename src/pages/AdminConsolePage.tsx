@@ -1127,6 +1127,7 @@ function App() {
             onCreateGroup={handleCreateGroup}
             onUpdateGroup={handleUpdateGroup}
             onDeleteGroup={handleDeleteGroup}
+            onFilterChange={(filters) => financeService.getGroups(filters)}
             error={financeError}
           />
         )}
