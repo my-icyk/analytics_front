@@ -245,6 +245,10 @@ export function parseAdminRoute(
   };
 }
 
+export function parseLegacyAdminRoute(search: string): AdminRouteState {
+  return parseAdminRoute("/", search);
+}
+
 export function buildAdminRoute(
   view: AdminView,
   params: {

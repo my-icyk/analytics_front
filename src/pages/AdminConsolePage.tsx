@@ -1,4 +1,12 @@
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   Bell,
   BookOpen,
@@ -11,9 +19,11 @@ import {
 } from "lucide-react";
 import {
   buildAdminRoute,
-  parseAdminRoute,
   adminPages,
+  parseLegacyAdminRoute,
+  type AdminView,
 } from "../constants/admin";
+import type { ConsoleRouteView } from "../routes";
 import { authService } from "../services/authService";
 import { assignmentService } from "../services/assignmentService";
 import { counterService } from "../services/counterService";
@@ -53,7 +63,11 @@ import type {
   TargetCreate,
 } from "../types/finance";
 
-function App() {
+export function AdminConsolePage({
+  routeView,
+}: {
+  routeView: ConsoleRouteView;
+}) {
   const [user, setUser] = useState<User | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
   const [loginError, setLoginError] = useState("");
@@ -132,11 +146,24 @@ function App() {
     [user],
   );
 
+  const location = useLocation();
+  const navigate = useNavigate();
+  const params = useParams();
+  const route = useMemo(() => {
+    if (routeView === "legacy") return parseLegacyAdminRoute(location.search);
+    return {
+      view: routeView as AdminView,
+      userId: null,
+      roleId: null,
+      counterId: null,
+      groupId:
+        routeView === "group" && params.groupId ? Number(params.groupId) : null,
+      ruleId:
+        routeView === "rule" && params.ruleId ? Number(params.ruleId) : null,
+    };
+  }, [routeView, location.search, params.groupId, params.ruleId]);
+
   const syncViewFromLocation = () => {
-    const route = parseAdminRoute(
-      window.location.pathname,
-      window.location.search,
-    );
     setSelectedUser(null);
     setSelectedUserId(null);
     setSelectedRole(null);
@@ -225,8 +252,7 @@ function App() {
       ruleId?: number | null;
     } = {},
   ) => {
-    window.history.pushState({}, "", buildAdminRoute(view, values));
-    syncViewFromLocation();
+    navigate(buildAdminRoute(view, values));
   };
 
   const ensureUsers = async () => {
@@ -392,11 +418,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const handlePopState = () => syncViewFromLocation();
-    window.addEventListener("popstate", handlePopState);
     syncViewFromLocation();
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  }, [route]);
 
   useEffect(() => {
     if (!user) return;
@@ -829,7 +852,7 @@ function App() {
     try {
       await userService.deleteUser(item.id);
       setUsers((current) => current.filter((entry) => entry.id !== item.id));
-      if (selectedUser?.id === item.id) setActiveNav("Users");
+      if (selectedUser?.id === item.id) setRoute("users");
     } catch (error) {
       setUserError(
         error instanceof Error ? error.message : "Unable to delete user",
@@ -841,7 +864,7 @@ function App() {
     try {
       await roleService.deleteRole(item.id);
       setRoles((current) => current.filter((entry) => entry.id !== item.id));
-      if (selectedRole?.id === item.id) setActiveNav("Roles");
+      if (selectedRole?.id === item.id) setRoute("roles");
     } catch (error) {
       setRoleError(
         error instanceof Error ? error.message : "Unable to delete role",
@@ -1213,4 +1236,4 @@ function App() {
   );
 }
 
-export default App;
+export default AdminConsolePage;
