@@ -281,6 +281,23 @@ export function AdminConsolePage({
     rolePageLoadedRef.current = true;
   };
 
+  const ensureRole = async (roleId: number) => {
+    if (!user) return;
+    if (!can("role:read")) {
+      setRoleError("You do not have permission to view this role.");
+      return;
+    }
+    try {
+      const nextRole = await roleService.getRole(roleId);
+      setSelectedRole(nextRole);
+      setRoleError("");
+    } catch (error) {
+      setRoleError(
+        error instanceof Error ? error.message : "Unable to load role",
+      );
+    }
+  };
+
   const ensurePermissions = async () => {
     if (!user || !can("permission:read") || permissionPageLoadedRef.current)
       return;
@@ -416,15 +433,9 @@ export function AdminConsolePage({
   useEffect(() => {
     authService.setSessionExpiredHandler(() => setUser(null));
     authService
-      .refreshSession()
-      .then((hasSession) =>
-        hasSession
-          ? authService
-              .getCurrentUser()
-              .then(setUser)
-              .catch(() => undefined)
-          : undefined,
-      )
+      .getCurrentUser()
+      .then(setUser)
+      .catch(() => undefined)
       .finally(() => setCheckingSession(false));
     return () => authService.setSessionExpiredHandler(null);
   }, []);
@@ -443,8 +454,10 @@ export function AdminConsolePage({
       void ensurePermissions().catch(() => undefined);
     if (activeNav === "User details" && selectedUserId !== null)
       void ensureUserRoles(selectedUserId).catch(() => undefined);
-    if (activeNav === "Role details" && selectedRoleId !== null)
+    if (activeNav === "Role details" && selectedRoleId !== null) {
+      void ensureRole(selectedRoleId);
       void ensureRolePermissions(selectedRoleId).catch(() => undefined);
+    }
     if (activeNav === "Counter details" && selectedCounterId !== null)
       void ensureCounter(selectedCounterId);
     if (
@@ -483,7 +496,8 @@ export function AdminConsolePage({
       setSelectedRole(null);
       return;
     }
-    setSelectedRole(roles.find((item) => item.id === selectedRoleId) ?? null);
+    const matchingRole = roles.find((item) => item.id === selectedRoleId);
+    if (matchingRole) setSelectedRole(matchingRole);
   }, [selectedRoleId, roles]);
 
   useEffect(() => {
@@ -1120,8 +1134,17 @@ export function AdminConsolePage({
             onTogglePermission={(permissionId) =>
               toggleRolePermission(selectedRole.id, permissionId)
             }
-            error={assignmentError}
+            error={roleError || assignmentError}
           />
+        )}
+        {activeNav === "Role details" && !selectedRole && (
+          <section className="detail-page">
+            {roleError ? (
+              <p className="auth-error">{roleError}</p>
+            ) : (
+              <p className="subtitle">Loading role...</p>
+            )}
+          </section>
         )}
         {activeNav === "Permissions" && (
           <PermissionCatalogPage permissions={permissions} />
