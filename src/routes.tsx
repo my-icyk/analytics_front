@@ -7,6 +7,14 @@ export type ConsoleRouteView = AdminView | "legacy";
 export const consoleRouteConfig: { path: string; view: ConsoleRouteView }[] = [
   { path: "/", view: "legacy" },
   { path: "/me", view: "me" },
+  { path: "/users", view: "users" },
+  { path: "/users/:userId", view: "user" },
+  { path: "/roles", view: "roles" },
+  { path: "/roles/:roleId", view: "role" },
+  { path: "/permissions", view: "permissions" },
+  { path: "/counters", view: "counters" },
+  { path: "/counters/:counterId", view: "counter" },
+  { path: "/scripts", view: "scripts" },
   { path: "/finance/groups", view: "groups" },
   { path: "/finance/groups/:groupId", view: "group" },
   { path: "/finance/rules/:ruleId", view: "rule" },
@@ -23,6 +31,22 @@ export function buildAdminPath(
   } = {},
 ) {
   if (view === "me") return "/me";
+  if (view === "users") return "/users";
+  if (view === "user") {
+    return params.userId != null ? `/users/${params.userId}` : "/users";
+  }
+  if (view === "roles") return "/roles";
+  if (view === "role") {
+    return params.roleId != null ? `/roles/${params.roleId}` : "/roles";
+  }
+  if (view === "permissions") return "/permissions";
+  if (view === "counters") return "/counters";
+  if (view === "counter") {
+    return params.counterId != null
+      ? `/counters/${params.counterId}`
+      : "/counters";
+  }
+  if (view === "scripts") return "/scripts";
   if (view === "groups") return "/finance/groups";
   if (view === "group" && params.groupId != null) {
     return `/finance/groups/${params.groupId}`;
@@ -31,17 +55,7 @@ export function buildAdminPath(
     return `/finance/rules/${params.ruleId}`;
   }
 
-  const search = new URLSearchParams({ view });
-  if (view === "user" && params.userId != null) {
-    search.set("userId", String(params.userId));
-  }
-  if (view === "role" && params.roleId != null) {
-    search.set("roleId", String(params.roleId));
-  }
-  if (view === "counter" && params.counterId != null) {
-    search.set("counterId", String(params.counterId));
-  }
-  return `/?${search.toString()}`;
+  return `/?${new URLSearchParams({ view }).toString()}`;
 }
 
 export function AppRoutes() {

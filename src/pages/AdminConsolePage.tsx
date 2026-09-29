@@ -18,12 +18,11 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 import {
-  buildAdminRoute,
   adminPages,
   parseLegacyAdminRoute,
   type AdminView,
 } from "../constants/admin";
-import type { ConsoleRouteView } from "../routes";
+import { buildAdminPath, type ConsoleRouteView } from "../routes";
 import { authService } from "../services/authService";
 import { assignmentService } from "../services/assignmentService";
 import { counterService } from "../services/counterService";
@@ -153,15 +152,28 @@ export function AdminConsolePage({
     if (routeView === "legacy") return parseLegacyAdminRoute(location.search);
     return {
       view: routeView as AdminView,
-      userId: null,
-      roleId: null,
-      counterId: null,
+      userId:
+        routeView === "user" && params.userId ? Number(params.userId) : null,
+      roleId:
+        routeView === "role" && params.roleId ? Number(params.roleId) : null,
+      counterId:
+        routeView === "counter" && params.counterId
+          ? Number(params.counterId)
+          : null,
       groupId:
         routeView === "group" && params.groupId ? Number(params.groupId) : null,
       ruleId:
         routeView === "rule" && params.ruleId ? Number(params.ruleId) : null,
     };
-  }, [routeView, location.search, params.groupId, params.ruleId]);
+  }, [
+    routeView,
+    location.search,
+    params.userId,
+    params.roleId,
+    params.counterId,
+    params.groupId,
+    params.ruleId,
+  ]);
 
   const syncViewFromLocation = () => {
     setSelectedUser(null);
@@ -252,7 +264,7 @@ export function AdminConsolePage({
       ruleId?: number | null;
     } = {},
   ) => {
-    navigate(buildAdminRoute(view, values));
+    navigate(buildAdminPath(view, values));
   };
 
   const ensureUsers = async () => {
