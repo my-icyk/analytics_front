@@ -18,6 +18,10 @@ import {
   assignTarget,
   updateTarget,
   revokeTarget,
+  getDepartmentRepartitions,
+  assignDepartmentRepartition,
+  updateDepartmentRepartition,
+  revokeDepartmentRepartition,
 } from "../api/finance";
 
 export const financeService = {
@@ -40,4 +44,8 @@ export const financeService = {
   assignTarget,
   updateTarget,
   revokeTarget,
+  getDepartmentRepartitions,
+  assignDepartmentRepartition,
+  updateDepartmentRepartition,
+  revokeDepartmentRepartition,
 };

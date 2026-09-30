@@ -7,6 +7,7 @@ import type {
   GroupType,
   Rule,
   RuleCreate,
+  DepartmentRepartition,
 } from "../types/finance";
 import { GroupFormModal } from "../components/finance/GroupFormModal";
 import { RuleFormModal } from "../components/finance/RuleFormModal";
@@ -17,6 +18,7 @@ type GroupDetailPageProps = {
   divisions: Division[];
   groupTypes: GroupType[];
   rules: Rule[];
+  departmentRepartitions: DepartmentRepartition[];
   canEditGroup: boolean;
   canDeleteGroup: boolean;
   canCreateRule: boolean;
@@ -39,6 +41,7 @@ export function GroupDetailPage({
   divisions,
   groupTypes,
   rules,
+  departmentRepartitions,
   canEditGroup,
   canDeleteGroup,
   canCreateRule,
@@ -282,6 +285,87 @@ export function GroupDetailPage({
           {rules.length === 0 && (
             <div className="empty-state">
               No rules associated with this group yet.
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="detail-section">
+        <div className="section-heading">
+          <div>
+            <h3>Allocated Departments</h3>
+            <p>Departments allocated to {group.name}.</p>
+          </div>
+          {canCreateRule && (
+            <button className="primary-button" onClick={handleOpenCreateRule}>
+              <Plus size={16} /> New rule
+            </button>
+          )}
+        </div>
+
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Code</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {departmentRepartitions.map((repartition) => (
+                <tr key={repartition.id}>
+                  <td>{repartition.id}</td>
+                  <td>{repartition.department_name}</td>
+                  <td>{repartition.department_code}</td>
+                  <td>{repartition.valid_from}</td>
+                  <td>
+                    {repartition.valid_to || (
+                      <span style={{ color: "var(--muted)" }}>Ongoing</span>
+                    )}
+                  </td>
+
+                  <td>
+                    <div className="table-actions">
+                      <button
+                        className="secondary-button icon-action-button"
+                        title="Manage targets"
+                        aria-label="Manage targets"
+                        //onClick={() => onOpenDepartmentRepartition(repartition)}
+                      >
+                        <ExternalLink size={14} />
+                      </button>
+                      {canEditRule && (
+                        <button
+                          className="secondary-button icon-action-button"
+                          title="Edit rule"
+                          aria-label="Edit rule"
+                          //onClick={() => handleOpenEditRule(repartition)}
+                        >
+                          <Edit3 size={14} />
+                        </button>
+                      )}
+                      {canDeleteRule && (
+                        <button
+                          className="danger-button icon-action-button"
+                          title="Delete rule"
+                          aria-label="Delete rule"
+                          //onClick={() => handleDeleteRule(repartition)}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {departmentRepartitions.length === 0 && (
+            <div className="empty-state">
+              No departments allocated to this group yet.
             </div>
           )}
         </div>

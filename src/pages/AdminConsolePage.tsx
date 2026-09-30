@@ -52,6 +52,7 @@ import { GroupDetailPage } from "./GroupDetailPage";
 import { RuleDetailPage } from "./RuleDetailPage";
 import { financeService } from "../services/financeService";
 import type {
+  DepartmentRepartition,
   Division,
   Group,
   GroupCreate,
@@ -122,6 +123,9 @@ export function AdminConsolePage({
   const [groupRulesMap, setGroupRulesMap] = useState<Record<number, Rule[]>>(
     {},
   );
+  const [departmentRepartitionsMap, setDepartmentRepartitionsMap] = useState<
+    Record<number, DepartmentRepartition[]>
+  >({});
   const [ruleTargetsMap, setRuleTargetsMap] = useState<
     Record<number, Target[]>
   >({});
@@ -137,6 +141,8 @@ export function AdminConsolePage({
   const loadedRolePermissionIdsRef = useRef<Set<number>>(new Set());
   const loadedCounterIdsRef = useRef<Set<number>>(new Set());
   const counterMapRef = useRef<Record<number, Counter>>({});
+
+  const loadedDepartmentRepartitionsIdsRef = useRef<Set<number>>(new Set());
 
   const can = useCallback(
     (permission: PermissionName) =>
@@ -409,6 +415,26 @@ export function AdminConsolePage({
     }
   };
 
+  const ensureDepartmentRepartitions = async (groupId: number) => {
+    if (loadedDepartmentRepartitionsIdsRef.current.has(groupId)) return;
+    try {
+      const nextRepartitions =
+        await financeService.getDepartmentRepartitions(groupId);
+      loadedDepartmentRepartitionsIdsRef.current.add(groupId);
+      setDepartmentRepartitionsMap((cur) => ({
+        ...cur,
+        [groupId]: nextRepartitions,
+      }));
+      setFinanceError("");
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error
+          ? err.message
+          : "Failed to load department repartitions",
+      );
+    }
+  };
+
   const ensureRule = async (ruleId: number) => {
     try {
       await ensureGroups();
@@ -475,6 +501,7 @@ export function AdminConsolePage({
     if (activeNav === "Group details" && selectedGroupId !== null) {
       void ensureGroup(selectedGroupId).catch(() => undefined);
       void ensureGroupRules(selectedGroupId).catch(() => undefined);
+      void ensureDepartmentRepartitions(selectedGroupId).catch(() => undefined);
     }
     if (activeNav === "Rule details" && selectedRuleId !== null)
       void ensureRule(selectedRuleId).catch(() => undefined);
@@ -1202,6 +1229,9 @@ export function AdminConsolePage({
             divisions={divisions}
             groupTypes={groupTypes}
             rules={groupRulesMap[selectedGroup.id] ?? []}
+            departmentRepartitions={
+              departmentRepartitionsMap[selectedGroup.id] ?? []
+            }
             canEditGroup={can("finance:group:update")}
             canDeleteGroup={can("finance:group:delete")}
             canCreateRule={can("finance:rule:create")}
