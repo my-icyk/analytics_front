@@ -432,12 +432,18 @@ export function AdminConsolePage({
 
   useEffect(() => {
     authService.setSessionExpiredHandler(() => setUser(null));
-    authService
-      .getCurrentUser()
-      .then(setUser)
-      .catch(() => undefined)
-      .finally(() => setCheckingSession(false));
-    return () => authService.setSessionExpiredHandler(null);
+    if (!authService.hasAccessToken()) {
+      setCheckingSession(false);
+    } else {
+      authService
+        .getCurrentUser()
+        .then(setUser)
+        .catch(() => undefined)
+        .finally(() => setCheckingSession(false));
+    }
+    return () => {
+      authService.setSessionExpiredHandler(null);
+    };
   }, []);
 
   useEffect(() => {

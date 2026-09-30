@@ -102,3 +102,7 @@ export function setAccessToken(token: string | null) {
     // Keep the in-memory session working if browser storage is unavailable.
   }
 }
+
+export function hasAccessToken() {
+  return accessToken !== null;
+}
