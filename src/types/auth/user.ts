@@ -1,11 +1,11 @@
-import { Permission } from "./permission";
+import type { PermissionName } from "./permission";
 
 export type User = {
   id: number;
   username: string;
   is_admin: boolean;
   roles: string[];
-  permissions: Permission[];
+  permissions: PermissionName[];
 };
 
 export type UserCreate = {

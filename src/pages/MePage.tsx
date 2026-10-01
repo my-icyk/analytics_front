@@ -65,8 +65,8 @@ export function MePage({ user }: MePageProps) {
         </div>
         <div className="permission-grid">
           {user.permissions.map((permission) => (
-            <span className="permission-chip" key={permission.id}>
-              {permission.name}
+            <span className="permission-chip" key={permission}>
+              {permission}
             </span>
           ))}
         </div>

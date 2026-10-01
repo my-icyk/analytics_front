@@ -62,7 +62,7 @@ export function AdminConsolePage({
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
-  const [activeNav, setActiveNav] = useState("Users");
+  const [activeNav, setActiveNav] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
