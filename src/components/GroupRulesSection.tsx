@@ -1,6 +1,7 @@
 import { Edit3, ExternalLink, Plus, Trash2 } from "lucide-react";
 import type { Rule } from "../types/finance";
 import { usePermissions } from "../auth/AuthContext";
+import { formatDate } from "../utils/utils";
 
 type GroupRulesSectionProps = {
   groupName: string;
@@ -12,6 +13,7 @@ type GroupRulesSectionProps = {
 };
 
 export function GroupRulesSection({
+  // TODO: De exclus group name , probabil nu voi avea nevoie de el
   groupName,
   rules,
 
@@ -59,10 +61,10 @@ export function GroupRulesSection({
                     <strong>{rule.name}</strong>
                   </button>
                 </td>
-                <td>{rule.valid_from}</td>
+                <td>{formatDate(rule.valid_from)}</td>
                 <td>
                   {rule.valid_to || (
-                    <span style={{ color: "var(--muted)" }}>Ongoing</span>
+                    <span className="badge badge-active">Ongoing</span>
                   )}
                 </td>
                 <td>
