@@ -41,6 +41,14 @@ export type PermissionName =
   | "finance:rule_target:create"
   | "finance:rule_target:read"
   | "finance:rule_target:update"
-  | "finance:rule_target:delete";
+  | "finance:rule_target:delete"
+  | "finance:department:create"
+  | "finance:department:read"
+  | "finance:department:update"
+  | "finance:department:delete"
+  | "finance:department_repartition:create"
+  | "finance:department_repartition:read"
+  | "finance:department_repartition:update"
+  | "finance:department_repartition:delete";
 
 export type Permission = { id: number; name: string };
