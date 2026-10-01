@@ -75,11 +75,23 @@ export function useAuth() {
 
 export function usePermissions() {
   const { user } = useAuth();
+
   return useMemo(() => {
     const permissions = new Set(user?.permissions.map(({ name }) => name));
+
     return {
-      can: (permission: PermissionName) =>
-        user?.is_admin === true || permissions.has(permission),
+      can: (permission: PermissionName) => {
+        const allowed = user?.is_admin === true || permissions.has(permission);
+
+        // console.log("[Permission Check]", {
+        //   user: user?.username ?? "Not authenticated",
+        //   permission,
+        //   allowed,
+        //   is_admin: user?.is_admin,
+        // });
+
+        return allowed;
+      },
     };
   }, [user]);
 }
