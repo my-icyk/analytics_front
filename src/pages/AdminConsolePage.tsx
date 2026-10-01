@@ -175,7 +175,6 @@ export function AdminConsolePage({
   ]);
 
   const syncViewFromLocation = () => {
-    setSelectedUser(null);
     setSelectedUserId(null);
     setSelectedRole(null);
     setSelectedRoleId(null);
@@ -457,7 +456,11 @@ export function AdminConsolePage({
     if (!user) return;
     if (activeNav === "Users" || activeNav === "User details")
       void ensureUsers().catch(() => undefined);
-    if (activeNav === "Roles" || activeNav === "Role details")
+    if (
+      activeNav === "Roles" ||
+      activeNav === "Role details" ||
+      activeNav === "User details"
+    )
       void ensureRoles().catch(() => undefined);
     if (activeNav === "Permissions" || activeNav === "Role details")
       void ensurePermissions().catch(() => undefined);
@@ -498,7 +501,14 @@ export function AdminConsolePage({
       setSelectedUser(null);
       return;
     }
-    setSelectedUser(users.find((item) => item.id === selectedUserId) ?? null);
+    const matchingUser = users.find((item) => item.id === selectedUserId);
+    if (matchingUser) {
+      setSelectedUser(matchingUser);
+      return;
+    }
+    setSelectedUser((current) =>
+      current?.id === selectedUserId ? current : null,
+    );
   }, [selectedUserId, users]);
 
   useEffect(() => {
