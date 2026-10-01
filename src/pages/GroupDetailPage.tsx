@@ -204,9 +204,6 @@ export function GroupDetailPage({
       <GroupRulesSection
         groupName={group.name}
         rules={rules}
-        canCreateRule={canCreateRule}
-        canEditRule={canEditRule}
-        canDeleteRule={canDeleteRule}
         onCreateRule={handleOpenCreateRule}
         onOpenRule={onOpenRule}
         onEditRule={handleOpenEditRule}

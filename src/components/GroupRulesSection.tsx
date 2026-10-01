@@ -1,12 +1,10 @@
 import { Edit3, ExternalLink, Plus, Trash2 } from "lucide-react";
 import type { Rule } from "../types/finance";
+import { usePermissions } from "../auth/AuthContext";
 
 type GroupRulesSectionProps = {
   groupName: string;
   rules: Rule[];
-  canCreateRule: boolean;
-  canEditRule: boolean;
-  canDeleteRule: boolean;
   onCreateRule: () => void;
   onOpenRule: (rule: Rule) => void;
   onEditRule: (rule: Rule) => void;
@@ -16,14 +14,13 @@ type GroupRulesSectionProps = {
 export function GroupRulesSection({
   groupName,
   rules,
-  canCreateRule,
-  canEditRule,
-  canDeleteRule,
+
   onCreateRule,
   onOpenRule,
   onEditRule,
   onDeleteRule,
 }: GroupRulesSectionProps) {
+  const { can } = usePermissions();
   return (
     <div className="detail-section">
       <div className="section-heading">
@@ -31,7 +28,7 @@ export function GroupRulesSection({
           <h3>Associated Rules</h3>
           <p>Rules and allocation percentages assigned to {groupName}.</p>
         </div>
-        {canCreateRule && (
+        {can("finance:rule:create") && (
           <button className="primary-button" onClick={onCreateRule}>
             <Plus size={16} /> New rule
           </button>
@@ -81,7 +78,7 @@ export function GroupRulesSection({
                     >
                       <ExternalLink size={14} />
                     </button>
-                    {canEditRule && (
+                    {can("finance:rule:update") && (
                       <button
                         className="secondary-button icon-action-button"
                         title="Edit rule"
@@ -91,7 +88,7 @@ export function GroupRulesSection({
                         <Edit3 size={14} />
                       </button>
                     )}
-                    {canDeleteRule && (
+                    {can("finance:rule:delete") && (
                       <button
                         className="danger-button icon-action-button"
                         title="Delete rule"
