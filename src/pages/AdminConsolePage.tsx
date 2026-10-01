@@ -8,21 +8,8 @@ import {
 } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth, usePermissions } from "../auth/AuthContext";
-import {
-  Bell,
-  BookOpen,
-  ChevronDown,
-  CircleHelp,
-  Database,
-  LogOut,
-  PanelLeftClose,
-  PanelLeftOpen,
-} from "lucide-react";
-import {
-  adminPages,
-  parseLegacyAdminRoute,
-  type AdminView,
-} from "../constants/admin";
+import { Bell, CircleHelp, Database } from "lucide-react";
+import { parseLegacyAdminRoute, type AdminView } from "../constants/admin";
 import { buildAdminPath, type ConsoleRouteView } from "../routes";
 import { assignmentService } from "../services/assignmentService";
 import { counterService } from "../services/counterService";
@@ -51,6 +38,7 @@ import { GroupsPage } from "./GroupsPage";
 import { GroupDetailPage } from "./GroupDetailPage";
 import { RuleDetailPage } from "./RuleDetailPage";
 import { financeService } from "../services/financeService";
+import { AdminSidebar } from "../components/AdminSidebar";
 import type {
   DepartmentRepartition,
   Division,
@@ -75,7 +63,6 @@ export function AdminConsolePage({
   const [password, setPassword] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
   const [activeNav, setActiveNav] = useState("Users");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -985,92 +972,9 @@ export function AdminConsolePage({
       </div>
     );
 
-  const visibleNav = adminPages.filter(
-    (item) => item.permission && can(item.permission),
-  );
   return (
     <div className="app-shell">
-      <aside className={`sidebar ${sidebarCollapsed ? "collapsed" : ""}`}>
-        <div className="sidebar-header">
-          <div className="brand">
-            <span className="brand-mark">
-              <Database size={18} />
-            </span>
-            <span>ledgerline</span>
-          </div>
-          <button
-            className="sidebar-toggle"
-            type="button"
-            onClick={() => setSidebarCollapsed((current) => !current)}
-            aria-label={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
-          >
-            {sidebarCollapsed ? (
-              <PanelLeftOpen size={16} />
-            ) : (
-              <PanelLeftClose size={16} />
-            )}
-          </button>
-        </div>
-        <div className="workspace-switcher">
-          <span className="workspace-dot" />
-          <span>Acme workspace</span>
-          <ChevronDown size={15} />
-        </div>
-        <nav className="nav-list">
-          {visibleNav.map((item) => {
-            const Icon = item.icon;
-            return (
-              <div key={item.id}>
-                {item.group &&
-                  visibleNav.find((nav) => nav.group === item.group)?.id ===
-                    item.id && <span className="nav-group">{item.group}</span>}
-                <button
-                  className={`nav-item ${activeNav === item.label ? "active" : ""}`}
-                  onClick={() => {
-                    if (item.id === "users") setRoute("users");
-                    if (item.id === "roles") setRoute("roles");
-                    if (item.id === "permissions") setRoute("permissions");
-                    if (item.id === "counters") setRoute("counters");
-                    if (item.id === "groups") setRoute("groups");
-                    if (item.id === "scripts") setRoute("scripts");
-                  }}
-                >
-                  <Icon size={17} />
-                  <span>{item.label}</span>
-                </button>
-              </div>
-            );
-          })}
-        </nav>
-        <div className="sidebar-bottom">
-          <button className="nav-item">
-            <BookOpen size={17} />
-            <span>Documentation</span>
-          </button>
-          <button className="nav-item">
-            <CircleHelp size={17} />
-            <span>Help center</span>
-          </button>
-          <div className="profile">
-            <button className="profile-link" onClick={() => setRoute("me")}>
-              <div className="avatar">
-                {user.username.slice(0, 2).toUpperCase()}
-              </div>
-              <div>
-                <strong>{user.username}</strong>
-                <small>{user.is_admin ? "Admin" : "Member"}</small>
-              </div>
-            </button>
-            <button
-              className="icon-button"
-              aria-label="Log out"
-              onClick={() => void logout()}
-            >
-              <LogOut size={16} />
-            </button>
-          </div>
-        </div>
-      </aside>
+      <AdminSidebar activeNav={activeNav} />
       <main className="main-content">
         <header className="topbar">
           <div className="breadcrumbs">
@@ -1079,18 +983,6 @@ export function AdminConsolePage({
             <strong>{activeNav}</strong>
           </div>
           <div className="top-actions">
-            <button
-              className="icon-button"
-              type="button"
-              onClick={() => setSidebarCollapsed((current) => !current)}
-              aria-label={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
-            >
-              {sidebarCollapsed ? (
-                <PanelLeftOpen size={18} />
-              ) : (
-                <PanelLeftClose size={18} />
-              )}
-            </button>
             <button className="icon-button" aria-label="Notifications">
               <Bell size={18} />
             </button>
