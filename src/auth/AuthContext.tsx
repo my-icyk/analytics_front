@@ -83,7 +83,7 @@ export function usePermissions() {
     return {
       can: (permission: PermissionName) => {
         const allowed = user?.is_admin === true || permissions.has(permission);
-        // TODO: Replace this IN production with a proper permission check logging mechanism
+        // TODO: Bug when i create a new role and write the name, for each caracter is cheking again permission i see in logs
 
         logger.debug("[Permission Check]", {
           user: user?.username ?? "Not authenticated",
