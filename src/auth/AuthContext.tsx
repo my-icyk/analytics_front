@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 import { authService } from "../services/authService";
 import type { CurrentUserResponse } from "../types/auth/user";
 import type { PermissionName } from "../types/auth/permission";
+import { createLogger } from "../utils/logger";
 
 type AuthContextValue = {
   user: CurrentUserResponse | null;
@@ -19,8 +20,8 @@ type AuthContextValue = {
   logout: () => Promise<void>;
 };
 
+const logger = createLogger("AuthContext");
 const AuthContext = createContext<AuthContextValue | null>(null);
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<CurrentUserResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -83,13 +84,13 @@ export function usePermissions() {
       can: (permission: PermissionName) => {
         const allowed = user?.is_admin === true || permissions.has(permission);
         // TODO: Replace this IN production with a proper permission check logging mechanism
-        console.log("[Permission Check]", {
+
+        logger.debug("[Permission Check]", {
           user: user?.username ?? "Not authenticated",
           permission,
           allowed,
           is_admin: user?.is_admin,
         });
-
         return allowed;
       },
     };
