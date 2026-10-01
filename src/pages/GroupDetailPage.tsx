@@ -9,6 +9,7 @@ import type {
   RuleCreate,
   DepartmentRepartition,
 } from "../types/finance";
+import { GroupRulesSection } from "../components/GroupRulesSection";
 import { GroupFormModal } from "../components/finance/GroupFormModal";
 import { RuleFormModal } from "../components/finance/RuleFormModal";
 
@@ -200,95 +201,17 @@ export function GroupDetailPage({
         </div>
       </div>
 
-      <div className="detail-section">
-        <div className="section-heading">
-          <div>
-            <h3>Associated Rules</h3>
-            <p>Rules and allocation percentages assigned to {group.name}.</p>
-          </div>
-          {canCreateRule && (
-            <button className="primary-button" onClick={handleOpenCreateRule}>
-              <Plus size={16} /> New rule
-            </button>
-          )}
-        </div>
-
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Rule Name</th>
-                <th>Valid From</th>
-                <th>Valid To</th>
-                <th>Percent Value</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rules.map((rule) => (
-                <tr key={rule.id}>
-                  <td>{rule.id}</td>
-                  <td>
-                    <button
-                      className="link-button"
-                      onClick={() => onOpenRule(rule)}
-                    >
-                      <strong>{rule.name}</strong>
-                    </button>
-                  </td>
-                  <td>{rule.valid_from}</td>
-                  <td>
-                    {rule.valid_to || (
-                      <span style={{ color: "var(--muted)" }}>Ongoing</span>
-                    )}
-                  </td>
-                  <td>
-                    <strong>{rule.percent_value}%</strong>
-                  </td>
-                  <td>
-                    <div className="table-actions">
-                      <button
-                        className="secondary-button icon-action-button"
-                        title="Manage targets"
-                        aria-label="Manage targets"
-                        onClick={() => onOpenRule(rule)}
-                      >
-                        <ExternalLink size={14} />
-                      </button>
-                      {canEditRule && (
-                        <button
-                          className="secondary-button icon-action-button"
-                          title="Edit rule"
-                          aria-label="Edit rule"
-                          onClick={() => handleOpenEditRule(rule)}
-                        >
-                          <Edit3 size={14} />
-                        </button>
-                      )}
-                      {canDeleteRule && (
-                        <button
-                          className="danger-button icon-action-button"
-                          title="Delete rule"
-                          aria-label="Delete rule"
-                          onClick={() => handleDeleteRule(rule)}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {rules.length === 0 && (
-            <div className="empty-state">
-              No rules associated with this group yet.
-            </div>
-          )}
-        </div>
-      </div>
+      <GroupRulesSection
+        groupName={group.name}
+        rules={rules}
+        canCreateRule={canCreateRule}
+        canEditRule={canEditRule}
+        canDeleteRule={canDeleteRule}
+        onCreateRule={handleOpenCreateRule}
+        onOpenRule={onOpenRule}
+        onEditRule={handleOpenEditRule}
+        onDeleteRule={handleDeleteRule}
+      />
       <div className="detail-section">
         <div className="section-heading">
           <div>
