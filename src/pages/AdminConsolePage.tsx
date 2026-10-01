@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useAuth, usePermissions } from "../auth/AuthContext";
 import {
   Bell,
   BookOpen,
@@ -23,13 +24,12 @@ import {
   type AdminView,
 } from "../constants/admin";
 import { buildAdminPath, type ConsoleRouteView } from "../routes";
-import { authService } from "../services/authService";
 import { assignmentService } from "../services/assignmentService";
 import { counterService } from "../services/counterService";
 import { permissionService } from "../services/permissionService";
 import { roleService } from "../services/roleService";
 import { userService } from "../services/userService";
-import type { Permission, PermissionName } from "../types/auth/permission";
+import type { Permission } from "../types/auth/permission";
 import type { Role } from "../types/auth/role";
 import type { User } from "../types/auth/user";
 import type { Counter } from "../types/counter";
@@ -68,8 +68,8 @@ export function AdminConsolePage({
 }: {
   routeView: ConsoleRouteView;
 }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [checkingSession, setCheckingSession] = useState(true);
+  const { user, loading: checkingSession, login, logout } = useAuth();
+  const { can } = usePermissions();
   const [loginError, setLoginError] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -143,13 +143,6 @@ export function AdminConsolePage({
   const counterMapRef = useRef<Record<number, Counter>>({});
 
   const loadedDepartmentRepartitionsIdsRef = useRef<Set<number>>(new Set());
-
-  const can = useCallback(
-    (permission: PermissionName) =>
-      user?.is_admin === true ||
-      user?.permissions.includes(permission) === true,
-    [user],
-  );
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -455,22 +448,6 @@ export function AdminConsolePage({
       );
     }
   };
-
-  useEffect(() => {
-    authService.setSessionExpiredHandler(() => setUser(null));
-    if (!authService.hasAccessToken()) {
-      setCheckingSession(false);
-    } else {
-      authService
-        .getCurrentUser()
-        .then(setUser)
-        .catch(() => undefined)
-        .finally(() => setCheckingSession(false));
-    }
-    return () => {
-      authService.setSessionExpiredHandler(null);
-    };
-  }, []);
 
   useEffect(() => {
     syncViewFromLocation();
@@ -936,7 +913,7 @@ export function AdminConsolePage({
     setLoggingIn(true);
     setLoginError("");
     try {
-      setUser(await authService.login(username, password));
+      await login(username, password);
       setPassword("");
       setRoute("me");
     } catch (error) {
@@ -1077,7 +1054,7 @@ export function AdminConsolePage({
             <button
               className="icon-button"
               aria-label="Log out"
-              onClick={() => authService.logout().then(() => setUser(null))}
+              onClick={() => void logout()}
             >
               <LogOut size={16} />
             </button>
@@ -1131,8 +1108,8 @@ export function AdminConsolePage({
             roles={roles}
             assignedRoles={userRoleMap[selectedUser.id] ?? []}
             canEdit={can("user:update")}
-            canAssign={can("user_role:assign") || can("user_role:revoke")}
-            canManageAdmin={can("user:manage_admin")}
+            canAssign={can("user_role:assign")}
+            canManageAdmin={user.is_admin}
             onBack={() => setRoute("users")}
             onEdit={() => openUserEditor(selectedUser)}
             onOpenRole={openRole}
@@ -1159,9 +1136,7 @@ export function AdminConsolePage({
             permissions={permissions}
             assignedPermissions={rolePermissionMap[selectedRole.id] ?? []}
             canEdit={can("role:update")}
-            canAssign={
-              can("role_permission:assign") || can("role_permission:revoke")
-            }
+            canAssign={can("role_permission:assign")}
             onBack={() => setRoute("roles")}
             onEdit={() => openRoleEditor(selectedRole)}
             onTogglePermission={(permissionId) =>

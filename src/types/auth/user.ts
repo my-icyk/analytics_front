@@ -1,11 +1,21 @@
-export type User = {
-  id: number
-  username: string
-  is_admin: boolean
-  roles: string[]
-  permissions: string[]
-}
+import { Permission } from "./permission";
 
-export type UserCreate = { username: string; password: string; is_admin?: boolean }
-export type UserUpdate = { username?: string; password?: string; is_admin?: boolean }
-export type CurrentUserResponse = User
+export type User = {
+  id: number;
+  username: string;
+  is_admin: boolean;
+  roles: string[];
+  permissions: Permission[];
+};
+
+export type UserCreate = {
+  username: string;
+  password: string;
+  is_admin?: boolean;
+};
+export type UserUpdate = {
+  username?: string;
+  password?: string;
+  is_admin?: boolean;
+};
+export type CurrentUserResponse = User;

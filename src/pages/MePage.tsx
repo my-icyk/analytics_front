@@ -1,7 +1,7 @@
-import type { User } from "../types/auth/user";
+import type { CurrentUserResponse } from "../types/auth/user";
 
 type MePageProps = {
-  user: User;
+  user: CurrentUserResponse;
 };
 
 export function MePage({ user }: MePageProps) {
@@ -65,8 +65,8 @@ export function MePage({ user }: MePageProps) {
         </div>
         <div className="permission-grid">
           {user.permissions.map((permission) => (
-            <span className="permission-chip" key={permission}>
-              {permission}
+            <span className="permission-chip" key={permission.id}>
+              {permission.name}
             </span>
           ))}
         </div>
