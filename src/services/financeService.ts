@@ -22,6 +22,7 @@ import {
   assignDepartmentRepartition,
   updateDepartmentRepartition,
   revokeDepartmentRepartition,
+  getDepartments,
 } from "../api/finance";
 
 export const financeService = {
@@ -48,4 +49,5 @@ export const financeService = {
   assignDepartmentRepartition,
   updateDepartmentRepartition,
   revokeDepartmentRepartition,
+  getDepartments,
 };

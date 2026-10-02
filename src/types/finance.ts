@@ -100,3 +100,9 @@ export type DepartmentRepartitionCreate = {
 };
 
 export type DepartmentRepartitionUpdate = DepartmentRepartitionCreate;
+
+export type Department = {
+  id: number;
+  code: string;
+  name: string;
+};

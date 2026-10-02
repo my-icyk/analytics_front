@@ -1,5 +1,6 @@
 import { request } from "./client";
 import type {
+  Department,
   DepartmentRepartition,
   DepartmentRepartitionCreate,
   DepartmentRepartitionUpdate,
@@ -211,4 +212,8 @@ export function revokeDepartmentRepartition(
       method: "DELETE",
     },
   );
+}
+
+export function getDepartments(groupId: number) {
+  return request<Department[]>(`${GROUPS_ENDPOINT}/departments`);
 }
