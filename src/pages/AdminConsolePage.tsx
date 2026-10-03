@@ -1119,8 +1119,6 @@ export function AdminConsolePage({
         {activeNav === "Counter details" && selectedCounter && (
           <CounterDetailPage
             counter={selectedCounter}
-            canEdit={can("counter_update:update")}
-            canDelete={can("counter_update:delete")}
             onBack={() => setRoute("counters")}
             onEdit={() => openCounterEditor(selectedCounter)}
             onDelete={() => removeCounter(selectedCounter)}
@@ -1131,9 +1129,6 @@ export function AdminConsolePage({
           <GroupsPage
             groups={groups}
             groupTypes={groupTypes}
-            canCreate={can("finance:group:create")}
-            canEdit={can("finance:group:update")}
-            canDelete={can("finance:group:delete")}
             onOpenGroup={(g) => setRoute("group", { groupId: g.id })}
             onCreateGroup={handleCreateGroup}
             onUpdateGroup={handleUpdateGroup}
@@ -1142,13 +1137,7 @@ export function AdminConsolePage({
             error={financeError}
           />
         )}
-        {activeNav === "Divisions" && (
-          <DivisionsPage
-            canCreate={can("finance:division:create")}
-            canEdit={can("finance:division:update")}
-            canDelete={can("finance:division:delete")}
-          />
-        )}
+        {activeNav === "Divisions" && <DivisionsPage />}
         {activeNav === "Group details" && selectedGroup && (
           <GroupDetailPage
             group={selectedGroup}

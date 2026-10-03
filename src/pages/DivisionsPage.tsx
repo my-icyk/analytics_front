@@ -9,18 +9,12 @@ import {
   type DivisionCreate,
 } from "../features/finance/divisions";
 import { DivisionFormModal } from "../components/finance/DivisionFormModal";
+import { usePermissions } from "../auth/AuthContext";
 
-type DivisionsPageProps = {
-  canCreate: boolean;
-  canEdit: boolean;
-  canDelete: boolean;
-};
+type DivisionsPageProps = {};
 
-export function DivisionsPage({
-  canCreate,
-  canEdit,
-  canDelete,
-}: DivisionsPageProps) {
+export function DivisionsPage({}: DivisionsPageProps) {
+  const { can } = usePermissions();
   const { data: divisions = [], isLoading, error: loadError } = useDivisions();
   const createDivision = useCreateDivision();
   const updateDivision = useUpdateDivision();
@@ -98,7 +92,7 @@ export function DivisionsPage({
           <h2>Finance Divisions</h2>
           <p>Manage the divisions available for group assignment.</p>
         </div>
-        {canCreate && (
+        {can("finance:division:create") && (
           <button className="primary-button" onClick={handleOpenCreate}>
             <Plus size={17} /> New division
           </button>
@@ -137,7 +131,7 @@ export function DivisionsPage({
                 </td>
                 <td>
                   <div className="table-actions">
-                    {canEdit && (
+                    {can("finance:division:update") && (
                       <button
                         className="secondary-button icon-action-button"
                         title="Edit division"
@@ -147,7 +141,7 @@ export function DivisionsPage({
                         <Edit3 size={14} />
                       </button>
                     )}
-                    {canDelete && (
+                    {can("finance:division:delete") && (
                       <button
                         className="danger-button icon-action-button"
                         title="Delete division"

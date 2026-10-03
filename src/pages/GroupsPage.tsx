@@ -22,13 +22,11 @@ import type {
 import { GroupFormModal } from "../components/finance/GroupFormModal";
 import { Slicer, type SlicerOption } from "../components/common/Slicer";
 import { useDivisions } from "../features/finance/divisions";
+import { usePermissions } from "../auth/AuthContext";
 
 type GroupsPageProps = {
   groups: Group[];
   groupTypes: GroupType[];
-  canCreate: boolean;
-  canEdit: boolean;
-  canDelete: boolean;
   onOpenGroup: (group: Group) => void;
   onCreateGroup: (payload: GroupCreate) => Promise<void>;
   onUpdateGroup: (groupId: number, payload: GroupCreate) => Promise<void>;
@@ -40,9 +38,6 @@ type GroupsPageProps = {
 export function GroupsPage({
   groups: initialGroups,
   groupTypes,
-  canCreate,
-  canEdit,
-  canDelete,
   onOpenGroup,
   onCreateGroup,
   onUpdateGroup,
@@ -50,6 +45,7 @@ export function GroupsPage({
   onFilterChange,
   error,
 }: GroupsPageProps) {
+  const { can } = usePermissions();
   const { data: divisions = [] } = useDivisions();
   const [displayedGroups, setDisplayedGroups] =
     useState<Group[]>(initialGroups);
@@ -319,7 +315,7 @@ export function GroupsPage({
             Configure business groups, divisional alignment, and cost centers.
           </p>
         </div>
-        {canCreate && (
+        {can("finance:group:create") && (
           <button className="primary-button" onClick={handleOpenCreate}>
             <Plus size={17} /> New group
           </button>
@@ -426,7 +422,7 @@ export function GroupsPage({
                     >
                       <ExternalLink size={14} />
                     </button>
-                    {canEdit && (
+                    {can("finance:group:update") && (
                       <button
                         className="secondary-button icon-action-button"
                         title="Edit group"
@@ -436,7 +432,7 @@ export function GroupsPage({
                         <Edit3 size={14} />
                       </button>
                     )}
-                    {canDelete && (
+                    {can("finance:group:delete") && (
                       <button
                         className="danger-button icon-action-button"
                         title="Delete group"
