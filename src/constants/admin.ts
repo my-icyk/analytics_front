@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Building2,
   FileText,
   FolderKanban,
   KeyRound,
@@ -24,6 +25,7 @@ export type AdminView =
   | "group"
   | "rules"
   | "rule"
+  | "divisions"
   | "scripts";
 
 export type AdminRouteState = {
@@ -80,6 +82,13 @@ export const adminPages: AdminPageDefinition[] = [
     permission: "finance:group:read",
   },
   {
+    id: "divisions",
+    label: "Divisions",
+    icon: Building2,
+    group: "Finance",
+    permission: "finance:division:read",
+  },
+  {
     id: "scripts",
     label: "Scripts",
     icon: Activity,
@@ -104,6 +113,15 @@ export function parseAdminRoute(
   if (pathname === "/finance/groups")
     return {
       view: "groups",
+      userId: null,
+      roleId: null,
+      counterId: null,
+      groupId: null,
+      ruleId: null,
+    };
+  if (pathname === "/finance/divisions")
+    return {
+      view: "divisions",
       userId: null,
       roleId: null,
       counterId: null,
@@ -202,6 +220,15 @@ export function parseAdminRoute(
   if (view === "groups")
     return {
       view: "groups",
+      userId: null,
+      roleId: null,
+      counterId: null,
+      groupId: null,
+      ruleId: null,
+    };
+  if (view === "divisions")
+    return {
+      view: "divisions",
       userId: null,
       roleId: null,
       counterId: null,

@@ -17,6 +17,7 @@ const adminRoutes = {
   groups: "/finance/groups",
   group: "/finance/groups/:groupId",
   rule: "/finance/rules/:ruleId",
+  divisions: "/finance/divisions",
 } as const;
 
 type AdminPathParams = {
@@ -32,6 +33,7 @@ type AdminPathParams = {
   groups: object;
   group: { groupId: string | number };
   rule: { ruleId: string | number };
+  divisions: object;
 };
 
 type RoutedAdminView = keyof AdminPathParams;

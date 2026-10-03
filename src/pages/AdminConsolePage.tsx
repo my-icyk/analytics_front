@@ -35,6 +35,7 @@ import type { CounterUpdateFormValues } from "../components/CountersUpdate/Count
 import { MePage } from "./MePage";
 import { ScriptsPage } from "./ScriptsPage";
 import { GroupsPage } from "./GroupsPage";
+import { DivisionsPage } from "./DivisionsPage";
 import { GroupDetailPage } from "./GroupDetailPage";
 import { RuleDetailPage } from "./RuleDetailPage";
 import { financeService } from "../services/financeService";
@@ -208,6 +209,10 @@ export function AdminConsolePage({
       setActiveNav("Groups");
       return;
     }
+    if (route.view === "divisions") {
+      setActiveNav("Divisions");
+      return;
+    }
     if (route.view === "group") {
       setActiveNav("Group details");
       setSelectedGroupId(route.groupId);
@@ -243,6 +248,7 @@ export function AdminConsolePage({
       | "counter"
       | "groups"
       | "group"
+      | "divisions"
       | "rule",
     values: {
       userId?: number | null;
@@ -1134,6 +1140,13 @@ export function AdminConsolePage({
             onDeleteGroup={handleDeleteGroup}
             onFilterChange={(filters) => financeService.getGroups(filters)}
             error={financeError}
+          />
+        )}
+        {activeNav === "Divisions" && (
+          <DivisionsPage
+            canCreate={can("finance:division:create")}
+            canEdit={can("finance:division:update")}
+            canDelete={can("finance:division:delete")}
           />
         )}
         {activeNav === "Group details" && selectedGroup && (
