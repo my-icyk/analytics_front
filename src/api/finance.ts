@@ -214,6 +214,6 @@ export function revokeDepartmentRepartition(
   );
 }
 
-export function getDepartments(groupId: number) {
+export function getDepartments() {
   return request<Department[]>(`${GROUPS_ENDPOINT}/departments`);
 }

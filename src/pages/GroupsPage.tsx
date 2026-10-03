@@ -21,10 +21,10 @@ import type {
 } from "../types/finance";
 import { GroupFormModal } from "../components/finance/GroupFormModal";
 import { Slicer, type SlicerOption } from "../components/common/Slicer";
+import { useDivisions } from "../features/finance/divisions";
 
 type GroupsPageProps = {
   groups: Group[];
-  divisions: Division[];
   groupTypes: GroupType[];
   canCreate: boolean;
   canEdit: boolean;
@@ -39,7 +39,6 @@ type GroupsPageProps = {
 
 export function GroupsPage({
   groups: initialGroups,
-  divisions,
   groupTypes,
   canCreate,
   canEdit,
@@ -51,6 +50,7 @@ export function GroupsPage({
   onFilterChange,
   error,
 }: GroupsPageProps) {
+  const { data: divisions = [] } = useDivisions();
   const [displayedGroups, setDisplayedGroups] =
     useState<Group[]>(initialGroups);
   const [total, setTotal] = useState<number>(initialGroups.length);

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { ArrowLeft, Edit3, ExternalLink, Plus, Trash2 } from "lucide-react";
 import type {
+  Department,
+  DepartmentRepartitionCreate,
   Division,
   Group,
   GroupCreate,
@@ -12,15 +14,17 @@ import type {
 import { GroupRulesSection } from "../components/GroupRulesSection";
 import { GroupFormModal } from "../components/finance/GroupFormModal";
 import { RuleFormModal } from "../components/finance/RuleFormModal";
+import { GroupDepartmentAllocationForm } from "../components/finance/GroupDepartmentAllocationForm";
 import { GroupDeparmentSection } from "../components/GroupDeparmentSection";
+import { useDivisions } from "../features/finance/divisions";
 
 type GroupDetailPageProps = {
   group: Group;
   allGroups: Group[];
-  divisions: Division[];
   groupTypes: GroupType[];
   rules: Rule[];
   departmentRepartitions: DepartmentRepartition[];
+  departments: Department[];
   canEditGroup: boolean;
   canDeleteGroup: boolean;
   canCreateRule: boolean;
@@ -34,16 +38,19 @@ type GroupDetailPageProps = {
   onCreateRule: (payload: RuleCreate) => Promise<void>;
   onUpdateRule: (ruleId: number, payload: RuleCreate) => Promise<void>;
   onDeleteRule: (rule: Rule) => Promise<void>;
+  onCreateDepartmentRepartition: (
+    payload: DepartmentRepartitionCreate,
+  ) => Promise<void>;
   error: string;
 };
 
 export function GroupDetailPage({
   group,
   allGroups,
-  divisions,
   groupTypes,
   rules,
   departmentRepartitions,
+  departments,
   canEditGroup,
   canDeleteGroup,
   canCreateRule,
@@ -57,10 +64,13 @@ export function GroupDetailPage({
   onCreateRule,
   onUpdateRule,
   onDeleteRule,
+  onCreateDepartmentRepartition,
   error,
 }: GroupDetailPageProps) {
+  const { data: divisions = [] } = useDivisions();
   const [groupModalOpen, setGroupModalOpen] = useState(false);
   const [ruleModalOpen, setRuleModalOpen] = useState(false);
+  const [allocationModalOpen, setAllocationModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<Rule | null>(null);
   const [modalError, setModalError] = useState("");
 
@@ -120,6 +130,23 @@ export function GroupDetailPage({
       window.confirm(`Are you sure you want to delete rule "${rule.name}"?`)
     ) {
       void onDeleteRule(rule);
+    }
+  };
+
+  const handleOpenCreateAllocation = () => {
+    setModalError("");
+    setAllocationModalOpen(true);
+  };
+
+  const handleSaveAllocation = async (payload: DepartmentRepartitionCreate) => {
+    try {
+      await onCreateDepartmentRepartition(payload);
+      setAllocationModalOpen(false);
+    } catch (err) {
+      setModalError(
+        err instanceof Error ? err.message : "Failed to allocate department",
+      );
+      throw err;
     }
   };
 
@@ -210,10 +237,9 @@ export function GroupDetailPage({
         onEditRule={handleOpenEditRule}
         onDeleteRule={handleDeleteRule}
       />
-      {/* Department section TODO: NEED TO UNDERSTAND HOW TO CREATE AND TO MANAGE crud */}
       <GroupDeparmentSection
         allocations={departmentRepartitions}
-        onCreate={() => {}}
+        onCreate={handleOpenCreateAllocation}
         onOpen={() => {}}
         onEdit={() => {}}
         onDelete={() => {}}
@@ -237,6 +263,17 @@ export function GroupDetailPage({
           error={modalError}
           onClose={() => setRuleModalOpen(false)}
           onSubmit={handleSaveRule}
+        />
+      )}
+
+      {allocationModalOpen && (
+        <GroupDepartmentAllocationForm
+          allocation={null}
+          groupId={group.id}
+          departments={departments}
+          error={modalError}
+          onClose={() => setAllocationModalOpen(false)}
+          onSubmit={handleSaveAllocation}
         />
       )}
     </section>

@@ -40,7 +40,9 @@ import { RuleDetailPage } from "./RuleDetailPage";
 import { financeService } from "../services/financeService";
 import { AdminSidebar } from "../components/AdminSidebar";
 import type {
+  Department,
   DepartmentRepartition,
+  DepartmentRepartitionCreate,
   Division,
   Group,
   GroupCreate,
@@ -101,7 +103,6 @@ export function AdminConsolePage({
   const [counterRefreshKey, setCounterRefreshKey] = useState(0);
 
   const [groups, setGroups] = useState<Group[]>([]);
-  const [divisions, setDivisions] = useState<Division[]>([]);
   const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
@@ -113,6 +114,7 @@ export function AdminConsolePage({
   const [departmentRepartitionsMap, setDepartmentRepartitionsMap] = useState<
     Record<number, DepartmentRepartition[]>
   >({});
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [ruleTargetsMap, setRuleTargetsMap] = useState<
     Record<number, Target[]>
   >({});
@@ -130,6 +132,7 @@ export function AdminConsolePage({
   const counterMapRef = useRef<Record<number, Counter>>({});
 
   const loadedDepartmentRepartitionsIdsRef = useRef<Set<number>>(new Set());
+  const departmentsLoadedRef = useRef(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -342,13 +345,11 @@ export function AdminConsolePage({
     )
       return;
     try {
-      const [groupsPage, nextDivisions, nextGroupTypes] = await Promise.all([
+      const [groupsPage, nextGroupTypes] = await Promise.all([
         financeService.getGroups({ limit: 100 }),
-        financeService.getDivisions(),
         financeService.getGroupTypes(),
       ]);
       setGroups(groupsPage.items);
-      setDivisions(nextDivisions);
       setGroupTypes(nextGroupTypes);
       groupsPageLoadedRef.current = true;
       setFinanceError("");
@@ -414,6 +415,20 @@ export function AdminConsolePage({
     }
   };
 
+  const ensureDepartments = async () => {
+    if (departmentsLoadedRef.current) return;
+    try {
+      const nextDepartments = await financeService.getDepartments();
+      departmentsLoadedRef.current = true;
+      setDepartments(nextDepartments);
+      setFinanceError("");
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to load departments",
+      );
+    }
+  };
+
   const ensureRule = async (ruleId: number) => {
     try {
       await ensureGroups();
@@ -465,10 +480,12 @@ export function AdminConsolePage({
       activeNav === "Rule details"
     )
       void ensureGroups().catch(() => undefined);
+    // TODO: Numi place sistema aceasta de activNav
     if (activeNav === "Group details" && selectedGroupId !== null) {
       void ensureGroup(selectedGroupId).catch(() => undefined);
       void ensureGroupRules(selectedGroupId).catch(() => undefined);
       void ensureDepartmentRepartitions(selectedGroupId).catch(() => undefined);
+      void ensureDepartments().catch(() => undefined);
     }
     if (activeNav === "Rule details" && selectedRuleId !== null)
       void ensureRule(selectedRuleId).catch(() => undefined);
@@ -608,6 +625,27 @@ export function AdminConsolePage({
       setFinanceError(
         err instanceof Error ? err.message : "Failed to delete rule",
       );
+    }
+  };
+
+  const handleCreateDepartmentRepartition = async (
+    payload: DepartmentRepartitionCreate,
+  ) => {
+    try {
+      const created = await financeService.assignDepartmentRepartition(
+        payload.group_id,
+        payload,
+      );
+      setDepartmentRepartitionsMap((cur) => ({
+        ...cur,
+        [payload.group_id]: [...(cur[payload.group_id] ?? []), created],
+      }));
+      setFinanceError("");
+    } catch (err) {
+      setFinanceError(
+        err instanceof Error ? err.message : "Failed to allocate department",
+      );
+      throw err;
     }
   };
 
@@ -1086,7 +1124,6 @@ export function AdminConsolePage({
         {activeNav === "Groups" && (
           <GroupsPage
             groups={groups}
-            divisions={divisions}
             groupTypes={groupTypes}
             canCreate={can("finance:group:create")}
             canEdit={can("finance:group:update")}
@@ -1103,12 +1140,12 @@ export function AdminConsolePage({
           <GroupDetailPage
             group={selectedGroup}
             allGroups={groups}
-            divisions={divisions}
             groupTypes={groupTypes}
             rules={groupRulesMap[selectedGroup.id] ?? []}
             departmentRepartitions={
               departmentRepartitionsMap[selectedGroup.id] ?? []
             }
+            departments={departments}
             canEditGroup={can("finance:group:update")}
             canDeleteGroup={can("finance:group:delete")}
             canCreateRule={can("finance:rule:create")}
@@ -1122,6 +1159,7 @@ export function AdminConsolePage({
             onCreateRule={handleCreateRule}
             onUpdateRule={handleUpdateRule}
             onDeleteRule={handleDeleteRule}
+            onCreateDepartmentRepartition={handleCreateDepartmentRepartition}
             error={financeError}
           />
         )}
