@@ -104,7 +104,6 @@ export function AdminConsolePage({
   const [counterRefreshKey, setCounterRefreshKey] = useState(0);
 
   const [groups, setGroups] = useState<Group[]>([]);
-  const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [selectedRule, setSelectedRule] = useState<Rule | null>(null);
@@ -351,12 +350,8 @@ export function AdminConsolePage({
     )
       return;
     try {
-      const [groupsPage, nextGroupTypes] = await Promise.all([
-        financeService.getGroups({ limit: 100 }),
-        financeService.getGroupTypes(),
-      ]);
+      const groupsPage = await financeService.getGroups({ limit: 100 });
       setGroups(groupsPage.items);
-      setGroupTypes(nextGroupTypes);
       groupsPageLoadedRef.current = true;
       setFinanceError("");
     } catch (err) {
@@ -1128,7 +1123,6 @@ export function AdminConsolePage({
         {activeNav === "Groups" && (
           <GroupsPage
             groups={groups}
-            groupTypes={groupTypes}
             onOpenGroup={(g) => setRoute("group", { groupId: g.id })}
             onCreateGroup={handleCreateGroup}
             onUpdateGroup={handleUpdateGroup}
@@ -1142,7 +1136,6 @@ export function AdminConsolePage({
           <GroupDetailPage
             group={selectedGroup}
             allGroups={groups}
-            groupTypes={groupTypes}
             rules={groupRulesMap[selectedGroup.id] ?? []}
             departmentRepartitions={
               departmentRepartitionsMap[selectedGroup.id] ?? []

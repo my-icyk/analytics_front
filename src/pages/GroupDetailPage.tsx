@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { ArrowLeft, Edit3, ExternalLink, Plus, Trash2 } from "lucide-react";
+import { useGroupTypes } from "../features/finance/groups";
 import type {
   Department,
   DepartmentRepartitionCreate,
-  Division,
   Group,
   GroupCreate,
-  GroupType,
   Rule,
   RuleCreate,
   DepartmentRepartition,
@@ -17,11 +16,11 @@ import { RuleFormModal } from "../components/finance/RuleFormModal";
 import { GroupDepartmentAllocationForm } from "../components/finance/GroupDepartmentAllocationForm";
 import { GroupDeparmentSection } from "../components/GroupDeparmentSection";
 import { useDivisions } from "../features/finance/divisions";
+import { usePermissions } from "../auth/AuthContext";
 
 type GroupDetailPageProps = {
   group: Group;
   allGroups: Group[];
-  groupTypes: GroupType[];
   rules: Rule[];
   departmentRepartitions: DepartmentRepartition[];
   departments: Department[];
@@ -47,15 +46,9 @@ type GroupDetailPageProps = {
 export function GroupDetailPage({
   group,
   allGroups,
-  groupTypes,
   rules,
   departmentRepartitions,
   departments,
-  canEditGroup,
-  canDeleteGroup,
-  canCreateRule,
-  canEditRule,
-  canDeleteRule,
   onBack,
   onSelectGroup,
   onUpdateGroup,
@@ -67,6 +60,8 @@ export function GroupDetailPage({
   onCreateDepartmentRepartition,
   error,
 }: GroupDetailPageProps) {
+  const { can } = usePermissions();
+  const { data: groupTypes = [] } = useGroupTypes();
   const { data: divisions = [] } = useDivisions();
   const [groupModalOpen, setGroupModalOpen] = useState(false);
   const [ruleModalOpen, setRuleModalOpen] = useState(false);
@@ -201,12 +196,12 @@ export function GroupDetailPage({
           </p>
         </div>
         <div className="table-actions">
-          {canEditGroup && (
+          {can("finance:group:update") && (
             <button className="secondary-button" onClick={handleOpenEditGroup}>
               <Edit3 size={15} /> Edit group
             </button>
           )}
-          {canDeleteGroup && (
+          {can("finance:group:delete") && (
             <button className="danger-button" onClick={handleDeleteGroup}>
               <Trash2 size={15} /> Delete group
             </button>
