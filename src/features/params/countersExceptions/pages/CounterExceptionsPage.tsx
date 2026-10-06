@@ -19,7 +19,7 @@ import { formatDateTime } from "../../../../utils/utils";
 
 export function CountersPage() {
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(10);
   const [selectedCounterIds, setSelectedCounterIds] = useState<
     (string | number)[]
   >([]);
