@@ -1,7 +1,17 @@
 import { useNavigate } from "react-router-dom";
-import { useCounters, useExceptions } from "../countersExceptions.queries";
+import { Plus } from "lucide-react";
+import {
+  useCounters,
+  useCreateException,
+  useExceptions,
+} from "../countersExceptions.queries";
 import { CountersTable } from "../components/CountersTable";
-import { Counter, CounterException } from "../countersExceptions.types";
+import {
+  Counter,
+  CounterException,
+  CounterExceptionCreate,
+} from "../countersExceptions.types";
+import { ExceptionFormModal } from "../components/ExceptionFormModal";
 import { Column, DataTable } from "../../../../components/DataTable";
 import { useMemo, useState } from "react";
 import { Pagination } from "../../../../components/Pagination";
@@ -16,6 +26,10 @@ export function CountersPage() {
     (string | number)[]
   >([]);
   const { data: countersData } = useCounters();
+  const createException = useCreateException();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalError, setModalError] = useState("");
 
   const counterId =
     selectedCounterIds.length > 0 ? Number(selectedCounterIds[0]) : undefined;
@@ -37,6 +51,23 @@ export function CountersPage() {
   function handleCounterChange(selected: (string | number)[]) {
     setSelectedCounterIds(selected);
     setPage(1);
+  }
+
+  function handleOpenCreate() {
+    setModalError("");
+    setModalOpen(true);
+  }
+
+  async function handleCreate(payload: CounterExceptionCreate) {
+    try {
+      await createException.mutateAsync(payload);
+      setModalOpen(false);
+    } catch (err) {
+      setModalError(
+        err instanceof Error ? err.message : "Failed to create exception",
+      );
+      throw err;
+    }
   }
 
   const counterOptions: SlicerOption[] = useMemo(
@@ -79,6 +110,9 @@ export function CountersPage() {
           <h2>Counter Exceptions</h2>
           <p>Validity windows for counters.</p>
         </div>
+        <button className="primary-button" onClick={handleOpenCreate}>
+          <Plus size={17} /> New exception
+        </button>
       </div>
 
       <div className="slicers-bar">
@@ -114,6 +148,16 @@ export function CountersPage() {
           />
         }
       />
+
+      {modalOpen && (
+        <ExceptionFormModal
+          counters={countersData ?? []}
+          initialCounterId={counterId}
+          error={modalError}
+          onClose={() => setModalOpen(false)}
+          onSubmit={handleCreate}
+        />
+      )}
     </section>
   );
 }

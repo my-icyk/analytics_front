@@ -75,8 +75,8 @@ export function Slicer({
         onChange([]);
       } else {
         onChange([id]);
-        setIsOpen(false);
       }
+      setIsOpen(false);
     }
   };
 

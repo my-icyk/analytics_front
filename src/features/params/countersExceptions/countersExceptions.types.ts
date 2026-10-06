@@ -9,7 +9,7 @@ export type CounterException = {
   counter_id: number;
   valid_from: string;
   valid_to: string;
-  visitors: string;
+  visitors: number;
   is_auto: boolean;
   reason: string;
   created_by: string;
@@ -21,7 +21,7 @@ export type CounterExceptionCreate = {
   counter_id: number;
   valid_from: string;
   valid_to: string;
-  visitors: string;
+  visitors: number;
   is_auto: boolean;
   reason: string;
 };
