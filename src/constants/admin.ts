@@ -71,7 +71,7 @@ export const adminPages: AdminPageDefinition[] = [
     id: "counters",
     label: "Counters",
     icon: WalletCards,
-    group: "Tables",
+    group: "Params",
     permission: "counter_update:read",
   },
   {
