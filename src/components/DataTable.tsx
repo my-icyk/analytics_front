@@ -1,11 +1,14 @@
 // DataTable.tsx
+// General-purpose, controlled table: pages fetch data, DataTable only renders it.
+// Pairs with <Pagination /> via the `footer` prop.
 import type { ReactNode } from "react";
 
 export type Column<T> = {
   key: string;
-  header: string;
-  render: (row: T) => ReactNode; // always required: simpler typing, no keyof tricks
+  header: ReactNode;
+  render: (row: T) => ReactNode;
   width?: string;
+  align?: "left" | "center" | "right";
 };
 
 type DataTableProps<T> = {
@@ -13,9 +16,12 @@ type DataTableProps<T> = {
   data: T[];
   rowKey: (row: T) => string | number;
   renderActions?: (row: T) => ReactNode;
-  isLoading?: boolean; // first load
-  isFetching?: boolean; // refetch (dim the table)
+  isLoading?: boolean; // first load: show loading state instead of rows
+  isFetching?: boolean; // refetch: dim rows but keep them visible
+  error?: string;
   emptyText?: string;
+  loadingText?: string;
+  footer?: ReactNode; // e.g. <Pagination />
 };
 
 export function DataTable<T>({
@@ -23,44 +29,51 @@ export function DataTable<T>({
   data,
   rowKey,
   renderActions,
-  isLoading,
-  isFetching,
+  isLoading = false,
+  isFetching = false,
+  error,
   emptyText = "No data",
+  loadingText = "Loading…",
+  footer,
 }: DataTableProps<T>) {
-  const colSpan = columns.length + (renderActions ? 1 : 0);
-
   return (
-    <table className="table-wrap">
-      <thead>
-        <tr>
-          {columns.map((c) => (
-            <th key={c.key} style={{ width: c.width }}>
-              {c.header}
-            </th>
-          ))}
-          {renderActions && <th>Actions</th>}
-        </tr>
-      </thead>
-      <tbody>
-        {isLoading ? (
-          <tr>
-            <td colSpan={colSpan}>Loading…</td>
-          </tr>
-        ) : data.length === 0 ? (
-          <tr>
-            <td colSpan={colSpan}>{emptyText}</td>
-          </tr>
-        ) : (
-          data.map((row) => (
-            <tr key={rowKey(row)}>
-              {columns.map((c) => (
-                <td key={c.key}>{c.render(row)}</td>
+    <div>
+      {error && <p className="auth-error">{error}</p>}
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              {columns.map((column) => (
+                <th
+                  key={column.key}
+                  style={{ width: column.width, textAlign: column.align }}
+                >
+                  {column.header}
+                </th>
               ))}
-              {renderActions && <td>{renderActions(row)}</td>}
+              {renderActions && <th>Actions</th>}
             </tr>
-          ))
+          </thead>
+          <tbody style={isFetching ? { opacity: 0.55 } : undefined}>
+            {!isLoading &&
+              data.map((row) => (
+                <tr key={rowKey(row)}>
+                  {columns.map((column) => (
+                    <td key={column.key} style={{ textAlign: column.align }}>
+                      {column.render(row)}
+                    </td>
+                  ))}
+                  {renderActions && <td>{renderActions(row)}</td>}
+                </tr>
+              ))}
+          </tbody>
+        </table>
+        {isLoading && <div className="empty-state">{loadingText}</div>}
+        {!isLoading && data.length === 0 && (
+          <div className="empty-state">{emptyText}</div>
         )}
-      </tbody>
-    </table>
+      </div>
+      {footer}
+    </div>
   );
 }
