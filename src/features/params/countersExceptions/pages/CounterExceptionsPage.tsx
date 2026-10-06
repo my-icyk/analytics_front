@@ -6,6 +6,7 @@ import { Column, DataTable } from "../../../../components/DataTable";
 import { useMemo, useState } from "react";
 import { Pagination } from "../../../../components/Pagination";
 import { Slicer, SlicerOption } from "../../../../components/common/Slicer";
+import { formatDateTime } from "../../../../utils/utils";
 
 export function CountersPage() {
   const navigate = useNavigate();
@@ -48,15 +49,27 @@ export function CountersPage() {
     [countersData],
   );
 
-  function handleOpen(counter: Counter) {
-    navigate(`/counters/${counter.id}`);
-  }
-
   const columns: Column<CounterException>[] = [
     { key: "id", header: "ID", render: (u) => u.id },
     { key: "counter_id", header: "Counter ID", render: (u) => u.counter_id },
     { key: "valid_from", header: "Valid From", render: (u) => u.valid_from },
     { key: "valid_to", header: "Valid To", render: (u) => u.valid_to },
+    { key: "visitors", header: "Visitors", render: (u) => u.visitors },
+    {
+      key: "is_auto",
+      header: "Auto",
+      render: (u) => (u.is_auto ? "Yes" : "No"),
+    },
+    {
+      key: "created_by",
+      header: "Created By",
+      render: (u) => u.created_by,
+    },
+    {
+      key: "updated_at",
+      header: "Updated At",
+      render: (u) => formatDateTime(u.updated_at),
+    },
   ];
 
   return (
