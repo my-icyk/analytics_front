@@ -28,7 +28,7 @@ import { RolesPage } from "./RolesPage";
 import { UserDetailPage } from "./UserDetailPage";
 import { RoleDetailPage } from "./RoleDetailPage";
 import { PermissionCatalogPage } from "./PermissionCatalogPage";
-import { CountersPage } from "./CountersPage";
+
 import { CounterDetailPage } from "./CounterDetailPage";
 import { CounterUpdateForm } from "../components/CountersUpdate/CounterUpdateForm";
 import type { CounterUpdateFormValues } from "../components/CountersUpdate/CounterUpdateForm.schema";
@@ -53,6 +53,7 @@ import type {
   Target,
   TargetCreate,
 } from "../types/finance";
+import { CountersPage } from "../features/params/countersExceptions/pages/CounterExceptionsPage";
 
 export function AdminConsolePage({
   routeView,
@@ -1098,19 +1099,7 @@ export function AdminConsolePage({
         {activeNav === "Permissions" && (
           <PermissionCatalogPage permissions={permissions} />
         )}
-        {activeNav === "Counters" && (
-          <CountersPage
-            key={counterRefreshKey}
-            canCreate={can("counter_update:create")}
-            canEdit={can("counter_update:update")}
-            canDelete={can("counter_update:delete")}
-            onCreate={() => openCounterEditor(null)}
-            onOpen={openCounter}
-            onEdit={openCounterEditor}
-            onDelete={removeCounter}
-            error={counterError}
-          />
-        )}
+        {activeNav === "Counters" && <CountersPage />}
         {activeNav === "Counter details" && selectedCounter && (
           <CounterDetailPage
             counter={selectedCounter}
