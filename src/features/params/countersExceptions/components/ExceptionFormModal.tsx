@@ -1,16 +1,8 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
-import {
-  Slicer,
-  type SlicerOption,
-} from "../../../../components/common/Slicer";
-import type {
-  Counter,
-  CounterExceptionCreate,
-} from "../countersExceptions.types";
+import type { CounterExceptionCreate } from "../countersExceptions.types";
 
 type ExceptionFormModalProps = {
-  counters: Counter[];
   initialCounterId?: number;
   error: string;
   onClose: () => void;
@@ -23,15 +15,12 @@ function toDateInputValue(date: Date): string {
 }
 
 export function ExceptionFormModal({
-  counters,
   initialCounterId,
   error,
   onClose,
   onSubmit,
 }: ExceptionFormModalProps) {
-  const [counterId, setCounterId] = useState<number>(
-    initialCounterId ?? counters[0]?.id ?? 0,
-  );
+  const [counterId, setCounterId] = useState<number>(initialCounterId ?? 0);
   const [validFrom, setValidFrom] = useState(toDateInputValue(new Date()));
   const [validTo, setValidTo] = useState(toDateInputValue(new Date()));
   const [visitors, setVisitors] = useState("0");
@@ -40,20 +29,6 @@ export function ExceptionFormModal({
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
 
-  const counterOptions: SlicerOption[] = useMemo(
-    () =>
-      counters.map((counter) => ({
-        id: counter.id,
-        label: `Counter ${counter.id}`,
-        badge: counter.exception_count,
-      })),
-    [counters],
-  );
-
-  const handleCounterChange = (selected: (string | number)[]) => {
-    setCounterId(selected.length > 0 ? Number(selected[0]) : 0);
-  };
-
   const handleAutoChange = (checked: boolean) => {
     setIsAuto(checked);
     if (checked) setVisitors("0");
@@ -61,8 +36,8 @@ export function ExceptionFormModal({
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!counterId) {
-      setFormError("Please select a counter");
+    if (!counterId || counterId < 1) {
+      setFormError("Counter ID is required");
       return;
     }
     if (!validFrom || !validTo) {
@@ -111,18 +86,17 @@ export function ExceptionFormModal({
 
         <form onSubmit={handleSubmit}>
           <label>
-            Counter
-            <div>
-              <Slicer
-                title="Counter"
-                options={counterOptions}
-                selectedValues={counterId ? [counterId] : []}
-                onChange={handleCounterChange}
-                multiSelect={false}
-                placeholder="Select counter"
-                searchPlaceholder="Search counters..."
-              />
-            </div>
+            Counter ID
+            <input
+              type="number"
+              min={1}
+              step={1}
+              autoFocus
+              value={counterId || ""}
+              onChange={(e) => setCounterId(Number(e.target.value))}
+              placeholder="e.g. 41"
+              required
+            />
           </label>
 
           <label>

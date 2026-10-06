@@ -18,6 +18,7 @@ export type SlicerProps = {
   placeholder?: string;
   disabled?: boolean;
   searchPlaceholder?: string;
+  requireApply?: boolean;
 };
 
 export function Slicer({
@@ -29,9 +30,12 @@ export function Slicer({
   placeholder = "All",
   disabled = false,
   searchPlaceholder = "Search options...",
+  requireApply = false,
 }: SlicerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [pendingValues, setPendingValues] =
+    useState<(string | number)[]>(selectedValues);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,6 +55,13 @@ export function Slicer({
     };
   }, [isOpen]);
 
+  // Stage a local copy of the selection each time the dropdown opens,
+  // so requireApply mode can discard uncommitted changes on close.
+  useEffect(() => {
+    if (isOpen) setPendingValues(selectedValues);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
   const filteredOptions = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return options;
@@ -63,21 +74,22 @@ export function Slicer({
 
   const hasSelection = selectedValues.length > 0;
 
-  const handleToggle = (id: string | number) => {
+  const toggleValue = (current: (string | number)[], id: string | number) => {
     if (multiSelect) {
-      if (selectedValues.includes(id)) {
-        onChange(selectedValues.filter((v) => v !== id));
-      } else {
-        onChange([...selectedValues, id]);
-      }
-    } else {
-      if (selectedValues.includes(id)) {
-        onChange([]);
-      } else {
-        onChange([id]);
-      }
-      setIsOpen(false);
+      return current.includes(id)
+        ? current.filter((v) => v !== id)
+        : [...current, id];
     }
+    return current.includes(id) ? [] : [id];
+  };
+
+  const handleToggle = (id: string | number) => {
+    if (requireApply) {
+      setPendingValues((current) => toggleValue(current, id));
+      return;
+    }
+    onChange(toggleValue(selectedValues, id));
+    if (!multiSelect) setIsOpen(false);
   };
 
   const handleClear = (e: React.MouseEvent) => {
@@ -86,7 +98,19 @@ export function Slicer({
   };
 
   const handleSelectAll = () => {
-    onChange(options.map((opt) => opt.id));
+    const all = options.map((opt) => opt.id);
+    if (requireApply) setPendingValues(all);
+    else onChange(all);
+  };
+
+  const handleClearClick = () => {
+    if (requireApply) setPendingValues([]);
+    else onChange([]);
+  };
+
+  const handleApply = () => {
+    onChange(pendingValues);
+    setIsOpen(false);
   };
 
   const selectedLabels = useMemo(() => {
@@ -97,6 +121,9 @@ export function Slicer({
     }
     return `${selectedValues.length} selected`;
   }, [selectedValues, options, placeholder]);
+
+  // What the dropdown shows as checked: staged values in requireApply mode.
+  const displayedValues = requireApply ? pendingValues : selectedValues;
 
   return (
     <div
@@ -156,15 +183,15 @@ export function Slicer({
                 type="button"
                 className="slicer-action-link"
                 onClick={handleSelectAll}
-                disabled={selectedValues.length === options.length}
+                disabled={displayedValues.length === options.length}
               >
                 Select all
               </button>
               <button
                 type="button"
                 className="slicer-action-link"
-                onClick={() => onChange([])}
-                disabled={!hasSelection}
+                onClick={handleClearClick}
+                disabled={displayedValues.length === 0}
               >
                 Clear
               </button>
@@ -173,7 +200,7 @@ export function Slicer({
 
           <div className="slicer-options-list">
             {filteredOptions.map((option) => {
-              const isSelected = selectedValues.includes(option.id);
+              const isSelected = displayedValues.includes(option.id);
               return (
                 <div
                   key={option.id}
@@ -205,6 +232,25 @@ export function Slicer({
               <div className="slicer-empty">No options found</div>
             )}
           </div>
+
+          {requireApply && (
+            <div className="slicer-apply-footer">
+              <button
+                type="button"
+                className="slicer-action-link"
+                onClick={() => setIsOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="primary-button compact-button"
+                onClick={handleApply}
+              >
+                Apply
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

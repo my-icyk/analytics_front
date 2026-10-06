@@ -151,7 +151,6 @@ export function CountersPage() {
 
       {modalOpen && (
         <ExceptionFormModal
-          counters={countersData ?? []}
           initialCounterId={counterId}
           error={modalError}
           onClose={() => setModalOpen(false)}
