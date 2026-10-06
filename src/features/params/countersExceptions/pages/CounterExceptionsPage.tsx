@@ -9,7 +9,7 @@ import { Pagination } from "../../../../components/Pagination";
 export function CountersPage() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const pageSize = 20;
+  const [pageSize, setPageSize] = useState(20);
 
   const { data, isLoading, isFetching, error } = useExceptions({
     page,
@@ -18,6 +18,12 @@ export function CountersPage() {
 
   const exceptions = data?.items ?? [];
   const total = data?.total ?? 0;
+
+  function handlePageSizeChange(size: number) {
+    setPageSize(size);
+    setPage(1);
+  }
+
   function handleOpen(counter: Counter) {
     navigate(`/counters/${counter.id}`);
   }
@@ -31,18 +37,21 @@ export function CountersPage() {
 
   return (
     <>
+      <Pagination
+        total={total}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={handlePageSizeChange}
+        loading={isFetching}
+        entityLabel="exceptions"
+      />
       <DataTable
         columns={columns}
         data={exceptions}
         rowKey={(u) => u.id}
         isLoading={isLoading}
         isFetching={isFetching}
-      />
-      <Pagination
-        total={total}
-        page={page}
-        pageSize={pageSize}
-        onPageChange={setPage}
       />
     </>
   );
