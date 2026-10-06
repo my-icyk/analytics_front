@@ -16,8 +16,16 @@ import { useMemo, useState } from "react";
 import { Pagination } from "../../../../components/Pagination";
 import { Slicer, SlicerOption } from "../../../../components/common/Slicer";
 import { formatDateTime } from "../../../../utils/utils";
+import { TableActions } from "../../../../components/TableActions";
+import { usePermissions } from "../../../../auth/AuthContext";
+import { PERMISSIONS } from "../../../../constants/permissions";
+import { CreateButton } from "../../../../components/CreateButton";
 
 export function CountersPage() {
+  const { can } = usePermissions();
+  const canCreate = can(PERMISSIONS.PARAMS.COUNTER_EXCEPTION.CREATE);
+  const canUpdate = can(PERMISSIONS.PARAMS.COUNTER_EXCEPTION.UPDATE);
+  const canDelete = can(PERMISSIONS.PARAMS.COUNTER_EXCEPTION.DELETE);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedCounterIds, setSelectedCounterIds] = useState<
@@ -145,9 +153,9 @@ export function CountersPage() {
           <h2>Counter Exceptions</h2>
           <p>Validity windows for counters.</p>
         </div>
-        <button className="primary-button" onClick={handleOpenCreate}>
-          <Plus size={17} /> New exception
-        </button>
+        {canCreate && (
+          <CreateButton onClick={handleOpenCreate}>New exception</CreateButton>
+        )}
       </div>
 
       <div className="slicers-bar">
@@ -173,24 +181,14 @@ export function CountersPage() {
         error={actionError}
         emptyText="No counter exceptions found."
         renderActions={(exception) => (
-          <div className="table-actions">
-            <button
-              className="secondary-button icon-action-button"
-              title="Edit exception"
-              aria-label="Edit exception"
-              onClick={() => handleOpenEdit(exception)}
-            >
-              <Edit3 size={14} />
-            </button>
-            <button
-              className="danger-button icon-action-button"
-              title="Delete exception"
-              aria-label="Delete exception"
-              onClick={() => void handleDelete(exception)}
-            >
-              <Trash2 size={14} />
-            </button>
-          </div>
+          <TableActions
+            onEdit={canUpdate ? () => handleOpenEdit(exception) : undefined}
+            onDelete={
+              canDelete ? () => void handleDelete(exception) : undefined
+            }
+            editLabel={`Edit exception ${exception.id}`}
+            deleteLabel={`Delete exception ${exception.id}`}
+          />
         )}
         footer={
           <Pagination
