@@ -1,8 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
-import type { CounterExceptionCreate } from "../countersExceptions.types";
+import type {
+  CounterException,
+  CounterExceptionCreate,
+} from "../countersExceptions.types";
 
 type ExceptionFormModalProps = {
+  exception?: CounterException | null;
   initialCounterId?: number;
   error: string;
   onClose: () => void;
@@ -15,17 +19,24 @@ function toDateInputValue(date: Date): string {
 }
 
 export function ExceptionFormModal({
+  exception,
   initialCounterId,
   error,
   onClose,
   onSubmit,
 }: ExceptionFormModalProps) {
-  const [counterId, setCounterId] = useState<number>(initialCounterId ?? 0);
-  const [validFrom, setValidFrom] = useState(toDateInputValue(new Date()));
-  const [validTo, setValidTo] = useState(toDateInputValue(new Date()));
-  const [visitors, setVisitors] = useState("0");
-  const [reason, setReason] = useState("");
-  const [isAuto, setIsAuto] = useState(false);
+  const [counterId, setCounterId] = useState<number>(
+    exception?.counter_id ?? initialCounterId ?? 0,
+  );
+  const [validFrom, setValidFrom] = useState(
+    exception?.valid_from?.slice(0, 10) ?? toDateInputValue(new Date()),
+  );
+  const [validTo, setValidTo] = useState(
+    exception?.valid_to?.slice(0, 10) ?? toDateInputValue(new Date()),
+  );
+  const [visitors, setVisitors] = useState(String(exception?.visitors ?? 0));
+  const [reason, setReason] = useState(exception?.reason ?? "");
+  const [isAuto, setIsAuto] = useState(exception?.is_auto ?? false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -44,7 +55,7 @@ export function ExceptionFormModal({
       setFormError("Validity period is required");
       return;
     }
-    if (new Date(validTo) <= new Date(validFrom)) {
+    if (new Date(validTo) < new Date(validFrom)) {
       setFormError("Valid to must be after valid from");
       return;
     }
@@ -74,7 +85,7 @@ export function ExceptionFormModal({
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(event) => event.stopPropagation()}>
         <div className="modal-header">
-          <h2>Create exception</h2>
+          <h2>{exception ? "Edit exception" : "Create exception"}</h2>
           <button className="icon-button" aria-label="Close" onClick={onClose}>
             <X size={16} />
           </button>
@@ -125,7 +136,6 @@ export function ExceptionFormModal({
               type="number"
               min={0}
               step={1}
-              autoFocus
               value={isAuto ? "0" : visitors}
               onChange={(e) => setVisitors(e.target.value)}
               placeholder="e.g. 120"
@@ -176,7 +186,11 @@ export function ExceptionFormModal({
               className="primary-button"
               disabled={submitting}
             >
-              {submitting ? "Saving..." : "Create exception"}
+              {submitting
+                ? "Saving..."
+                : exception
+                  ? "Save changes"
+                  : "Create exception"}
             </button>
           </div>
         </form>

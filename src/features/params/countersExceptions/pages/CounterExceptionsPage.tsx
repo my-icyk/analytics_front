@@ -1,13 +1,12 @@
-import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Edit3, Plus, Trash2 } from "lucide-react";
 import {
   useCounters,
   useCreateException,
+  useDeleteException,
   useExceptions,
+  useUpdateException,
 } from "../countersExceptions.queries";
-import { CountersTable } from "../components/CountersTable";
 import {
-  Counter,
   CounterException,
   CounterExceptionCreate,
 } from "../countersExceptions.types";
@@ -19,7 +18,6 @@ import { Slicer, SlicerOption } from "../../../../components/common/Slicer";
 import { formatDateTime } from "../../../../utils/utils";
 
 export function CountersPage() {
-  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [selectedCounterIds, setSelectedCounterIds] = useState<
@@ -27,9 +25,14 @@ export function CountersPage() {
   >([]);
   const { data: countersData } = useCounters();
   const createException = useCreateException();
+  const updateException = useUpdateException();
+  const deleteException = useDeleteException();
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingException, setEditingException] =
+    useState<CounterException | null>(null);
   const [modalError, setModalError] = useState("");
+  const [actionError, setActionError] = useState("");
 
   const counterId =
     selectedCounterIds.length > 0 ? Number(selectedCounterIds[0]) : undefined;
@@ -54,19 +57,51 @@ export function CountersPage() {
   }
 
   function handleOpenCreate() {
+    setEditingException(null);
     setModalError("");
     setModalOpen(true);
   }
 
-  async function handleCreate(payload: CounterExceptionCreate) {
+  function handleOpenEdit(exception: CounterException) {
+    setEditingException(exception);
+    setModalError("");
+    setModalOpen(true);
+  }
+
+  async function handleSave(payload: CounterExceptionCreate) {
     try {
-      await createException.mutateAsync(payload);
+      if (editingException) {
+        await updateException.mutateAsync({
+          exceptionId: editingException.id,
+          payload,
+        });
+      } else {
+        await createException.mutateAsync(payload);
+      }
       setModalOpen(false);
     } catch (err) {
       setModalError(
-        err instanceof Error ? err.message : "Failed to create exception",
+        err instanceof Error ? err.message : "Failed to save exception",
       );
       throw err;
+    }
+  }
+
+  async function handleDelete(exception: CounterException) {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete exception #${exception.id} for counter ${exception.counter_id}?`,
+    );
+    if (!confirmed) return;
+    setActionError("");
+    try {
+      await deleteException.mutateAsync(exception.id);
+      if (exceptions.length === 1 && page > 1) {
+        setPage(page - 1);
+      }
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Failed to delete exception",
+      );
     }
   }
 
@@ -135,7 +170,28 @@ export function CountersPage() {
         rowKey={(u) => u.id}
         isLoading={isLoading}
         isFetching={isFetching}
+        error={actionError}
         emptyText="No counter exceptions found."
+        renderActions={(exception) => (
+          <div className="table-actions">
+            <button
+              className="secondary-button icon-action-button"
+              title="Edit exception"
+              aria-label="Edit exception"
+              onClick={() => handleOpenEdit(exception)}
+            >
+              <Edit3 size={14} />
+            </button>
+            <button
+              className="danger-button icon-action-button"
+              title="Delete exception"
+              aria-label="Delete exception"
+              onClick={() => void handleDelete(exception)}
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        )}
         footer={
           <Pagination
             total={total}
@@ -151,10 +207,11 @@ export function CountersPage() {
 
       {modalOpen && (
         <ExceptionFormModal
+          exception={editingException}
           initialCounterId={counterId}
           error={modalError}
           onClose={() => setModalOpen(false)}
-          onSubmit={handleCreate}
+          onSubmit={handleSave}
         />
       )}
     </section>
