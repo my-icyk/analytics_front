@@ -18,12 +18,15 @@ import type {
   GroupFilterParams,
   GroupPage,
   GroupType,
-} from "../types/finance";
-import { GroupFormModal } from "../components/finance/GroupFormModal";
-import { Slicer, type SlicerOption } from "../components/common/Slicer";
-import { useDivisions } from "../features/finance/divisions";
-import { usePermissions } from "../auth/AuthContext";
-import { useGroupTypes } from "../features/finance/groups";
+} from "../../../../types/finance";
+import { GroupFormModal } from "../../../../components/finance/GroupFormModal";
+import {
+  Slicer,
+  type SlicerOption,
+} from "../../../../components/common/Slicer";
+import { useDivisions } from "../../divisions";
+import { usePermissions } from "../../../../auth/AuthContext";
+import { useGroupTypes } from "..";
 
 type GroupsPageProps = {
   groups: Group[];

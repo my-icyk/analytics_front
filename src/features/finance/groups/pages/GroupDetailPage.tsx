@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ArrowLeft, Edit3, ExternalLink, Plus, Trash2 } from "lucide-react";
-import { useGroupTypes } from "../features/finance/groups";
+import { useGroupTypes } from "..";
 import type {
   Department,
   DepartmentRepartitionCreate,
@@ -9,14 +9,14 @@ import type {
   Rule,
   RuleCreate,
   DepartmentRepartition,
-} from "../types/finance";
-import { GroupRulesSection } from "../components/GroupRulesSection";
-import { GroupFormModal } from "../components/finance/GroupFormModal";
-import { RuleFormModal } from "../components/finance/RuleFormModal";
-import { GroupDepartmentAllocationForm } from "../components/finance/GroupDepartmentAllocationForm";
-import { GroupDeparmentSection } from "../components/GroupDeparmentSection";
-import { useDivisions } from "../features/finance/divisions";
-import { usePermissions } from "../auth/AuthContext";
+} from "../../../../types/finance";
+import { GroupRulesSection } from "../../../../components/GroupRulesSection";
+import { GroupFormModal } from "../../../../components/finance/GroupFormModal";
+import { RuleFormModal } from "../../../../components/finance/RuleFormModal";
+import { GroupDepartmentAllocationForm } from "../../../../components/finance/GroupDepartmentAllocationForm";
+import { GroupDeparmentSection } from "../../../../components/GroupDeparmentSection";
+import { useDivisions } from "../../divisions";
+import { usePermissions } from "../../../../auth/AuthContext";
 
 type GroupDetailPageProps = {
   group: Group;

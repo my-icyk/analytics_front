@@ -34,9 +34,9 @@ import { CounterUpdateForm } from "../components/CountersUpdate/CounterUpdateFor
 import type { CounterUpdateFormValues } from "../components/CountersUpdate/CounterUpdateForm.schema";
 import { MePage } from "./MePage";
 import { ScriptsPage } from "./ScriptsPage";
-import { GroupsPage } from "./GroupsPage";
+import { GroupsPage } from "../features/finance/groups/pages/GroupsPage";
 import { DivisionsPage } from "./DivisionsPage";
-import { GroupDetailPage } from "./GroupDetailPage";
+import { GroupDetailPage } from "../features/finance/groups/pages/GroupDetailPage";
 import { RuleDetailPage } from "./RuleDetailPage";
 import { financeService } from "../services/financeService";
 import { AdminSidebar } from "../components/AdminSidebar";
