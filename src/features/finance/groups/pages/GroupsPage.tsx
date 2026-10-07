@@ -12,6 +12,7 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
+import { useDebouncedValue } from "../../../../hooks/useDebouncedValue";
 
 import { GroupFormModal } from "../../../../components/finance/GroupFormModal";
 import {
@@ -64,6 +65,7 @@ export function GroupsPage({
   const [localError, setLocalError] = useState("");
 
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
   const [selectedDivisionIds, setSelectedDivisionIds] = useState<
     (string | number)[]
   >([]);
@@ -88,6 +90,7 @@ export function GroupsPage({
   // Execute server-side filter request when filter props or pagination change
   const fetchFilteredGroups = useCallback(
     async (currentOffset = offset, currentLimit = limit) => {
+      const trimmedSearch = debouncedSearch.trim();
       if (!onFilterChange) return;
       setLoading(true);
       setLocalError("");
@@ -102,8 +105,8 @@ export function GroupsPage({
         if (selectedGroupTypeIds.length > 0) {
           filters.group_type_id = selectedGroupTypeIds.map((v) => Number(v));
         }
-        if (search.trim()) {
-          filters.search = search.trim();
+        if (trimmedSearch) {
+          filters.search = trimmedSearch;
         }
 
         const result = await onFilterChange(filters);
