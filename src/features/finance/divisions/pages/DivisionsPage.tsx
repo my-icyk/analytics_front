@@ -7,9 +7,9 @@ import {
   useUpdateDivision,
   type Division,
   type DivisionCreate,
-} from "../features/finance/divisions";
-import { DivisionFormModal } from "../components/finance/DivisionFormModal";
-import { usePermissions } from "../auth/AuthContext";
+} from "..";
+import { DivisionFormModal } from "../../../../components/finance/DivisionFormModal";
+import { usePermissions } from "../../../../auth/AuthContext";
 
 type DivisionsPageProps = {};
 
