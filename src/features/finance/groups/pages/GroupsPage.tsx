@@ -117,7 +117,7 @@ export function GroupsPage({ onOpenGroup }: GroupsPageProps) {
       groupTypes.map((gt) => ({
         id: gt.id,
         label: gt.name,
-        badge: groups.filter((g) => g.group_type?.id === gt.id).length,
+        badge: gt.group_count,
       })),
     [groupTypes, groups],
   );

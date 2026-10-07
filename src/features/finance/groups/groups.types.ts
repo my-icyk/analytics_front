@@ -5,6 +5,10 @@ export type GroupType = {
   name: string;
 };
 
+export type GroupTypeDetails = GroupType & {
+  group_count: number;
+};
+
 export type Group = {
   id: number;
   name: string;

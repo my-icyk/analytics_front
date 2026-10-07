@@ -2,6 +2,7 @@ import { request } from "../../../api/client";
 import { FINANCE_API } from "../shared/endpoints";
 import type {
   GroupType,
+  GroupTypeDetails,
   Group,
   GroupCreate,
   GroupUpdate,
@@ -12,7 +13,7 @@ import type {
 const GROUPS_ENDPOINT = `${FINANCE_API}/groups`;
 
 export function getGroupTypes() {
-  return request<GroupType[]>(`${GROUPS_ENDPOINT}/types`);
+  return request<GroupTypeDetails[]>(`${GROUPS_ENDPOINT}/types`);
 }
 
 //TODO: review that function
