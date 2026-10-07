@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { DEFAULT_PAGE_SIZE } from "../../../../constants/config";
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "../../../../constants/config";
 import {
   ChevronLeft,
   ChevronRight,
@@ -21,7 +21,13 @@ import {
 } from "../../../../components/common/Slicer";
 import { useDivisions } from "../../divisions";
 import { usePermissions } from "../../../../auth/AuthContext";
-import { useGroupTypes } from "..";
+import {
+  useCreateGroup,
+  useGroups,
+  useGroupTypes,
+  useRemoveGroup,
+  useUpdateGroup,
+} from "..";
 import { PERMISSIONS } from "../../../../constants/permissions";
 import {
   Group,
@@ -29,6 +35,9 @@ import {
   GroupFilterParams,
   GroupPage,
 } from "../groups.types";
+import { Column, DataTable } from "../../../../components/DataTable";
+import { Pagination } from "../../../../components/Pagination";
+import { TableActions } from "../../../../components/TableActions";
 type GroupsPageProps = {
   groups: Group[];
   onOpenGroup: (group: Group) => void;
@@ -36,7 +45,6 @@ type GroupsPageProps = {
   onUpdateGroup: (groupId: number, payload: GroupCreate) => Promise<void>;
   onDeleteGroup: (group: Group) => Promise<void>;
   onFilterChange?: (filters: GroupFilterParams) => Promise<GroupPage> | void;
-  error: string;
 };
 
 export function GroupsPage({
@@ -46,8 +54,11 @@ export function GroupsPage({
   onUpdateGroup,
   onDeleteGroup,
   onFilterChange,
-  error,
 }: GroupsPageProps) {
+  const [limit, setLimit] = useState<number>(DEFAULT_PAGE_SIZE);
+  const [offset, setOffset] = useState<number>(0);
+  //TODO: Why is used that const
+  const [actionError, setActionError] = useState("");
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
   const { data: groupTypes = [] } = useGroupTypes();
@@ -56,14 +67,12 @@ export function GroupsPage({
   const canCreate = can(PERMISSIONS.FINANCE.GROUP.CREATE);
   const canEdit = can(PERMISSIONS.FINANCE.GROUP.UPDATE);
   const canDelete = can(PERMISSIONS.FINANCE.GROUP.DELETE);
+  const canView = can(PERMISSIONS.FINANCE.GROUP.READ);
 
   const { data: divisions = [] } = useDivisions();
   const [displayedGroups, setDisplayedGroups] =
     useState<Group[]>(initialGroups);
-  const [total, setTotal] = useState<number>(initialGroups.length);
-  const [limit, setLimit] = useState<number>(DEFAULT_PAGE_SIZE);
-  const [offset, setOffset] = useState<number>(0);
-  const [loading, setLoading] = useState(false);
+
   const [localError, setLocalError] = useState("");
 
   const [selectedDivisionIds, setSelectedDivisionIds] = useState<
@@ -86,69 +95,45 @@ export function GroupsPage({
       setTotal(initialGroups.length);
     }
   }, [initialGroups, onFilterChange]);
+  // TODO: Trebuie sa fie separat cumva?
+  function handlePageSizeChange(size: number) {
+    setLimit(size);
+    setOffset(DEFAULT_PAGE);
+  }
 
-  // Execute server-side filter request when filter props or pagination change
-  const fetchFilteredGroups = useCallback(
-    async (currentOffset = offset, currentLimit = limit) => {
-      const trimmedSearch = debouncedSearch.trim();
-      if (!onFilterChange) return;
-      setLoading(true);
-      setLocalError("");
-      try {
-        const filters: GroupFilterParams = {
-          limit: currentLimit,
-          offset: currentOffset,
-        };
-        if (selectedDivisionIds.length > 0) {
-          filters.division_id = selectedDivisionIds.map((v) => Number(v));
-        }
-        if (selectedGroupTypeIds.length > 0) {
-          filters.group_type_id = selectedGroupTypeIds.map((v) => Number(v));
-        }
-        if (trimmedSearch) {
-          filters.search = trimmedSearch;
-        }
+  const filters = useMemo<GroupFilterParams>(() => {
+    const trimmedSearch = debouncedSearch.trim();
 
-        const result = await onFilterChange(filters);
-        if (result && "items" in result) {
-          setDisplayedGroups(result.items);
-          setTotal(result.total);
-          setOffset(result.offset);
-          setLimit(result.limit);
-        }
-      } catch (err) {
-        setLocalError(
-          err instanceof Error
-            ? err.message
-            : "Failed to filter groups from server",
-        );
-      } finally {
-        setLoading(false);
-      }
-    },
-    [
-      onFilterChange,
-      offset,
+    return {
       limit,
-      selectedDivisionIds,
-      selectedGroupTypeIds,
-      debouncedSearch,
-    ],
-  );
-
-  // Trigger server-side fetching when search or slicers change (resets offset to 0)
-  useEffect(() => {
-    if (!onFilterChange) return;
-
-    setOffset(0);
-    void fetchFilteredGroups(0, limit);
+      offset,
+      ...(trimmedSearch && {
+        search: trimmedSearch,
+      }),
+      ...(selectedDivisionIds.length > 0 && {
+        division_id: selectedDivisionIds.map(Number),
+      }),
+      ...(selectedGroupTypeIds.length > 0 && {
+        group_type_id: selectedGroupTypeIds.map(Number),
+      }),
+    };
   }, [
+    limit,
+    offset,
+    debouncedSearch,
     selectedDivisionIds,
     selectedGroupTypeIds,
-    debouncedSearch,
-    limit,
-    onFilterChange,
   ]);
+
+  const { data, isLoading, isFetching, error } = useGroups(filters);
+  const createGroup = useCreateGroup();
+  const updateGroup = useUpdateGroup();
+  const deleteGroup = useRemoveGroup();
+  // TODO: to do something
+  const groups_data = data?.items ?? [];
+  const [total, setTotal] = useState<number>(data?.total ?? 0);
+
+  // Execute server-side filter request when filter props or pagination change
 
   const divisionOptions: SlicerOption[] = useMemo(() => {
     return divisions.map((d) => ({
@@ -227,62 +212,55 @@ export function GroupsPage({
     setModalOpen(true);
   };
 
-  const handleSaveGroup = async (payload: GroupCreate) => {
+  async function handleSaveGroup(payload: GroupCreate) {
     try {
       if (editingGroup) {
-        await onUpdateGroup(editingGroup.id, payload);
+        await updateGroup.mutateAsync({ groupId: editingGroup.id, payload });
       } else {
-        await onCreateGroup(payload);
+        await createGroup.mutateAsync(payload);
       }
       setModalOpen(false);
-      if (onFilterChange) {
-        void fetchFilteredGroups(offset, limit);
-      }
+      // if (onFilterChange) {
+      //   void ();
+      // }
     } catch (err) {
       setModalError(
         err instanceof Error ? err.message : "Failed to save group",
       );
       throw err;
     }
-  };
+  }
 
-  const handleDelete = async (group: Group) => {
-    if (
-      window.confirm(`Are you sure you want to delete group "${group.name}"?`)
-    ) {
-      await onDeleteGroup(group);
-      if (onFilterChange) {
-        const nextOffset =
-          displayedGroups.length === 1 && offset > 0
-            ? Math.max(0, offset - limit)
-            : offset;
-        setOffset(nextOffset);
-        void fetchFilteredGroups(nextOffset, limit);
+  async function handleDelete(group: Group) {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete group "${group.name}"?`,
+    );
+    if (!confirmed) return;
+    setActionError("");
+    try {
+      await deleteGroup.mutateAsync(group.id);
+      {
+        setOffset(1);
       }
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Failed to delete exception",
+      );
     }
-  };
-
-  const handlePageChange = (newOffset: number) => {
-    setOffset(newOffset);
-    if (onFilterChange) {
-      void fetchFilteredGroups(newOffset, limit);
-    }
-  };
-
-  const handleLimitChange = (newLimit: number) => {
-    setLimit(newLimit);
-    setOffset(0);
-    if (onFilterChange) {
-      void fetchFilteredGroups(0, newLimit);
-    }
-  };
-
-  const currentPage = Math.floor(offset / limit) + 1;
-  const totalPages = Math.max(1, Math.ceil(total / limit));
-  const canPrev = offset > 0;
-  const canNext = offset + limit < total;
+  }
 
   const displayError = error || localError;
+
+  const columns: Column<Group>[] = [
+    { key: "id", header: "ID", render: (u) => u.id },
+    { key: "name", header: "Name", render: (u) => u.name },
+    { key: "division", header: "Division", render: (u) => u.division.name },
+    {
+      key: "group_type",
+      header: "Group Type",
+      render: (u) => u.group_type.name,
+    },
+  ];
 
   return (
     <section className="management-panel">
@@ -300,7 +278,7 @@ export function GroupsPage({
         )}
       </div>
 
-      {displayError && <p className="auth-error">{displayError}</p>}
+      {displayError && <p className="auth-error">"ERORR"</p>}
 
       <div className="slicers-bar">
         <div className="search-box">
@@ -347,164 +325,39 @@ export function GroupsPage({
         )}
       </div>
 
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Group Name</th>
-              <th>Division</th>
-              <th>Group Type</th>
-              <th style={{ width: "120px" }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visibleGroups.map((group) => (
-              <tr key={group.id}>
-                <td>{group.id}</td>
-                <td>
-                  <button
-                    className="link-button"
-                    onClick={() => onOpenGroup(group)}
-                  >
-                    <strong>{group.name}</strong>
-                  </button>
-                </td>
-                <td>
-                  <span className="domain-pill finance">
-                    {group.division?.name ?? "—"}
-                  </span>
-                </td>
-                <td>
-                  <span className="domain-pill auth">
-                    {group.group_type?.name ?? "—"}
-                  </span>
-                </td>
-                <td>
-                  <div className="table-actions">
-                    <button
-                      className="secondary-button icon-action-button"
-                      title="Open group details"
-                      aria-label="Open group details"
-                      onClick={() => onOpenGroup(group)}
-                    >
-                      <ExternalLink size={14} />
-                    </button>
-                    {canEdit && (
-                      <button
-                        className="secondary-button icon-action-button"
-                        title="Edit group"
-                        aria-label="Edit group"
-                        onClick={() => handleOpenEdit(group)}
-                      >
-                        <Edit3 size={14} />
-                      </button>
-                    )}
-                    {canDelete && (
-                      <button
-                        className="danger-button icon-action-button"
-                        title="Delete group"
-                        aria-label="Delete group"
-                        onClick={() => void handleDelete(group)}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {loading && (
-          <div className="empty-state">Loading groups from server...</div>
+      <DataTable
+        columns={columns}
+        data={groups_data}
+        rowKey={(u) => u.id}
+        isLoading={isLoading}
+        isFetching={isFetching}
+        //TODO NEED TO ADD ERROR HANDLING
+        // error={error}
+        emptyText="No counter exceptions found."
+        renderActions={(group) => (
+          <TableActions
+            onOpen={canView ? () => onOpenGroup(group) : undefined}
+            onEdit={canEdit ? () => handleOpenEdit(group) : undefined}
+            onDelete={canDelete ? () => void handleDelete(group) : undefined}
+            //TODO: Oare am nevoie de labels?
+            editLabel={`Edit group ${group.id}`}
+            deleteLabel={`Delete group ${group.id}`}
+            openLabel={`Open group ${group.id}`}
+            // TODO: ADD DISABLE
+          />
         )}
-        {!loading && visibleGroups.length === 0 && (
-          <div className="empty-state">
-            {total === 0
-              ? "No finance groups found."
-              : "No groups matching active slicers & search."}
-          </div>
-        )}
-      </div>
-
-      <div className="table-pagination">
-        <div className="pagination-info">
-          {total === 0 ? (
-            <span>0 groups</span>
-          ) : (
-            <span>
-              Showing <strong>{offset + 1}</strong>–
-              <strong>{Math.min(offset + limit, total)}</strong> of{" "}
-              <strong>{total}</strong> groups
-            </span>
-          )}
-        </div>
-
-        <div className="pagination-controls">
-          <div className="pagination-size">
-            <span>Show:</span>
-            <select
-              value={limit}
-              onChange={(e) => handleLimitChange(Number(e.target.value))}
-              disabled={loading}
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-          </div>
-
-          <div className="pagination-buttons">
-            <button
-              type="button"
-              className="pagination-btn"
-              title="First page"
-              aria-label="First page"
-              disabled={!canPrev || loading}
-              onClick={() => handlePageChange(0)}
-            >
-              <ChevronsLeft size={14} />
-            </button>
-            <button
-              type="button"
-              className="pagination-btn"
-              title="Previous page"
-              aria-label="Previous page"
-              disabled={!canPrev || loading}
-              onClick={() => handlePageChange(Math.max(0, offset - limit))}
-            >
-              <ChevronLeft size={14} />
-            </button>
-
-            <span className="pagination-current">
-              {currentPage} / {totalPages}
-            </span>
-
-            <button
-              type="button"
-              className="pagination-btn"
-              title="Next page"
-              aria-label="Next page"
-              disabled={!canNext || loading}
-              onClick={() => handlePageChange(offset + limit)}
-            >
-              <ChevronRight size={14} />
-            </button>
-            <button
-              type="button"
-              className="pagination-btn"
-              title="Last page"
-              aria-label="Last page"
-              disabled={!canNext || loading}
-              onClick={() => handlePageChange((totalPages - 1) * limit)}
-            >
-              <ChevronsRight size={14} />
-            </button>
-          </div>
-        </div>
-      </div>
+        footer={
+          <Pagination
+            total={total}
+            page={offset}
+            pageSize={limit}
+            onPageChange={setOffset}
+            onPageSizeChange={handlePageSizeChange}
+            loading={isFetching}
+            entityLabel="exceptions"
+          />
+        }
+      />
 
       {modalOpen && (
         <GroupFormModal
