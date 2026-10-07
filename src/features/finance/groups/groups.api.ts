@@ -15,13 +15,10 @@ export function getGroupTypes() {
   return request<GroupType[]>(`${GROUPS_ENDPOINT}/types`);
 }
 
+//TODO: review that function
 export function getGroups(filters?: GroupFilterParams) {
   const params = new URLSearchParams();
   if (filters) {
-    if (filters.id !== undefined) {
-      const ids = Array.isArray(filters.id) ? filters.id : [filters.id];
-      ids.forEach((id) => params.append("group_ids", String(id)));
-    }
     if (filters.division_id !== undefined) {
       const ids = Array.isArray(filters.division_id)
         ? filters.division_id
