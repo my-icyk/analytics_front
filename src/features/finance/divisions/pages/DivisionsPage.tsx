@@ -10,11 +10,15 @@ import {
 } from "..";
 import { DivisionFormModal } from "../../../../components/finance/DivisionFormModal";
 import { usePermissions } from "../../../../auth/AuthContext";
+import { PERMISSIONS } from "../../../../constants/permissions";
 
 type DivisionsPageProps = {};
 
 export function DivisionsPage({}: DivisionsPageProps) {
   const { can } = usePermissions();
+  const canCreate = can(PERMISSIONS.FINANCE.DIVISION.CREATE);
+  const canUpdate = can(PERMISSIONS.FINANCE.DIVISION.UPDATE);
+  const canDelete = can(PERMISSIONS.FINANCE.DIVISION.DELETE);
   const { data: divisions = [], isLoading, error: loadError } = useDivisions();
   const createDivision = useCreateDivision();
   const updateDivision = useUpdateDivision();
@@ -92,7 +96,7 @@ export function DivisionsPage({}: DivisionsPageProps) {
           <h2>Finance Divisions</h2>
           <p>Manage the divisions available for group assignment.</p>
         </div>
-        {can("finance:division:create") && (
+        {canCreate && (
           <button className="primary-button" onClick={handleOpenCreate}>
             <Plus size={17} /> New division
           </button>
@@ -119,6 +123,7 @@ export function DivisionsPage({}: DivisionsPageProps) {
             <tr>
               <th>ID</th>
               <th>Division Name</th>
+              <th>Group Count</th>
               <th style={{ width: "120px" }}>Actions</th>
             </tr>
           </thead>
@@ -129,9 +134,10 @@ export function DivisionsPage({}: DivisionsPageProps) {
                 <td>
                   <strong>{division.name}</strong>
                 </td>
+                <td>{division.group_count}</td>
                 <td>
                   <div className="table-actions">
-                    {can("finance:division:update") && (
+                    {canUpdate && (
                       <button
                         className="secondary-button icon-action-button"
                         title="Edit division"
@@ -141,7 +147,7 @@ export function DivisionsPage({}: DivisionsPageProps) {
                         <Edit3 size={14} />
                       </button>
                     )}
-                    {can("finance:division:delete") && (
+                    {canDelete && (
                       <button
                         className="danger-button icon-action-button"
                         title="Delete division"
