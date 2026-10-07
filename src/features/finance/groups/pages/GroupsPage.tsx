@@ -188,6 +188,7 @@ export function GroupsPage({ onOpenGroup }: GroupsPageProps) {
         : "";
   const displayError = actionError || queryError;
 
+  //TODO: De revazut cum d eintegrat link sau alte chestii
   const columns: Column<Group>[] = [
     { key: "id", header: "ID", render: (g) => g.id, width: "60px" },
     {
