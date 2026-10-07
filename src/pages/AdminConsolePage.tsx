@@ -450,9 +450,26 @@ export function AdminConsolePage({
     }
   };
 
+  // A stable identity for the current route. Query params (e.g. ?tab=) change
+  // location.search and recompute `route`, but the view + ids stay the same —
+  // so we must NOT re-run syncViewFromLocation, or it would wipe the selected
+  // entity and blank the detail page when switching tabs.
+  const routeKey = [
+    route.view,
+    route.userId,
+    route.roleId,
+    route.counterId,
+    route.groupId,
+    route.ruleId,
+  ].join("|");
+
+  const lastSyncedRouteKeyRef = useRef<string | null>(null);
+
   useEffect(() => {
+    if (lastSyncedRouteKeyRef.current === routeKey) return;
+    lastSyncedRouteKeyRef.current = routeKey;
     syncViewFromLocation();
-  }, [route]);
+  }, [routeKey]);
 
   useEffect(() => {
     if (!user) return;

@@ -16,6 +16,14 @@ import { GroupDepartmentAllocationForm } from "../../../../components/finance/Gr
 import { GroupDeparmentSection } from "../../../../components/GroupDeparmentSection";
 import { useDivisions } from "../../divisions";
 import { usePermissions } from "../../../../auth/AuthContext";
+import { Tabs, type TabItem } from "../../../../components/common/Tabs";
+import { useTabParam } from "../../../../hooks/useTabParam";
+
+const GROUP_TABS = [
+  { key: "overview", label: "Overview" },
+  { key: "rules", label: "Rules" },
+  { key: "departments", label: "Departments" },
+] as const satisfies readonly TabItem[];
 
 type GroupDetailPageProps = {
   group: Group;
@@ -62,6 +70,10 @@ export function GroupDetailPage({
   const { can } = usePermissions();
   const { data: groupTypes = [] } = useGroupTypes();
   const { data: divisions = [] } = useDivisions();
+  const [tab, setTab] = useTabParam(
+    GROUP_TABS.map((t) => t.key),
+    "overview",
+  );
   const [groupModalOpen, setGroupModalOpen] = useState(false);
   const [ruleModalOpen, setRuleModalOpen] = useState(false);
   const [allocationModalOpen, setAllocationModalOpen] = useState(false);
@@ -210,34 +222,43 @@ export function GroupDetailPage({
 
       {error && <p className="auth-error">{error}</p>}
 
-      <div className="detail-grid">
-        <div className="detail-card">
-          <span className="stat-label">Division</span>
-          <strong>{group.division?.name ?? "—"}</strong>
-          <p>Organizational division assigned to this financial group.</p>
-        </div>
-        <div className="detail-card">
-          <span className="stat-label">Group Category & Type</span>
-          <strong>{group.group_type?.name ?? "—"}</strong>
-          <p>Classification for calculation and reporting rules.</p>
-        </div>
-      </div>
+      <Tabs tabs={GROUP_TABS} activeTab={tab} onTabChange={setTab} />
 
-      <GroupRulesSection
-        groupName={group.name}
-        rules={rules}
-        onCreateRule={handleOpenCreateRule}
-        onOpenRule={onOpenRule}
-        onEditRule={handleOpenEditRule}
-        onDeleteRule={handleDeleteRule}
-      />
-      <GroupDeparmentSection
-        allocations={departmentRepartitions}
-        onCreate={handleOpenCreateAllocation}
-        onOpen={() => {}}
-        onEdit={() => {}}
-        onDelete={() => {}}
-      />
+      {tab === "overview" && (
+        <div className="detail-grid">
+          <div className="detail-card">
+            <span className="stat-label">Division</span>
+            <strong>{group.division?.name ?? "—"}</strong>
+            <p>Organizational division assigned to this financial group.</p>
+          </div>
+          <div className="detail-card">
+            <span className="stat-label">Group Category & Type</span>
+            <strong>{group.group_type?.name ?? "—"}</strong>
+            <p>Classification for calculation and reporting rules.</p>
+          </div>
+        </div>
+      )}
+
+      {tab === "rules" && (
+        <GroupRulesSection
+          groupName={group.name}
+          rules={rules}
+          onCreateRule={handleOpenCreateRule}
+          onOpenRule={onOpenRule}
+          onEditRule={handleOpenEditRule}
+          onDeleteRule={handleDeleteRule}
+        />
+      )}
+
+      {tab === "departments" && (
+        <GroupDeparmentSection
+          allocations={departmentRepartitions}
+          onCreate={handleOpenCreateAllocation}
+          onOpen={() => {}}
+          onEdit={() => {}}
+          onDelete={() => {}}
+        />
+      )}
 
       {groupModalOpen && (
         <GroupFormModal
