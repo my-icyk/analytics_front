@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
+import type { Division } from "../../features/finance/divisions";
 import type {
-  Division,
   Group,
   GroupCreate,
   GroupType,
-} from "../../types/finance";
+} from "../../features/finance/groups";
 
 type GroupFormModalProps = {
   group: Group | null;

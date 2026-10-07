@@ -45,14 +45,12 @@ import type {
   DepartmentRepartition,
   DepartmentRepartitionCreate,
   Division,
-  Group,
-  GroupCreate,
-  GroupType,
   Rule,
   RuleCreate,
   Target,
   TargetCreate,
 } from "../types/finance";
+import type { Group, GroupCreate, GroupType } from "../features/finance/groups";
 import { CounterExceptionsPage } from "../features/params/countersExceptions/pages/CounterExceptionsPage";
 
 export function AdminConsolePage({
@@ -534,20 +532,6 @@ export function AdminConsolePage({
     const found = groups.find((item) => item.id === selectedGroupId);
     if (found) setSelectedGroup(found);
   }, [selectedGroupId, groups]);
-
-  const handleCreateGroup = async (payload: GroupCreate) => {
-    try {
-      const created = await financeService.createGroup(payload);
-      setGroups((cur) => [...cur, created]);
-      setFinanceError("");
-      setRoute("group", { groupId: created.id });
-    } catch (err) {
-      setFinanceError(
-        err instanceof Error ? err.message : "Failed to create group",
-      );
-      throw err;
-    }
-  };
 
   const handleUpdateGroup = async (groupId: number, payload: GroupCreate) => {
     try {
@@ -1111,13 +1095,7 @@ export function AdminConsolePage({
         )}
         {activeNav === "Groups" && (
           <GroupsPage
-            groups={groups}
             onOpenGroup={(g) => setRoute("group", { groupId: g.id })}
-            onCreateGroup={handleCreateGroup}
-            onUpdateGroup={handleUpdateGroup}
-            onDeleteGroup={handleDeleteGroup}
-            onFilterChange={(filters) => financeService.getGroups(filters)}
-            error={financeError}
           />
         )}
         {activeNav === "Divisions" && <DivisionsPage />}

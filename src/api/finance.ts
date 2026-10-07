@@ -7,10 +7,6 @@ import type {
   Division,
   DivisionCreate,
   DivisionUpdate,
-  Group,
-  GroupCreate,
-  GroupType,
-  GroupUpdate,
   Rule,
   RuleCreate,
   RuleUpdate,
@@ -18,6 +14,14 @@ import type {
   TargetCreate,
   TargetUpdate,
 } from "../types/finance";
+import type {
+  Group,
+  GroupCreate,
+  GroupFilterParams,
+  GroupPage,
+  GroupType,
+  GroupUpdate,
+} from "../features/finance/groups";
 
 const FINANCE_API = "/api/v1/finance";
 const DIVISIONS_ENDPOINT = `${FINANCE_API}/divisions`;
@@ -52,15 +56,9 @@ export function getGroupTypes() {
   return request<GroupType[]>(`${GROUPS_ENDPOINT}/types`);
 }
 
-export function getGroups(
-  filters?: import("../types/finance").GroupFilterParams,
-) {
+export function getGroups(filters?: GroupFilterParams) {
   const params = new URLSearchParams();
   if (filters) {
-    if (filters.id !== undefined) {
-      const ids = Array.isArray(filters.id) ? filters.id : [filters.id];
-      ids.forEach((id) => params.append("group_ids", String(id)));
-    }
     if (filters.division_id !== undefined) {
       const ids = Array.isArray(filters.division_id)
         ? filters.division_id
@@ -84,7 +82,7 @@ export function getGroups(
     }
   }
   const queryString = params.toString();
-  return request<import("../types/finance").GroupPage>(
+  return request<GroupPage>(
     `${GROUPS_ENDPOINT}${queryString ? `?${queryString}` : ""}`,
   );
 }

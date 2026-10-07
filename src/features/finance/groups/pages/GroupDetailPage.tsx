@@ -4,12 +4,11 @@ import { useGroupTypes } from "..";
 import type {
   Department,
   DepartmentRepartitionCreate,
-  Group,
-  GroupCreate,
   Rule,
   RuleCreate,
   DepartmentRepartition,
 } from "../../../../types/finance";
+import type { Group, GroupCreate } from "../groups.types";
 import { GroupRulesSection } from "../../../../components/GroupRulesSection";
 import { GroupFormModal } from "../../../../components/finance/GroupFormModal";
 import { RuleFormModal } from "../../../../components/finance/RuleFormModal";

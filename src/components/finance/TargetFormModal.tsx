@@ -1,11 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { X } from "lucide-react";
-import type {
-  AllocationType,
-  Group,
-  Target,
-  TargetCreate,
-} from "../../types/finance";
+import type { AllocationType, Target, TargetCreate } from "../../types/finance";
+import type { Group } from "../../features/finance/groups";
 
 type TargetFormModalProps = {
   target: Target | null;

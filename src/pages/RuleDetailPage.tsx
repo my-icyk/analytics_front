@@ -1,12 +1,7 @@
 import { useState } from "react";
 import { ArrowLeft, Edit3, Plus, Trash2 } from "lucide-react";
-import type {
-  Group,
-  Rule,
-  RuleCreate,
-  Target,
-  TargetCreate,
-} from "../types/finance";
+import type { Rule, RuleCreate, Target, TargetCreate } from "../types/finance";
+import type { Group } from "../features/finance/groups";
 import { RuleFormModal } from "../components/finance/RuleFormModal";
 import { TargetFormModal } from "../components/finance/TargetFormModal";
 

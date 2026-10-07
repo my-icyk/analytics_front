@@ -1,19 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
+import { FilterX, Plus, Search } from "lucide-react";
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from "../../../../constants/config";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  Edit3,
-  ExternalLink,
-  FilterX,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react";
 import { useDebouncedValue } from "../../../../hooks/useDebouncedValue";
-
 import { GroupFormModal } from "../../../../components/finance/GroupFormModal";
 import {
   Slicer,
@@ -29,52 +17,26 @@ import {
   useUpdateGroup,
 } from "..";
 import { PERMISSIONS } from "../../../../constants/permissions";
-import {
-  Group,
-  GroupCreate,
-  GroupFilterParams,
-  GroupPage,
-} from "../groups.types";
+import type { Group, GroupCreate, GroupFilterParams } from "../groups.types";
 import { Column, DataTable } from "../../../../components/DataTable";
 import { Pagination } from "../../../../components/Pagination";
 import { TableActions } from "../../../../components/TableActions";
+
 type GroupsPageProps = {
-  groups: Group[];
   onOpenGroup: (group: Group) => void;
-  onCreateGroup: (payload: GroupCreate) => Promise<void>;
-  onUpdateGroup: (groupId: number, payload: GroupCreate) => Promise<void>;
-  onDeleteGroup: (group: Group) => Promise<void>;
-  onFilterChange?: (filters: GroupFilterParams) => Promise<GroupPage> | void;
 };
 
-export function GroupsPage({
-  groups: initialGroups,
-  onOpenGroup,
-  onCreateGroup,
-  onUpdateGroup,
-  onDeleteGroup,
-  onFilterChange,
-}: GroupsPageProps) {
-  const [limit, setLimit] = useState<number>(DEFAULT_PAGE_SIZE);
-  const [offset, setOffset] = useState<number>(0);
-  //TODO: Why is used that const
-  const [actionError, setActionError] = useState("");
-  const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search);
-  const { data: groupTypes = [] } = useGroupTypes();
+export function GroupsPage({ onOpenGroup }: GroupsPageProps) {
   const { can } = usePermissions();
-
   const canCreate = can(PERMISSIONS.FINANCE.GROUP.CREATE);
   const canEdit = can(PERMISSIONS.FINANCE.GROUP.UPDATE);
   const canDelete = can(PERMISSIONS.FINANCE.GROUP.DELETE);
   const canView = can(PERMISSIONS.FINANCE.GROUP.READ);
 
-  const { data: divisions = [] } = useDivisions();
-  const [displayedGroups, setDisplayedGroups] =
-    useState<Group[]>(initialGroups);
-
-  const [localError, setLocalError] = useState("");
-
+  const [page, setPage] = useState(DEFAULT_PAGE);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
   const [selectedDivisionIds, setSelectedDivisionIds] = useState<
     (string | number)[]
   >([]);
@@ -85,31 +47,15 @@ export function GroupsPage({
   const [modalOpen, setModalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [modalError, setModalError] = useState("");
-
-  const isMountedRef = useRef(false);
-
-  // Sync displayed groups if initialGroups changes from parent and no onFilterChange
-  useEffect(() => {
-    if (!onFilterChange) {
-      setDisplayedGroups(initialGroups);
-      setTotal(initialGroups.length);
-    }
-  }, [initialGroups, onFilterChange]);
-  // TODO: Trebuie sa fie separat cumva?
-  function handlePageSizeChange(size: number) {
-    setLimit(size);
-    setOffset(DEFAULT_PAGE);
-  }
+  const [actionError, setActionError] = useState("");
 
   const filters = useMemo<GroupFilterParams>(() => {
     const trimmedSearch = debouncedSearch.trim();
 
     return {
-      limit,
-      offset,
-      ...(trimmedSearch && {
-        search: trimmedSearch,
-      }),
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+      ...(trimmedSearch && { search: trimmedSearch }),
       ...(selectedDivisionIds.length > 0 && {
         division_id: selectedDivisionIds.map(Number),
       }),
@@ -118,8 +64,8 @@ export function GroupsPage({
       }),
     };
   }, [
-    limit,
-    offset,
+    page,
+    pageSize,
     debouncedSearch,
     selectedDivisionIds,
     selectedGroupTypeIds,
@@ -129,88 +75,76 @@ export function GroupsPage({
   const createGroup = useCreateGroup();
   const updateGroup = useUpdateGroup();
   const deleteGroup = useRemoveGroup();
-  // TODO: to do something
-  const groups_data = data?.items ?? [];
-  const [total, setTotal] = useState<number>(data?.total ?? 0);
 
-  // Execute server-side filter request when filter props or pagination change
+  const groups = data?.items ?? [];
+  const total = data?.total ?? 0;
 
-  const divisionOptions: SlicerOption[] = useMemo(() => {
-    return divisions.map((d) => ({
-      id: d.id,
-      label: d.name,
-      badge: initialGroups.filter((g) => g.division?.id === d.id).length,
-    }));
-  }, [divisions, initialGroups]);
+  const { data: groupTypes = [] } = useGroupTypes();
+  const { data: divisions = [] } = useDivisions();
 
-  const groupTypeOptions: SlicerOption[] = useMemo(() => {
-    return groupTypes.map((gt) => ({
-      id: gt.id,
-      label: gt.name,
-      badge: initialGroups.filter((g) => g.group_type?.id === gt.id).length,
-    }));
-  }, [groupTypes, initialGroups]);
+  function handlePageSizeChange(size: number) {
+    setPageSize(size);
+    setPage(DEFAULT_PAGE);
+  }
+
+  function handleSearchChange(value: string) {
+    setSearch(value);
+    setPage(DEFAULT_PAGE);
+  }
+
+  function handleDivisionChange(selected: (string | number)[]) {
+    setSelectedDivisionIds(selected);
+    setPage(DEFAULT_PAGE);
+  }
+
+  function handleGroupTypeChange(selected: (string | number)[]) {
+    setSelectedGroupTypeIds(selected);
+    setPage(DEFAULT_PAGE);
+  }
+
+  const divisionOptions: SlicerOption[] = useMemo(
+    () =>
+      divisions.map((d) => ({
+        id: d.id,
+        label: d.name,
+        badge: groups.filter((g) => g.division?.id === d.id).length,
+      })),
+    [divisions, groups],
+  );
+
+  const groupTypeOptions: SlicerOption[] = useMemo(
+    () =>
+      groupTypes.map((gt) => ({
+        id: gt.id,
+        label: gt.name,
+        badge: groups.filter((g) => g.group_type?.id === gt.id).length,
+      })),
+    [groupTypes, groups],
+  );
 
   const hasAnyFilter =
     Boolean(search) ||
     selectedDivisionIds.length > 0 ||
     selectedGroupTypeIds.length > 0;
 
-  const handleClearAllFilters = () => {
+  function handleClearAllFilters() {
     setSearch("");
     setSelectedDivisionIds([]);
     setSelectedGroupTypeIds([]);
-  };
+    setPage(DEFAULT_PAGE);
+  }
 
-  // Fallback client-side filtering if onFilterChange is not passed
-  const visibleGroups = useMemo(() => {
-    if (onFilterChange) {
-      return displayedGroups;
-    }
-    return initialGroups.filter((g) => {
-      if (
-        selectedDivisionIds.length > 0 &&
-        (!g.division || !selectedDivisionIds.includes(g.division.id))
-      ) {
-        return false;
-      }
-      if (
-        selectedGroupTypeIds.length > 0 &&
-        (!g.group_type || !selectedGroupTypeIds.includes(g.group_type.id))
-      ) {
-        return false;
-      }
-      if (search) {
-        const q = search.toLowerCase().trim();
-        const matches =
-          g.name.toLowerCase().includes(q) ||
-          g.division?.name?.toLowerCase().includes(q) ||
-          g.group_type?.name?.toLowerCase().includes(q) ||
-          String(g.id).includes(q);
-        if (!matches) return false;
-      }
-      return true;
-    });
-  }, [
-    onFilterChange,
-    displayedGroups,
-    initialGroups,
-    selectedDivisionIds,
-    selectedGroupTypeIds,
-    search,
-  ]);
-
-  const handleOpenCreate = () => {
+  function handleOpenCreate() {
     setEditingGroup(null);
     setModalError("");
     setModalOpen(true);
-  };
+  }
 
-  const handleOpenEdit = (group: Group) => {
+  function handleOpenEdit(group: Group) {
     setEditingGroup(group);
     setModalError("");
     setModalOpen(true);
-  };
+  }
 
   async function handleSaveGroup(payload: GroupCreate) {
     try {
@@ -220,9 +154,6 @@ export function GroupsPage({
         await createGroup.mutateAsync(payload);
       }
       setModalOpen(false);
-      // if (onFilterChange) {
-      //   void ();
-      // }
     } catch (err) {
       setModalError(
         err instanceof Error ? err.message : "Failed to save group",
@@ -239,26 +170,48 @@ export function GroupsPage({
     setActionError("");
     try {
       await deleteGroup.mutateAsync(group.id);
-      {
-        setOffset(1);
+      if (groups.length === 1 && page > DEFAULT_PAGE) {
+        setPage(page - 1);
       }
     } catch (err) {
       setActionError(
-        err instanceof Error ? err.message : "Failed to delete exception",
+        err instanceof Error ? err.message : "Failed to delete group",
       );
     }
   }
 
-  const displayError = error || localError;
+  const queryError =
+    error instanceof Error
+      ? error.message
+      : error
+        ? "Failed to load groups"
+        : "";
+  const displayError = actionError || queryError;
 
   const columns: Column<Group>[] = [
-    { key: "id", header: "ID", render: (u) => u.id },
-    { key: "name", header: "Name", render: (u) => u.name },
-    { key: "division", header: "Division", render: (u) => u.division.name },
+    { key: "id", header: "ID", render: (g) => g.id, width: "60px" },
+    {
+      key: "name",
+      header: "Group Name",
+      render: (g) => (
+        <button className="link-button" onClick={() => onOpenGroup(g)}>
+          <strong>{g.name}</strong>
+        </button>
+      ),
+    },
+    {
+      key: "division",
+      header: "Division",
+      render: (g) => (
+        <span className="domain-pill finance">{g.division?.name ?? "—"}</span>
+      ),
+    },
     {
       key: "group_type",
       header: "Group Type",
-      render: (u) => u.group_type.name,
+      render: (g) => (
+        <span className="domain-pill auth">{g.group_type?.name ?? "—"}</span>
+      ),
     },
   ];
 
@@ -278,7 +231,7 @@ export function GroupsPage({
         )}
       </div>
 
-      {displayError && <p className="auth-error">"ERORR"</p>}
+      {displayError && <p className="auth-error">{displayError}</p>}
 
       <div className="slicers-bar">
         <div className="search-box">
@@ -287,7 +240,7 @@ export function GroupsPage({
             type="text"
             placeholder="Search keyword..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
           />
         </div>
 
@@ -296,7 +249,7 @@ export function GroupsPage({
             title="Division"
             options={divisionOptions}
             selectedValues={selectedDivisionIds}
-            onChange={setSelectedDivisionIds}
+            onChange={handleDivisionChange}
             multiSelect={true}
             placeholder="All divisions"
             searchPlaceholder="Filter divisions..."
@@ -306,7 +259,7 @@ export function GroupsPage({
             title="Group Type"
             options={groupTypeOptions}
             selectedValues={selectedGroupTypeIds}
-            onChange={setSelectedGroupTypeIds}
+            onChange={handleGroupTypeChange}
             multiSelect={true}
             placeholder="All types"
             searchPlaceholder="Filter types..."
@@ -327,34 +280,30 @@ export function GroupsPage({
 
       <DataTable
         columns={columns}
-        data={groups_data}
-        rowKey={(u) => u.id}
+        data={groups}
+        rowKey={(g) => g.id}
         isLoading={isLoading}
         isFetching={isFetching}
-        //TODO NEED TO ADD ERROR HANDLING
-        // error={error}
-        emptyText="No counter exceptions found."
+        emptyText="No finance groups found."
         renderActions={(group) => (
           <TableActions
             onOpen={canView ? () => onOpenGroup(group) : undefined}
             onEdit={canEdit ? () => handleOpenEdit(group) : undefined}
             onDelete={canDelete ? () => void handleDelete(group) : undefined}
-            //TODO: Oare am nevoie de labels?
-            editLabel={`Edit group ${group.id}`}
-            deleteLabel={`Delete group ${group.id}`}
-            openLabel={`Open group ${group.id}`}
-            // TODO: ADD DISABLE
+            openLabel={`Open group ${group.name}`}
+            editLabel={`Edit group ${group.name}`}
+            deleteLabel={`Delete group ${group.name}`}
           />
         )}
         footer={
           <Pagination
             total={total}
-            page={offset}
-            pageSize={limit}
-            onPageChange={setOffset}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
             onPageSizeChange={handlePageSizeChange}
             loading={isFetching}
-            entityLabel="exceptions"
+            entityLabel="groups"
           />
         }
       />
