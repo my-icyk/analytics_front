@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { DEFAULT_PAGE_SIZE } from "../../../../constants/config";
 import {
   ChevronLeft,
   ChevronRight,
@@ -53,7 +54,7 @@ export function GroupsPage({
   const [displayedGroups, setDisplayedGroups] =
     useState<Group[]>(initialGroups);
   const [total, setTotal] = useState<number>(initialGroups.length);
-  const [limit, setLimit] = useState<number>(20);
+  const [limit, setLimit] = useState<number>(DEFAULT_PAGE_SIZE);
   const [offset, setOffset] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState("");
