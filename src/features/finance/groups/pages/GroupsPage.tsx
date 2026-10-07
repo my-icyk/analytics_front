@@ -60,9 +60,6 @@ export function GroupsPage({
   const [localError, setLocalError] = useState("");
 
   const [search, setSearch] = useState("");
-  const [selectedGroupIds, setSelectedGroupIds] = useState<(string | number)[]>(
-    [],
-  );
   const [selectedDivisionIds, setSelectedDivisionIds] = useState<
     (string | number)[]
   >([]);
@@ -95,9 +92,6 @@ export function GroupsPage({
           limit: currentLimit,
           offset: currentOffset,
         };
-        if (selectedGroupIds.length > 0) {
-          filters.id = selectedGroupIds.map((v) => Number(v));
-        }
         if (selectedDivisionIds.length > 0) {
           filters.division_id = selectedDivisionIds.map((v) => Number(v));
         }
@@ -129,7 +123,6 @@ export function GroupsPage({
       onFilterChange,
       offset,
       limit,
-      selectedGroupIds,
       selectedDivisionIds,
       selectedGroupTypeIds,
       search,
@@ -154,7 +147,6 @@ export function GroupsPage({
 
     return () => clearTimeout(timer);
   }, [
-    selectedGroupIds,
     selectedDivisionIds,
     selectedGroupTypeIds,
     search,
@@ -180,13 +172,11 @@ export function GroupsPage({
 
   const hasAnyFilter =
     Boolean(search) ||
-    selectedGroupIds.length > 0 ||
     selectedDivisionIds.length > 0 ||
     selectedGroupTypeIds.length > 0;
 
   const handleClearAllFilters = () => {
     setSearch("");
-    setSelectedGroupIds([]);
     setSelectedDivisionIds([]);
     setSelectedGroupTypeIds([]);
   };
@@ -197,9 +187,6 @@ export function GroupsPage({
       return displayedGroups;
     }
     return initialGroups.filter((g) => {
-      if (selectedGroupIds.length > 0 && !selectedGroupIds.includes(g.id)) {
-        return false;
-      }
       if (
         selectedDivisionIds.length > 0 &&
         (!g.division || !selectedDivisionIds.includes(g.division.id))
@@ -227,7 +214,6 @@ export function GroupsPage({
     onFilterChange,
     displayedGroups,
     initialGroups,
-    selectedGroupIds,
     selectedDivisionIds,
     selectedGroupTypeIds,
     search,
