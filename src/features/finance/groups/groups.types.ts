@@ -28,7 +28,6 @@ export type GroupCreate = {
 export type GroupUpdate = GroupCreate;
 
 export type GroupFilterParams = {
-  id?: number | number[];
   division_id?: number | number[];
   group_type_id?: number | number[];
   search?: string;
