@@ -26,7 +26,7 @@ export type GroupCreate = {
 };
 
 export type GroupUpdate = GroupCreate;
-
+//TODOl NEED I TO PLAC E LIMIT AND OFFSET DIFFERENTLY?
 export type GroupFilterParams = {
   division_id?: number | number[];
   group_type_id?: number | number[];
