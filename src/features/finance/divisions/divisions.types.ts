@@ -8,3 +8,9 @@ export type DivisionCreate = {
 };
 
 export type DivisionUpdate = DivisionCreate;
+
+export type DivisionDetails = {
+  id: number;
+  name: string;
+  group_count: number;
+};

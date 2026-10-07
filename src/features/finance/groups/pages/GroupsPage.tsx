@@ -107,7 +107,7 @@ export function GroupsPage({ onOpenGroup }: GroupsPageProps) {
       divisions.map((d) => ({
         id: d.id,
         label: d.name,
-        badge: groups.filter((g) => g.division?.id === d.id).length,
+        badge: d.group_count,
       })),
     [divisions, groups],
   );

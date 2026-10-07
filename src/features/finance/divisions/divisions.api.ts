@@ -4,12 +4,13 @@ import type {
   Division,
   DivisionCreate,
   DivisionUpdate,
+  DivisionDetails,
 } from "./divisions.types";
 
 const DIVISIONS_ENDPOINT = `${FINANCE_API}/divisions`;
 
 export function getDivisions() {
-  return request<Division[]>(DIVISIONS_ENDPOINT);
+  return request<DivisionDetails[]>(DIVISIONS_ENDPOINT);
 }
 
 export function createDivision(payload: DivisionCreate) {
