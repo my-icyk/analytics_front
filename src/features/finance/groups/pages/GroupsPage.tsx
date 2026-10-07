@@ -178,14 +178,6 @@ export function GroupsPage({
     }));
   }, [groupTypes, initialGroups]);
 
-  const groupOptions: SlicerOption[] = useMemo(() => {
-    return initialGroups.map((g) => ({
-      id: g.id,
-      label: g.name,
-      subLabel: `${g.division?.name ?? "—"} · ${g.group_type?.name ?? "—"}`,
-    }));
-  }, [initialGroups]);
-
   const hasAnyFilter =
     Boolean(search) ||
     selectedGroupIds.length > 0 ||
@@ -340,16 +332,6 @@ export function GroupsPage({
         </div>
 
         <div className="slicers-group">
-          <Slicer
-            title="Group"
-            options={groupOptions}
-            selectedValues={selectedGroupIds}
-            onChange={setSelectedGroupIds}
-            multiSelect={true}
-            placeholder="All groups"
-            searchPlaceholder="Filter groups..."
-          />
-
           <Slicer
             title="Division"
             options={divisionOptions}
