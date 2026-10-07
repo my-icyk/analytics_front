@@ -12,14 +12,7 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
-import type {
-  Division,
-  Group,
-  GroupCreate,
-  GroupFilterParams,
-  GroupPage,
-  GroupType,
-} from "../../../../types/finance";
+
 import { GroupFormModal } from "../../../../components/finance/GroupFormModal";
 import {
   Slicer,
@@ -29,7 +22,12 @@ import { useDivisions } from "../../divisions";
 import { usePermissions } from "../../../../auth/AuthContext";
 import { useGroupTypes } from "..";
 import { PERMISSIONS } from "../../../../constants/permissions";
-
+import {
+  Group,
+  GroupCreate,
+  GroupFilterParams,
+  GroupPage,
+} from "../groups.types";
 type GroupsPageProps = {
   groups: Group[];
   onOpenGroup: (group: Group) => void;
