@@ -1016,7 +1016,7 @@ export function AdminConsolePage({
     <div className="app-shell">
       <AdminSidebar activeNav={activeNav} />
       <main className="main-content">
-        <header className="topbar">
+        {/* <header className="topbar">
           <div className="breadcrumbs">
             <span>Workspace</span>
             <span>/</span>
@@ -1030,7 +1030,7 @@ export function AdminConsolePage({
               <CircleHelp size={16} /> Support
             </button>
           </div>
-        </header>
+        </header> */}
         {activeNav === "Me" && <MePage user={user} />}
         {activeNav === "Users" && (
           <UsersPage
