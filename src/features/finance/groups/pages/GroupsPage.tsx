@@ -28,6 +28,7 @@ import {
 import { useDivisions } from "../../divisions";
 import { usePermissions } from "../../../../auth/AuthContext";
 import { useGroupTypes } from "..";
+import { PERMISSIONS } from "../../../../constants/permissions";
 
 type GroupsPageProps = {
   groups: Group[];
@@ -50,6 +51,11 @@ export function GroupsPage({
 }: GroupsPageProps) {
   const { data: groupTypes = [] } = useGroupTypes();
   const { can } = usePermissions();
+
+  const canCreate = can(PERMISSIONS.FINANCE.GROUP.CREATE);
+  const canEdit = can(PERMISSIONS.FINANCE.GROUP.UPDATE);
+  const canDelete = can(PERMISSIONS.FINANCE.GROUP.DELETE);
+
   const { data: divisions = [] } = useDivisions();
   const [displayedGroups, setDisplayedGroups] =
     useState<Group[]>(initialGroups);
@@ -297,7 +303,7 @@ export function GroupsPage({
             Configure business groups, divisional alignment, and cost centers.
           </p>
         </div>
-        {can("finance:group:create") && (
+        {canCreate && (
           <button className="primary-button" onClick={handleOpenCreate}>
             <Plus size={17} /> New group
           </button>
@@ -394,7 +400,7 @@ export function GroupsPage({
                     >
                       <ExternalLink size={14} />
                     </button>
-                    {can("finance:group:update") && (
+                    {canEdit && (
                       <button
                         className="secondary-button icon-action-button"
                         title="Edit group"
@@ -404,7 +410,7 @@ export function GroupsPage({
                         <Edit3 size={14} />
                       </button>
                     )}
-                    {can("finance:group:delete") && (
+                    {canDelete && (
                       <button
                         className="danger-button icon-action-button"
                         title="Delete group"
