@@ -30,7 +30,7 @@ export function Slicer({
   placeholder = "All",
   disabled = false,
   searchPlaceholder = "Search options...",
-  requireApply = false,
+  requireApply = true,
 }: SlicerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
