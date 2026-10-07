@@ -48,6 +48,8 @@ export function GroupsPage({
   onFilterChange,
   error,
 }: GroupsPageProps) {
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
   const { data: groupTypes = [] } = useGroupTypes();
   const { can } = usePermissions();
 
@@ -64,8 +66,6 @@ export function GroupsPage({
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState("");
 
-  const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search);
   const [selectedDivisionIds, setSelectedDivisionIds] = useState<
     (string | number)[]
   >([]);
@@ -132,31 +132,20 @@ export function GroupsPage({
       limit,
       selectedDivisionIds,
       selectedGroupTypeIds,
-      search,
+      debouncedSearch,
     ],
   );
 
   // Trigger server-side fetching when search or slicers change (resets offset to 0)
   useEffect(() => {
-    if (!isMountedRef.current) {
-      isMountedRef.current = true;
-      if (onFilterChange) {
-        void fetchFilteredGroups(0, limit);
-      }
-      return;
-    }
     if (!onFilterChange) return;
 
-    const timer = setTimeout(() => {
-      setOffset(0);
-      void fetchFilteredGroups(0, limit);
-    }, 250);
-
-    return () => clearTimeout(timer);
+    setOffset(0);
+    void fetchFilteredGroups(0, limit);
   }, [
     selectedDivisionIds,
     selectedGroupTypeIds,
-    search,
+    debouncedSearch,
     limit,
     onFilterChange,
   ]);
