@@ -1,4 +1,3 @@
-import { Edit3, Plus, Trash2 } from "lucide-react";
 import {
   useCounters,
   useCreateException,
@@ -21,7 +20,7 @@ import { usePermissions } from "../../../../auth/AuthContext";
 import { PERMISSIONS } from "../../../../constants/permissions";
 import { CreateButton } from "../../../../components/CreateButton";
 
-export function CountersPage() {
+export function CounterExceptionsPage() {
   const { can } = usePermissions();
   const canCreate = can(PERMISSIONS.PARAMS.COUNTER_EXCEPTION.CREATE);
   const canUpdate = can(PERMISSIONS.PARAMS.COUNTER_EXCEPTION.UPDATE);
@@ -188,6 +187,7 @@ export function CountersPage() {
             }
             editLabel={`Edit exception ${exception.id}`}
             deleteLabel={`Delete exception ${exception.id}`}
+            disabled={deleteException.isPending}
           />
         )}
         footer={

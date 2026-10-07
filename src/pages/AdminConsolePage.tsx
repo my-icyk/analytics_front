@@ -53,7 +53,7 @@ import type {
   Target,
   TargetCreate,
 } from "../types/finance";
-import { CountersPage } from "../features/params/countersExceptions/pages/CounterExceptionsPage";
+import { CounterExceptionsPage } from "../features/params/countersExceptions/pages/CounterExceptionsPage";
 
 export function AdminConsolePage({
   routeView,
@@ -1099,7 +1099,7 @@ export function AdminConsolePage({
         {activeNav === "Permissions" && (
           <PermissionCatalogPage permissions={permissions} />
         )}
-        {activeNav === "Counters" && <CountersPage />}
+        {activeNav === "Counters" && <CounterExceptionsPage />}
         {activeNav === "Counter details" && selectedCounter && (
           <CounterDetailPage
             counter={selectedCounter}
