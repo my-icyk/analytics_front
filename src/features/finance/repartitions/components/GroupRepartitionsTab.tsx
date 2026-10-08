@@ -9,11 +9,13 @@ import {
   useCreateRepartition,
   useUpdateRepartition,
   useDeleteRepartition,
+  DepartmentRepartition,
 } from "..";
 import { Group } from "../../groups";
 import { GroupDepartmentAllocationForm } from "../GroupDepartmentAllocationForm";
 import { PERMISSIONS } from "../../../../constants/permissions";
-import { set } from "zod";
+import { Column, DataTable } from "../../../../components/DataTable";
+import { TableActions } from "../../../../components/TableActions";
 
 type GroupDeparmentSectionProps = {
   group: Group;
@@ -22,11 +24,16 @@ type GroupDeparmentSectionProps = {
 export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
   const { can } = usePermissions();
   const canCreate = can(PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.CREATE);
-  const canUpdate = can(PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.UPDATE);
+  const canEdit = can(PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.UPDATE);
   const canDelete = can(PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.DELETE);
 
   const { data: departments = [] } = useDepartments();
-  const { data: repartitions = [] } = useRepartitionByGroup(group.id);
+  const {
+    data: repartitions = [],
+    isLoading,
+    isFetching,
+    error,
+  } = useRepartitionByGroup(group.id);
   const createRepartition = useCreateRepartition();
   const updateRepartition = useUpdateRepartition();
   const deleteRepartition = useDeleteRepartition();
@@ -80,6 +87,22 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
     }
   };
 
+  const columns: Column<DepartmentRepartition>[] = [
+    { key: "id", header: "ID", render: (g) => g.id, width: "60px" },
+    {
+      key: "department_name",
+      header: "Name",
+      render: (g) => g.department_name,
+    },
+    {
+      key: "department_code",
+      header: "Code",
+      render: (g) => g.department_code,
+    },
+    { key: "valid_from", header: "From", render: (g) => g.valid_from },
+    { key: "valid_to", header: "To", render: (g) => g.valid_to || "Ongoing" },
+  ];
+
   return (
     <section className="detail-section">
       <div className="section-heading">
@@ -97,67 +120,22 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
         )}
       </div>
 
-      {repartitions.length === 0 ? (
-        <div className="empty-state">
-          No departments allocated to this group yet.
-        </div>
-      ) : (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Code</th>
-                <th>From</th>
-                <th>To</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {repartitions.map((repartition) => (
-                <tr key={repartition.id}>
-                  <td>{repartition.id}</td>
-                  <td>{repartition.department_name}</td>
-                  <td>{repartition.department_code}</td>
-                  <td>{repartition.valid_from}</td>
-                  <td>
-                    {repartition.valid_to || (
-                      <span className="badge badge-active">Ongoing</span>
-                    )}
-                  </td>
+      <DataTable
+        columns={columns}
+        data={repartitions}
+        rowKey={(r) => r.id}
+        isLoading={isLoading}
+        isFetching={isFetching}
+        emptyText="No finance groups found."
+        renderActions={(repartition) => (
+          <TableActions
+            onEdit={
+              canEdit ? () => handleOpenEditAllocation(repartition) : undefined
+            }
+          />
+        )}
+      />
 
-                  <td>
-                    <div className="table-actions">
-                      {canUpdate && (
-                        <button
-                          type="button"
-                          className="secondary-button icon-action-button"
-                          title="Edit department"
-                          aria-label="Edit department"
-                          onClick={() => handleOpenEditAllocation(repartition)}
-                        >
-                          <Edit3 size={14} />
-                        </button>
-                      )}
-                      {canDelete && (
-                        <button
-                          type="button"
-                          className="danger-button icon-action-button"
-                          title="Delete department"
-                          aria-label="Delete department"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
       {allocationModalOpen && (
         <GroupDepartmentAllocationForm
           repartition={editingRepartition}
