@@ -7,4 +7,6 @@ export const groupKeys = {
   details: () => [...groupKeys.all, "detail"] as const,
   detail: (id: number) => [...groupKeys.details(), id] as const,
   types: () => [...groupKeys.all, "types"] as const,
+  lookup: (search: string, limit: number) =>
+    [...groupKeys.all, "lookup", search, limit] as const,
 };
