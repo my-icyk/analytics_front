@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { Trash2 } from "lucide-react";
-import "./DeleteModal.css";
+import { X } from "lucide-react";
 
 type DeleteModalProps = {
   open: boolean;
@@ -36,7 +34,7 @@ export function DeleteModal({
   const panelRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   const close = () => {
     if (!pending) onClose();
@@ -45,7 +43,7 @@ export function DeleteModal({
   // Reset state, lock page scroll, focus Cancel (never the destructive button), restore focus on close.
   useEffect(() => {
     if (!open) return;
-    setError(null);
+    setError("");
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -84,7 +82,7 @@ export function DeleteModal({
   };
 
   const handleConfirm = async () => {
-    setError(null);
+    setError("");
     setPending(true);
     try {
       await onConfirm();
@@ -96,25 +94,31 @@ export function DeleteModal({
     }
   };
 
-  return createPortal(
-    <div
-      className="dm-overlay"
-      onMouseDown={(e) => e.target === e.currentTarget && close()}
-    >
+  return (
+    <div className="modal-backdrop" onClick={close}>
       <div
         ref={panelRef}
-        className="dm"
+        className="modal"
         role="alertdialog"
         aria-modal="true"
-        aria-labelledby="dm-title"
-        aria-describedby="dm-desc"
+        aria-labelledby="delete-modal-title"
+        aria-describedby="delete-modal-desc"
+        onClick={(event) => event.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
-        <h2 id="dm-title" className="dm__title">
-          Delete {entity}?
-        </h2>
+        <div className="modal-header">
+          <h2 id="delete-modal-title">Delete {entity}?</h2>
+          <button
+            className="icon-button"
+            aria-label="Close"
+            onClick={close}
+            disabled={pending}
+          >
+            <X size={16} />
+          </button>
+        </div>
 
-        <p id="dm-desc" className="dm__text">
+        <p id="delete-modal-desc" className="delete-modal-text">
           {itemName ? (
             <>
               <strong>{itemName}</strong> will be permanently deleted.
@@ -123,20 +127,18 @@ export function DeleteModal({
             <>This {entity} will be permanently deleted.</>
           )}{" "}
           This action cannot be undone.
-          {description && <span className="dm__extra">{description}</span>}
+          {description && (
+            <span className="delete-modal-extra">{description}</span>
+          )}
         </p>
 
-        {error && (
-          <p className="dm__error" role="alert">
-            {error}
-          </p>
-        )}
+        {error && <p className="auth-error">{error}</p>}
 
-        <div className="dm__actions">
+        <div className="modal-actions">
           <button
             ref={cancelRef}
             type="button"
-            className="dm__btn"
+            className="secondary-button"
             onClick={close}
             disabled={pending}
           >
@@ -144,15 +146,14 @@ export function DeleteModal({
           </button>
           <button
             type="button"
-            className="dm__btn dm__btn--danger"
+            className="danger-button"
             onClick={handleConfirm}
             disabled={pending}
           >
-            {pending ? "Deleting…" : "Delete"}
+            {pending ? "Deleting..." : "Delete"}
           </button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

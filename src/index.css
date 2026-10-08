@@ -48,7 +48,8 @@ button { cursor: pointer; }
 .page-header { display: flex; justify-content: space-between; align-items: end; padding: 47px 0 31px; }.eyebrow { margin: 0 0 10px; color: #9ba399; font: 500 10px 'DM Mono', monospace; letter-spacing: 1.3px; }.page-header h1 { margin: 0; font-size: clamp(25px, 3vw, 36px); letter-spacing: -1.5px; line-height: 1.1; }.subtitle, .section-heading p { margin: 9px 0 0; color: var(--muted); font-size: 12px; }.primary-button,
 /* Shared base for all buttons */
 .primary-button,
-.secondary-button {
+.secondary-button,
+.danger-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -98,6 +99,24 @@ button { cursor: pointer; }
   background: #e4efe8;
 }
 
+/* Danger */
+.danger-button {
+  color: white;
+  background: #b34d3d;
+  border-color: #b34d3d;
+}
+
+.danger-button:hover:not(:disabled) {
+  background: #9a4132;
+  border-color: #9a4132;
+  box-shadow: 0 2px 6px rgba(179, 77, 61, 0.3);
+}
+
+.danger-button:active:not(:disabled) {
+  background: #833627;
+  box-shadow: none;
+}
+
 /* Shared states */
 .primary-button:focus-visible,
 .secondary-button:focus-visible {
@@ -105,8 +124,14 @@ button { cursor: pointer; }
   outline-offset: 2px;
 }
 
+.danger-button:focus-visible {
+  outline: 2px solid #b34d3d;
+  outline-offset: 2px;
+}
+
 .primary-button:disabled,
-.secondary-button:disabled {
+.secondary-button:disabled,
+.danger-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -269,4 +294,19 @@ button { cursor: pointer; }
 .badge-active {
   background: color-mix(in srgb, var(--success, #16a34a) 15%, transparent);
   color: var(--success, #16a34a);
+}
+.delete-modal-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.delete-modal-text strong {
+  color: var(--ink);
+}
+
+.delete-modal-extra {
+  display: block;
+  margin-top: 8px;
 }
