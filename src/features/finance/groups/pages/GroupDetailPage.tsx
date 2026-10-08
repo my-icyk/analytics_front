@@ -1,13 +1,7 @@
 import { useState } from "react";
 import { ArrowLeft, Edit3, ExternalLink, Plus, Trash2 } from "lucide-react";
 import { useGroupTypes } from "..";
-import type {
-  Department,
-  DepartmentRepartitionCreate,
-  Rule,
-  RuleCreate,
-  DepartmentRepartition,
-} from "../../../../types/finance";
+import type { Rule, RuleCreate } from "../../../../types/finance";
 import type { Group, GroupCreate } from "../groups.types";
 import { GroupRulesSection } from "../../../../components/GroupRulesSection";
 import { GroupFormModal } from "../../../../components/finance/GroupFormModal";
@@ -19,6 +13,14 @@ import { usePermissions } from "../../../../auth/AuthContext";
 import { Tabs, type TabItem } from "../../../../components/common/Tabs";
 import { useTabParam } from "../../../../hooks/useTabParam";
 import { GroupSearchSelect } from "../components/GroupSearchSelect";
+import {
+  DepartmentRepartitionCreate,
+  useCreateRepartition,
+  useDeleteRepartition,
+  useDepartments,
+  useRepartitionByGroup,
+  useUpdateRepartition,
+} from "../../repartitions";
 
 const GROUP_TABS = [
   { key: "overview", label: "Overview" },
@@ -30,8 +32,6 @@ type GroupDetailPageProps = {
   group: Group;
   allGroups: Group[];
   rules: Rule[];
-  departmentRepartitions: DepartmentRepartition[];
-  departments: Department[];
   canEditGroup: boolean;
   canDeleteGroup: boolean;
   canCreateRule: boolean;
@@ -45,9 +45,6 @@ type GroupDetailPageProps = {
   onCreateRule: (payload: RuleCreate) => Promise<void>;
   onUpdateRule: (ruleId: number, payload: RuleCreate) => Promise<void>;
   onDeleteRule: (rule: Rule) => Promise<void>;
-  onCreateDepartmentRepartition: (
-    payload: DepartmentRepartitionCreate,
-  ) => Promise<void>;
   error: string;
 };
 
@@ -55,8 +52,6 @@ export function GroupDetailPage({
   group,
   allGroups,
   rules,
-  departmentRepartitions,
-  departments,
   onBack,
   onSelectGroup,
   onUpdateGroup,
@@ -65,12 +60,17 @@ export function GroupDetailPage({
   onCreateRule,
   onUpdateRule,
   onDeleteRule,
-  onCreateDepartmentRepartition,
+
   error,
 }: GroupDetailPageProps) {
   const { can } = usePermissions();
   const { data: groupTypes = [] } = useGroupTypes();
   const { data: divisions = [] } = useDivisions();
+  const { data: departments = [] } = useDepartments();
+  const { data: repartitions = [] } = useRepartitionByGroup(group.id);
+  const createRepartition = useCreateRepartition();
+  const updateRepartition = useUpdateRepartition();
+  const deleteRepartition = useDeleteRepartition();
   const [tab, setTab] = useTabParam(
     GROUP_TABS.map((t) => t.key),
     "overview",
@@ -145,9 +145,12 @@ export function GroupDetailPage({
     setAllocationModalOpen(true);
   };
 
-  const handleSaveAllocation = async (payload: DepartmentRepartitionCreate) => {
+  const handleSaveAllocation = async (
+    groupId: number,
+    payload: DepartmentRepartitionCreate,
+  ) => {
     try {
-      await onCreateDepartmentRepartition(payload);
+      await createRepartition.mutateAsync({ groupId, payload });
       setAllocationModalOpen(false);
     } catch (err) {
       setModalError(
@@ -229,7 +232,7 @@ export function GroupDetailPage({
 
       {tab === "departments" && (
         <GroupDeparmentSection
-          allocations={departmentRepartitions}
+          allocations={repartitions}
           onCreate={handleOpenCreateAllocation}
           onOpen={() => {}}
           onEdit={() => {}}

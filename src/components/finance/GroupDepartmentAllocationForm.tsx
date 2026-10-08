@@ -1,10 +1,10 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { X } from "lucide-react";
-import type {
+import {
   Department,
   DepartmentRepartition,
   DepartmentRepartitionCreate,
-} from "../../types/finance";
+} from "../../features/finance/repartitions";
 
 type GroupDepartmentAllocationFormProps = {
   allocation: DepartmentRepartition | null;
@@ -12,7 +12,10 @@ type GroupDepartmentAllocationFormProps = {
   departments: Department[];
   error: string;
   onClose: () => void;
-  onSubmit: (payload: DepartmentRepartitionCreate) => void | Promise<void>;
+  onSubmit: (
+    groupId: number,
+    payload: DepartmentRepartitionCreate,
+  ) => void | Promise<void>;
 };
 
 export function GroupDepartmentAllocationForm({
@@ -70,8 +73,7 @@ export function GroupDepartmentAllocationForm({
     setFormError("");
     setSubmitting(true);
     try {
-      await onSubmit({
-        group_id: groupId,
+      await onSubmit(groupId, {
         department_id: Number(departmentId),
         valid_from: validFrom,
         valid_to: validTo.trim() ? validTo.trim() : null,

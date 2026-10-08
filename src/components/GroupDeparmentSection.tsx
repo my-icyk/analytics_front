@@ -1,6 +1,7 @@
 import { Edit3, ExternalLink, Plus, Trash2 } from "lucide-react";
-import type { DepartmentRepartition } from "../types/finance";
+
 import { usePermissions } from "../auth/AuthContext";
+import { DepartmentRepartition } from "../features/finance/repartitions";
 
 type GroupDeparmentSectionProps = {
   allocations: DepartmentRepartition[];

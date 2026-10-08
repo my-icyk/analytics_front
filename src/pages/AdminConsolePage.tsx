@@ -40,16 +40,7 @@ import { GroupDetailPage } from "../features/finance/groups/pages/GroupDetailPag
 import { RuleDetailPage } from "./RuleDetailPage";
 import { financeService } from "../services/financeService";
 import { AdminSidebar } from "../components/AdminSidebar";
-import type {
-  Department,
-  DepartmentRepartition,
-  DepartmentRepartitionCreate,
-  Division,
-  Rule,
-  RuleCreate,
-  Target,
-  TargetCreate,
-} from "../types/finance";
+import type { Rule, RuleCreate, Target, TargetCreate } from "../types/finance";
 import type { Group, GroupCreate, GroupType } from "../features/finance/groups";
 import { CounterExceptionsPage } from "../features/params/countersExceptions/pages/CounterExceptionsPage";
 
@@ -110,10 +101,6 @@ export function AdminConsolePage({
   const [groupRulesMap, setGroupRulesMap] = useState<Record<number, Rule[]>>(
     {},
   );
-  const [departmentRepartitionsMap, setDepartmentRepartitionsMap] = useState<
-    Record<number, DepartmentRepartition[]>
-  >({});
-  const [departments, setDepartments] = useState<Department[]>([]);
   const [ruleTargetsMap, setRuleTargetsMap] = useState<
     Record<number, Target[]>
   >({});
@@ -129,9 +116,6 @@ export function AdminConsolePage({
   const loadedRolePermissionIdsRef = useRef<Set<number>>(new Set());
   const loadedCounterIdsRef = useRef<Set<number>>(new Set());
   const counterMapRef = useRef<Record<number, Counter>>({});
-
-  const loadedDepartmentRepartitionsIdsRef = useRef<Set<number>>(new Set());
-  const departmentsLoadedRef = useRef(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -395,40 +379,6 @@ export function AdminConsolePage({
     }
   };
 
-  const ensureDepartmentRepartitions = async (groupId: number) => {
-    if (loadedDepartmentRepartitionsIdsRef.current.has(groupId)) return;
-    try {
-      const nextRepartitions =
-        await financeService.getDepartmentRepartitions(groupId);
-      loadedDepartmentRepartitionsIdsRef.current.add(groupId);
-      setDepartmentRepartitionsMap((cur) => ({
-        ...cur,
-        [groupId]: nextRepartitions,
-      }));
-      setFinanceError("");
-    } catch (err) {
-      setFinanceError(
-        err instanceof Error
-          ? err.message
-          : "Failed to load department repartitions",
-      );
-    }
-  };
-
-  const ensureDepartments = async () => {
-    if (departmentsLoadedRef.current) return;
-    try {
-      const nextDepartments = await financeService.getDepartments();
-      departmentsLoadedRef.current = true;
-      setDepartments(nextDepartments);
-      setFinanceError("");
-    } catch (err) {
-      setFinanceError(
-        err instanceof Error ? err.message : "Failed to load departments",
-      );
-    }
-  };
-
   const ensureRule = async (ruleId: number) => {
     try {
       await ensureGroups();
@@ -501,8 +451,6 @@ export function AdminConsolePage({
     if (activeNav === "Group details" && selectedGroupId !== null) {
       void ensureGroup(selectedGroupId).catch(() => undefined);
       void ensureGroupRules(selectedGroupId).catch(() => undefined);
-      void ensureDepartmentRepartitions(selectedGroupId).catch(() => undefined);
-      void ensureDepartments().catch(() => undefined);
     }
     if (activeNav === "Rule details" && selectedRuleId !== null)
       void ensureRule(selectedRuleId).catch(() => undefined);
@@ -628,27 +576,6 @@ export function AdminConsolePage({
       setFinanceError(
         err instanceof Error ? err.message : "Failed to delete rule",
       );
-    }
-  };
-
-  const handleCreateDepartmentRepartition = async (
-    payload: DepartmentRepartitionCreate,
-  ) => {
-    try {
-      const created = await financeService.assignDepartmentRepartition(
-        payload.group_id,
-        payload,
-      );
-      setDepartmentRepartitionsMap((cur) => ({
-        ...cur,
-        [payload.group_id]: [...(cur[payload.group_id] ?? []), created],
-      }));
-      setFinanceError("");
-    } catch (err) {
-      setFinanceError(
-        err instanceof Error ? err.message : "Failed to allocate department",
-      );
-      throw err;
     }
   };
 
@@ -1121,10 +1048,6 @@ export function AdminConsolePage({
             group={selectedGroup}
             allGroups={groups}
             rules={groupRulesMap[selectedGroup.id] ?? []}
-            departmentRepartitions={
-              departmentRepartitionsMap[selectedGroup.id] ?? []
-            }
-            departments={departments}
             canEditGroup={can("finance:group:update")}
             canDeleteGroup={can("finance:group:delete")}
             canCreateRule={can("finance:rule:create")}
@@ -1138,7 +1061,6 @@ export function AdminConsolePage({
             onCreateRule={handleCreateRule}
             onUpdateRule={handleUpdateRule}
             onDeleteRule={handleDeleteRule}
-            onCreateDepartmentRepartition={handleCreateDepartmentRepartition}
             error={financeError}
           />
         )}

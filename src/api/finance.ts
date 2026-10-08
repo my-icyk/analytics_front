@@ -1,9 +1,5 @@
 import { request } from "./client";
 import type {
-  Department,
-  DepartmentRepartition,
-  DepartmentRepartitionCreate,
-  DepartmentRepartitionUpdate,
   Division,
   DivisionCreate,
   DivisionUpdate,
@@ -165,53 +161,4 @@ export function revokeTarget(ruleId: number, targetId: number) {
   return request<void>(`${RULES_ENDPOINT}/${ruleId}/targets/${targetId}`, {
     method: "DELETE",
   });
-}
-
-export function getDepartmentRepartitions(groupId: number) {
-  return request<DepartmentRepartition[]>(
-    `${GROUPS_ENDPOINT}/${groupId}/departments`,
-  );
-}
-
-export function assignDepartmentRepartition(
-  groupId: number,
-  payload: DepartmentRepartitionCreate,
-) {
-  return request<DepartmentRepartition>(
-    `${GROUPS_ENDPOINT}/${groupId}/departments`,
-    {
-      method: "POST",
-      body: JSON.stringify(payload),
-    },
-  );
-}
-
-export function updateDepartmentRepartition(
-  groupId: number,
-  repartitionId: number,
-  payload: DepartmentRepartitionUpdate,
-) {
-  return request<DepartmentRepartition>(
-    `${GROUPS_ENDPOINT}/${groupId}/departments/${repartitionId}`,
-    {
-      method: "PUT",
-      body: JSON.stringify(payload),
-    },
-  );
-}
-
-export function revokeDepartmentRepartition(
-  groupId: number,
-  repartitionId: number,
-) {
-  return request<void>(
-    `${GROUPS_ENDPOINT}/${groupId}/departments/${repartitionId}`,
-    {
-      method: "DELETE",
-    },
-  );
-}
-
-export function getDepartments() {
-  return request<Department[]>(`${GROUPS_ENDPOINT}/departments`);
 }
