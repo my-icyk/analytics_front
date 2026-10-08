@@ -2,7 +2,6 @@ import { Edit3, ExternalLink, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { usePermissions } from "../../../../auth/AuthContext";
 import {
-  DepartmentRepartition,
   DepartmentRepartitionCreate,
   useDepartments,
   useRepartitionByGroup,
@@ -12,6 +11,7 @@ import {
 } from "..";
 import { Group } from "../../groups";
 import { GroupDepartmentAllocationForm } from "../../../../components/finance/GroupDepartmentAllocationForm";
+import { PERMISSIONS } from "../../../../constants/permissions";
 
 type GroupDeparmentSectionProps = {
   group: Group;
@@ -19,6 +19,9 @@ type GroupDeparmentSectionProps = {
 
 export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
   const { can } = usePermissions();
+  const canCreate = can(PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.CREATE);
+  const canUpdate = can(PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.UPDATE);
+  const canDelete = can(PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.DELETE);
 
   const { data: departments = [] } = useDepartments();
   const { data: repartitions = [] } = useRepartitionByGroup(group.id);
@@ -55,7 +58,7 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
         <div>
           <h3>Allocated Departments</h3>
         </div>
-        {can("finance:department_repartition:create") && (
+        {canCreate && (
           <button
             type="button"
             className="primary-button"
@@ -98,7 +101,7 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
 
                   <td>
                     <div className="table-actions">
-                      {can("finance:department_repartition:update") && (
+                      {canUpdate && (
                         <button
                           type="button"
                           className="secondary-button icon-action-button"
@@ -108,7 +111,7 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
                           <Edit3 size={14} />
                         </button>
                       )}
-                      {can("finance:department_repartition:delete") && (
+                      {canDelete && (
                         <button
                           type="button"
                           className="danger-button icon-action-button"
