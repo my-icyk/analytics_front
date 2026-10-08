@@ -13,6 +13,7 @@ import {
 import { Group } from "../../groups";
 import { GroupDepartmentAllocationForm } from "../GroupDepartmentAllocationForm";
 import { PERMISSIONS } from "../../../../constants/permissions";
+import { set } from "zod";
 
 type GroupDeparmentSectionProps = {
   group: Group;
@@ -32,12 +33,20 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
 
   const [allocationModalOpen, setAllocationModalOpen] = useState(false);
   const [modalError, setModalError] = useState("");
-
+  const [editingRepartition, setEditingRepartition] = useState<any | null>(
+    null,
+  );
   const handleOpenCreateAllocation = () => {
+    setEditingRepartition(null);
     setModalError("");
     setAllocationModalOpen(true);
   };
 
+  const handleOpenEditAllocation = (repartition: any) => {
+    setEditingRepartition(repartition);
+    setModalError("");
+    setAllocationModalOpen(true);
+  };
   const handleCreate = async (
     groupId: number,
     payload: DepartmentRepartitionCreate,
@@ -126,6 +135,7 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
                           className="secondary-button icon-action-button"
                           title="Edit department"
                           aria-label="Edit department"
+                          onClick={() => handleOpenEditAllocation(repartition)}
                         >
                           <Edit3 size={14} />
                         </button>
@@ -150,12 +160,13 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
       )}
       {allocationModalOpen && (
         <GroupDepartmentAllocationForm
-          repartition={null}
+          repartition={editingRepartition}
           groupId={group.id}
           departments={departments}
           error={modalError}
           onClose={() => setAllocationModalOpen(false)}
-          onSubmit={handleCreate}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
         />
       )}
     </section>

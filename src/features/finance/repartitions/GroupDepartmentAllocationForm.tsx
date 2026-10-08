@@ -4,6 +4,7 @@ import {
   Department,
   DepartmentRepartition,
   DepartmentRepartitionCreate,
+  DepartmentRepartitionUpdate,
 } from ".";
 
 type GroupDepartmentAllocationFormProps = {
@@ -12,9 +13,14 @@ type GroupDepartmentAllocationFormProps = {
   departments: Department[];
   error: string;
   onClose: () => void;
-  onSubmit: (
+  onCreate: (
     groupId: number,
     payload: DepartmentRepartitionCreate,
+  ) => void | Promise<void>;
+  onUpdate: (
+    groupId: number,
+    repartitionId: number,
+    payload: DepartmentRepartitionUpdate,
   ) => void | Promise<void>;
 };
 
@@ -24,7 +30,8 @@ export function GroupDepartmentAllocationForm({
   departments,
   error,
   onClose,
-  onSubmit,
+  onCreate,
+  onUpdate,
 }: GroupDepartmentAllocationFormProps) {
   const isEditing = repartition !== null;
 
@@ -73,11 +80,19 @@ export function GroupDepartmentAllocationForm({
     setFormError("");
     setSubmitting(true);
     try {
-      await onSubmit(groupId, {
-        department_id: Number(departmentId),
-        valid_from: validFrom,
-        valid_to: validTo.trim() ? validTo.trim() : null,
-      });
+      if (isEditing) {
+        await onUpdate(groupId, repartition.id, {
+          department_id: Number(departmentId),
+          valid_from: validFrom,
+          valid_to: validTo.trim() ? validTo.trim() : null,
+        });
+      } else {
+        await onCreate(groupId, {
+          department_id: Number(departmentId),
+          valid_from: validFrom,
+          valid_to: validTo.trim() ? validTo.trim() : null,
+        });
+      }
     } finally {
       setSubmitting(false);
     }
