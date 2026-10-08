@@ -15,6 +15,8 @@ import { GroupDepartmentAllocationForm } from "../GroupDepartmentAllocationForm"
 import { PERMISSIONS } from "../../../../constants/permissions";
 import { Column, DataTable } from "../../../../components/DataTable";
 import { TableActions } from "../../../../components/TableActions";
+import { DeleteModal } from "../../../../components/common/DeleteModal";
+import { formatDate } from "../../../../utils/utils";
 
 type GroupDeparmentSectionProps = {
   group: Group;
@@ -32,9 +34,12 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
     isFetching,
     error,
   } = useRepartitionByGroup(group.id);
+  const [toDelete, setToDelete] = useState<DepartmentRepartition | null>(null);
   const createRepartition = useCreateRepartition();
   const updateRepartition = useUpdateRepartition();
   const deleteRepartition = useDeleteRepartition();
+  const period = (r: DepartmentRepartition) =>
+    `${formatDate(r.valid_from)} – ${r.valid_to ? formatDate(r.valid_to) : "present"}`;
 
   const [allocationModalOpen, setAllocationModalOpen] = useState(false);
   const [modalError, setModalError] = useState("");
@@ -86,25 +91,9 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
     }
   };
 
-  async function handleDelete(repartition: DepartmentRepartition) {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete department "${repartition.department_name}"?`,
-    );
-    if (!confirmed) return;
-
-    try {
-      await deleteRepartition.mutateAsync({
-        groupId: group.id,
-        repartitionId: repartition.id,
-      });
-    } catch (err) {
-      setModalError(
-        err instanceof Error
-          ? err.message
-          : "Failed to delete department allocation",
-      );
-    }
-  }
+  const handleDelete = (repartition: DepartmentRepartition) => {
+    setToDelete(repartition); // only opens the modal
+  };
 
   const columns: Column<DepartmentRepartition>[] = [
     { key: "id", header: "ID", render: (g) => g.id, width: "60px" },
@@ -166,6 +155,22 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
           onUpdate={handleUpdate}
         />
       )}
+
+      <DeleteModal
+        open={toDelete !== null}
+        onClose={() => setToDelete(null)}
+        entity="assignment"
+        itemName={
+          toDelete ? `${toDelete.department_name} → ${group.name}` : undefined
+        }
+        description={toDelete ? `Period: ${period(toDelete)}` : undefined}
+        onConfirm={() =>
+          deleteRepartition.mutateAsync({
+            groupId: group.id,
+            repartitionId: toDelete!.id,
+          })
+        }
+      />
     </section>
   );
 }
