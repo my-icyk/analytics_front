@@ -1,16 +1,21 @@
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { X } from "lucide-react";
-import type { Division } from "../../features/finance/divisions";
+import type {
+  Division,
+  DivisionDetails,
+} from "../../features/finance/divisions";
 import type {
   Group,
   GroupCreate,
   GroupType,
+  GroupTypeDetails,
 } from "../../features/finance/groups";
+import { Slicer, type SlicerOption } from "../common/Slicer";
 
 type GroupFormModalProps = {
   group: Group | null;
-  divisions: Division[];
-  groupTypes: GroupType[];
+  divisions: DivisionDetails[];
+  groupTypes: GroupTypeDetails[];
   error: string;
   onClose: () => void;
   onSubmit: (payload: GroupCreate) => void | Promise<void>;
@@ -33,6 +38,26 @@ export function GroupFormModal({
   );
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+
+  const divisionOptions: SlicerOption[] = useMemo(
+    () =>
+      divisions.map((d) => ({
+        id: d.id,
+        label: d.name,
+        badge: d.group_count,
+      })),
+    [divisions],
+  );
+
+  const groupTypeOptions: SlicerOption[] = useMemo(
+    () =>
+      groupTypes.map((gt) => ({
+        id: gt.id,
+        label: gt.name,
+        badge: gt.group_count,
+      })),
+    [groupTypes],
+  );
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -90,41 +115,39 @@ export function GroupFormModal({
             />
           </label>
 
-          <label>
+          <div className="modal-field">
             Division
-            <select
-              value={divisionId}
-              onChange={(e) => setDivisionId(Number(e.target.value))}
-              required
-            >
-              <option value="" disabled>
-                Select division
-              </option>
-              {divisions.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          </label>
+            <div className="modal-slicer">
+              <Slicer
+                title="Division"
+                options={divisionOptions}
+                selectedValues={divisionId ? [divisionId] : []}
+                onChange={(selected) => setDivisionId(Number(selected[0] ?? 0))}
+                multiSelect={false}
+                requireApply={false}
+                placeholder="Select division"
+                searchPlaceholder="Search divisions..."
+              />
+            </div>
+          </div>
 
-          <label>
+          <div className="modal-field">
             Group Type
-            <select
-              value={groupTypeId}
-              onChange={(e) => setGroupTypeId(Number(e.target.value))}
-              required
-            >
-              <option value="" disabled>
-                Select group type
-              </option>
-              {groupTypes.map((gt) => (
-                <option key={gt.id} value={gt.id}>
-                  {gt.name}
-                </option>
-              ))}
-            </select>
-          </label>
+            <div className="modal-slicer">
+              <Slicer
+                title="Group Type"
+                options={groupTypeOptions}
+                selectedValues={groupTypeId ? [groupTypeId] : []}
+                onChange={(selected) =>
+                  setGroupTypeId(Number(selected[0] ?? 0))
+                }
+                multiSelect={false}
+                requireApply={false}
+                placeholder="Select group type"
+                searchPlaceholder="Search group types..."
+              />
+            </div>
+          </div>
 
           <div className="modal-actions">
             <button
