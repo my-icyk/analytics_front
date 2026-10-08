@@ -7,7 +7,7 @@ import {
 } from ".";
 
 type GroupDepartmentAllocationFormProps = {
-  allocation: DepartmentRepartition | null;
+  repartition: DepartmentRepartition | null;
   groupId: number;
   departments: Department[];
   error: string;
@@ -19,24 +19,24 @@ type GroupDepartmentAllocationFormProps = {
 };
 
 export function GroupDepartmentAllocationForm({
-  allocation,
+  repartition,
   groupId,
   departments,
   error,
   onClose,
   onSubmit,
 }: GroupDepartmentAllocationFormProps) {
-  const isEditing = allocation !== null;
+  const isEditing = repartition !== null;
 
   const [departmentId, setDepartmentId] = useState<number>(
-    allocation?.department_id ?? 0,
+    repartition?.department_id ?? 0,
   );
   const [validFrom, setValidFrom] = useState(
-    allocation?.valid_from?.slice(0, 10) ??
+    repartition?.valid_from?.slice(0, 10) ??
       new Date().toISOString().slice(0, 10),
   );
   const [validTo, setValidTo] = useState(
-    allocation?.valid_to?.slice(0, 10) ?? "",
+    repartition?.valid_to?.slice(0, 10) ?? "",
   );
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
@@ -53,7 +53,7 @@ export function GroupDepartmentAllocationForm({
   // missing from the list (e.g. inactive).
   const currentDepartmentMissing =
     isEditing &&
-    !sortedDepartments.some((d) => d.id === allocation.department_id);
+    !sortedDepartments.some((d) => d.id === repartition.department_id);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -110,9 +110,9 @@ export function GroupDepartmentAllocationForm({
               <option value={0} disabled>
                 Select department
               </option>
-              {currentDepartmentMissing && allocation && (
-                <option value={allocation.department_id}>
-                  {allocation.department_name}
+              {currentDepartmentMissing && repartition && (
+                <option value={repartition.department_id}>
+                  {repartition.department_name}
                 </option>
               )}
               {sortedDepartments.map((department) => (

@@ -131,7 +131,7 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
       )}
       {allocationModalOpen && (
         <GroupDepartmentAllocationForm
-          allocation={null}
+          repartition={null}
           groupId={group.id}
           departments={departments}
           error={modalError}
