@@ -87,7 +87,6 @@ export function useDeleteRepartition() {
     }: {
       groupId: number;
       repartitionId: number;
-      payload: DepartmentRepartitionUpdate;
     }) => revokeDepartmentRepartition(groupId, repartitionId),
 
     onSuccess: () =>

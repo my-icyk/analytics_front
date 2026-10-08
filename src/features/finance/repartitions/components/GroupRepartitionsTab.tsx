@@ -54,6 +54,7 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
     setModalError("");
     setAllocationModalOpen(true);
   };
+
   const handleCreate = async (
     groupId: number,
     payload: DepartmentRepartitionCreate,
@@ -86,6 +87,26 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
       throw err;
     }
   };
+
+  async function handleDelete(repartition: DepartmentRepartition) {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete department "${repartition.department_name}"?`,
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteRepartition.mutateAsync({
+        groupId: group.id,
+        repartitionId: repartition.id,
+      });
+    } catch (err) {
+      setModalError(
+        err instanceof Error
+          ? err.message
+          : "Failed to delete department allocation",
+      );
+    }
+  }
 
   const columns: Column<DepartmentRepartition>[] = [
     { key: "id", header: "ID", render: (g) => g.id, width: "60px" },
@@ -132,6 +153,7 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
             onEdit={
               canEdit ? () => handleOpenEditAllocation(repartition) : undefined
             }
+            onDelete={canDelete ? () => handleDelete(repartition) : undefined}
           />
         )}
       />
