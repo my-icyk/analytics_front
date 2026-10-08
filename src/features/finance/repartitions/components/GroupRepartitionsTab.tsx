@@ -3,6 +3,7 @@ import { useState } from "react";
 import { usePermissions } from "../../../../auth/AuthContext";
 import {
   DepartmentRepartitionCreate,
+  DepartmentRepartitionUpdate,
   useDepartments,
   useRepartitionByGroup,
   useCreateRepartition,
@@ -47,6 +48,24 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
     } catch (err) {
       setModalError(
         err instanceof Error ? err.message : "Failed to allocate department",
+      );
+      throw err;
+    }
+  };
+
+  const handleUpdate = async (
+    groupId: number,
+    repartitionId: number,
+    payload: DepartmentRepartitionUpdate,
+  ) => {
+    try {
+      await updateRepartition.mutateAsync({ groupId, repartitionId, payload });
+      setAllocationModalOpen(false);
+    } catch (err) {
+      setModalError(
+        err instanceof Error
+          ? err.message
+          : "Failed to update department allocation",
       );
       throw err;
     }
