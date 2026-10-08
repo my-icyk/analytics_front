@@ -1,10 +1,9 @@
-import { Edit3, ExternalLink, Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { usePermissions } from "../../../../auth/AuthContext";
 import {
   DepartmentRepartitionCreate,
   DepartmentRepartitionUpdate,
-  useDepartments,
   useRepartitionByGroup,
   useCreateRepartition,
   useUpdateRepartition,
@@ -27,7 +26,6 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
   const canEdit = can(PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.UPDATE);
   const canDelete = can(PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.DELETE);
 
-  const { data: departments = [] } = useDepartments();
   const {
     data: repartitions = [],
     isLoading,
@@ -162,7 +160,6 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
         <GroupDepartmentAllocationForm
           repartition={editingRepartition}
           groupId={group.id}
-          departments={departments}
           error={modalError}
           onClose={() => setAllocationModalOpen(false)}
           onCreate={handleCreate}

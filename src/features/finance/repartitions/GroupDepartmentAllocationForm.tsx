@@ -5,12 +5,13 @@ import {
   DepartmentRepartition,
   DepartmentRepartitionCreate,
   DepartmentRepartitionUpdate,
+  useDepartments,
 } from ".";
 
 type GroupDepartmentAllocationFormProps = {
   repartition: DepartmentRepartition | null;
   groupId: number;
-  departments: Department[];
+
   error: string;
   onClose: () => void;
   onCreate: (
@@ -27,13 +28,13 @@ type GroupDepartmentAllocationFormProps = {
 export function GroupDepartmentAllocationForm({
   repartition,
   groupId,
-  departments,
   error,
   onClose,
   onCreate,
   onUpdate,
 }: GroupDepartmentAllocationFormProps) {
   const isEditing = repartition !== null;
+  const { data: departments = [] } = useDepartments();
 
   const [departmentId, setDepartmentId] = useState<number>(
     repartition?.department_id ?? 0,
@@ -58,9 +59,6 @@ export function GroupDepartmentAllocationForm({
 
   // When editing, keep the current department selectable even if it is
   // missing from the list (e.g. inactive).
-  const currentDepartmentMissing =
-    isEditing &&
-    !sortedDepartments.some((d) => d.id === repartition.department_id);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -117,15 +115,13 @@ export function GroupDepartmentAllocationForm({
             Department
             <select
               value={departmentId}
-              disabled={isEditing || submitting}
-              autoFocus={!isEditing}
               onChange={(e) => setDepartmentId(Number(e.target.value))}
               required
             >
               <option value={0} disabled>
                 Select department
               </option>
-              {currentDepartmentMissing && repartition && (
+              {repartition && (
                 <option value={repartition.department_id}>
                   {repartition.department_name}
                 </option>
@@ -138,18 +134,6 @@ export function GroupDepartmentAllocationForm({
               ))}
             </select>
           </label>
-          {isEditing && (
-            <p
-              style={{
-                fontSize: "12px",
-                color: "var(--muted)",
-                margin: "4px 0 0",
-              }}
-            >
-              The department can't be changed. Remove this allocation and add a
-              new one instead.
-            </p>
-          )}
 
           <label>
             Start date
