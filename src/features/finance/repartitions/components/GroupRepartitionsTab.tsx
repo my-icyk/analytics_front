@@ -37,7 +37,7 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
     setAllocationModalOpen(true);
   };
 
-  const handleSaveAllocation = async (
+  const handleCreate = async (
     groupId: number,
     payload: DepartmentRepartitionCreate,
   ) => {
@@ -136,7 +136,7 @@ export function GroupDeparmentSection({ group }: GroupDeparmentSectionProps) {
           departments={departments}
           error={modalError}
           onClose={() => setAllocationModalOpen(false)}
-          onSubmit={handleSaveAllocation}
+          onSubmit={handleCreate}
         />
       )}
     </section>
