@@ -9,6 +9,7 @@ import {
   getGroups,
   getGroup,
   getGroupTypes,
+  lookupGroups,
   createGroup,
   updateGroup,
   removeGroup,
@@ -35,6 +36,14 @@ export function useGroup(groupId: number) {
     queryKey: groupKeys.detail(groupId),
     queryFn: () => getGroup(groupId),
     enabled: !!groupId,
+  });
+}
+
+export function useGroupLookup(search: string, limit = 20) {
+  return useQuery({
+    queryKey: groupKeys.lookup(search, limit),
+    queryFn: () => lookupGroups(search, limit),
+    placeholderData: keepPreviousData,
   });
 }
 
