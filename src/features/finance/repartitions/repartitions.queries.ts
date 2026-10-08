@@ -49,9 +49,9 @@ export function useCreateRepartition() {
       payload: DepartmentRepartitionCreate;
     }) => assignDepartmentRepartition(groupId, payload),
 
-    onSuccess: () =>
+    onSuccess: (_, { groupId }) =>
       queryClient.invalidateQueries({
-        queryKey: repartitionKeys.all,
+        queryKey: repartitionKeys.byGroup(groupId),
       }),
   });
 }
@@ -70,9 +70,9 @@ export function useUpdateRepartition() {
       payload: DepartmentRepartitionUpdate;
     }) => updateDepartmentRepartition(groupId, repartitionId, payload),
 
-    onSuccess: () =>
+    onSuccess: (_, { groupId }) =>
       queryClient.invalidateQueries({
-        queryKey: repartitionKeys.all,
+        queryKey: repartitionKeys.byGroup(groupId),
       }),
   });
 }
@@ -89,9 +89,9 @@ export function useDeleteRepartition() {
       repartitionId: number;
     }) => revokeDepartmentRepartition(groupId, repartitionId),
 
-    onSuccess: () =>
+    onSuccess: (_, { groupId }) =>
       queryClient.invalidateQueries({
-        queryKey: repartitionKeys.all,
+        queryKey: repartitionKeys.byGroup(groupId),
       }),
   });
 }
