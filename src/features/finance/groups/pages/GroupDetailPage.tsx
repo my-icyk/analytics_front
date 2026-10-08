@@ -7,7 +7,7 @@ import { GroupRulesSection } from "../../../../components/GroupRulesSection";
 import { GroupFormModal } from "../../../../components/finance/GroupFormModal";
 import { RuleFormModal } from "../../../../components/finance/RuleFormModal";
 import { GroupDepartmentAllocationForm } from "../../../../components/finance/GroupDepartmentAllocationForm";
-import { GroupDeparmentSection } from "../../../../components/GroupDeparmentSection";
+import { GroupDeparmentSection } from "../../repartitions/components/GroupRepartitionsTab";
 import { useDivisions } from "../../divisions";
 import { usePermissions } from "../../../../auth/AuthContext";
 import { Tabs, type TabItem } from "../../../../components/common/Tabs";
@@ -66,18 +66,13 @@ export function GroupDetailPage({
   const { can } = usePermissions();
   const { data: groupTypes = [] } = useGroupTypes();
   const { data: divisions = [] } = useDivisions();
-  const { data: departments = [] } = useDepartments();
-  const { data: repartitions = [] } = useRepartitionByGroup(group.id);
-  const createRepartition = useCreateRepartition();
-  const updateRepartition = useUpdateRepartition();
-  const deleteRepartition = useDeleteRepartition();
+
   const [tab, setTab] = useTabParam(
     GROUP_TABS.map((t) => t.key),
     "overview",
   );
   const [groupModalOpen, setGroupModalOpen] = useState(false);
   const [ruleModalOpen, setRuleModalOpen] = useState(false);
-  const [allocationModalOpen, setAllocationModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<Rule | null>(null);
   const [modalError, setModalError] = useState("");
 
@@ -137,26 +132,6 @@ export function GroupDetailPage({
       window.confirm(`Are you sure you want to delete rule "${rule.name}"?`)
     ) {
       void onDeleteRule(rule);
-    }
-  };
-
-  const handleOpenCreateAllocation = () => {
-    setModalError("");
-    setAllocationModalOpen(true);
-  };
-
-  const handleSaveAllocation = async (
-    groupId: number,
-    payload: DepartmentRepartitionCreate,
-  ) => {
-    try {
-      await createRepartition.mutateAsync({ groupId, payload });
-      setAllocationModalOpen(false);
-    } catch (err) {
-      setModalError(
-        err instanceof Error ? err.message : "Failed to allocate department",
-      );
-      throw err;
     }
   };
 
@@ -230,15 +205,7 @@ export function GroupDetailPage({
         />
       )}
 
-      {tab === "departments" && (
-        <GroupDeparmentSection
-          allocations={repartitions}
-          onCreate={handleOpenCreateAllocation}
-          onOpen={() => {}}
-          onEdit={() => {}}
-          onDelete={() => {}}
-        />
-      )}
+      {tab === "departments" && <GroupDeparmentSection group={group} />}
 
       {groupModalOpen && (
         <GroupFormModal
@@ -258,17 +225,6 @@ export function GroupDetailPage({
           error={modalError}
           onClose={() => setRuleModalOpen(false)}
           onSubmit={handleSaveRule}
-        />
-      )}
-
-      {allocationModalOpen && (
-        <GroupDepartmentAllocationForm
-          allocation={null}
-          groupId={group.id}
-          departments={departments}
-          error={modalError}
-          onClose={() => setAllocationModalOpen(false)}
-          onSubmit={handleSaveAllocation}
         />
       )}
     </section>
