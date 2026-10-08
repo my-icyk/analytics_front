@@ -10,7 +10,7 @@ import {
   useDeleteRepartition,
 } from "..";
 import { Group } from "../../groups";
-import { GroupDepartmentAllocationForm } from "../../../../components/finance/GroupDepartmentAllocationForm";
+import { GroupDepartmentAllocationForm } from "../GroupDepartmentAllocationForm";
 import { PERMISSIONS } from "../../../../constants/permissions";
 
 type GroupDeparmentSectionProps = {

@@ -6,7 +6,7 @@ import type { Group, GroupCreate } from "../groups.types";
 import { GroupRulesSection } from "../../../../components/GroupRulesSection";
 import { GroupFormModal } from "../../../../components/finance/GroupFormModal";
 import { RuleFormModal } from "../../../../components/finance/RuleFormModal";
-import { GroupDepartmentAllocationForm } from "../../../../components/finance/GroupDepartmentAllocationForm";
+import { GroupDepartmentAllocationForm } from "../../repartitions/GroupDepartmentAllocationForm";
 import { GroupDeparmentSection } from "../../repartitions/components/GroupRepartitionsTab";
 import { useDivisions } from "../../divisions";
 import { usePermissions } from "../../../../auth/AuthContext";

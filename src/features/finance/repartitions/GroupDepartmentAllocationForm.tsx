@@ -4,7 +4,7 @@ import {
   Department,
   DepartmentRepartition,
   DepartmentRepartitionCreate,
-} from "../../features/finance/repartitions";
+} from ".";
 
 type GroupDepartmentAllocationFormProps = {
   allocation: DepartmentRepartition | null;
