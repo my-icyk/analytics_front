@@ -1,5 +1,6 @@
 import { request } from "../../../api/client";
 import { FINANCE_API } from "../shared/endpoints";
+import type { LookupItem } from "../../shared/lookup";
 import type {
   GroupType,
   GroupTypeDetails,
@@ -50,6 +51,15 @@ export function getGroups(filters?: GroupFilterParams) {
 
 export function getGroup(groupId: number) {
   return request<Group>(`${GROUPS_ENDPOINT}/${groupId}`);
+}
+
+export function lookupGroups(search: string, limit = 20) {
+  const params = new URLSearchParams();
+  if (search.trim()) params.set("search", search.trim());
+  params.set("limit", String(limit));
+  return request<LookupItem[]>(
+    `${GROUPS_ENDPOINT}/lookup?${params.toString()}`,
+  );
 }
 
 export function createGroup(payload: GroupCreate) {
