@@ -18,6 +18,7 @@ import { useDivisions } from "../../divisions";
 import { usePermissions } from "../../../../auth/AuthContext";
 import { Tabs, type TabItem } from "../../../../components/common/Tabs";
 import { useTabParam } from "../../../../hooks/useTabParam";
+import { GroupSearchSelect } from "../components/GroupSearchSelect";
 
 const GROUP_TABS = [
   { key: "overview", label: "Overview" },
@@ -170,31 +171,7 @@ export function GroupDetailPage({
           <ArrowLeft size={16} /> Back to groups
         </button>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span
-            style={{ fontSize: "11px", color: "var(--muted)", fontWeight: 600 }}
-          >
-            Switch group:
-          </span>
-          <select
-            value={group.id}
-            onChange={(e) => onSelectGroup(Number(e.target.value))}
-            style={{
-              padding: "6px 10px",
-              borderRadius: "6px",
-              border: "1px solid var(--line)",
-              fontSize: "12px",
-              background: "var(--paper)",
-              color: "var(--ink)",
-            }}
-          >
-            {allGroups.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.name} ({g.division?.name ?? "No division"})
-              </option>
-            ))}
-          </select>
-        </div>
+        <GroupSearchSelect current={group} onSelect={onSelectGroup} />
       </div>
 
       <div className="detail-header">
