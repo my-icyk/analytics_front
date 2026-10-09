@@ -24,9 +24,12 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Edit3,
+  Plus,
   Trash2,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import {
   Pagination,
@@ -52,7 +55,6 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  SelectLabel,
 } from "@/components/ui/select";
 import { Field, FieldLabel } from "@/components/ui/field";
 import {
@@ -176,7 +178,12 @@ export function CounterExceptionsPage() {
     {
       accessorKey: "is_auto",
       header: "Auto",
-      cell: ({ getValue }) => (getValue<boolean>() ? "Yes" : "No"),
+      cell: ({ getValue }) =>
+        getValue<boolean>() ? (
+          <Badge>Yes</Badge>
+        ) : (
+          <Badge variant="outline">No</Badge>
+        ),
     },
     { accessorKey: "created_by", header: "Created By" },
     {
@@ -188,7 +195,7 @@ export function CounterExceptionsPage() {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-1">
+        <div>
           {canUpdate && (
             <Button
               variant="outline"
@@ -270,9 +277,9 @@ export function CounterExceptionsPage() {
                         <span>{option.label}</span>
 
                         {option.badge != null && (
-                          <span className="ml-auto text-xs text-muted-foreground">
+                          <Badge variant="outline" className="ml-auto">
                             {option.badge}
-                          </span>
+                          </Badge>
                         )}
                       </ComboboxItem>
                     )}
@@ -282,7 +289,10 @@ export function CounterExceptionsPage() {
             </div>
 
             {canCreate && (
-              <Button onClick={handleOpenCreate}>New exception</Button>
+              <Button onClick={handleOpenCreate}>
+                <Plus data-icon="inline-start" />
+                New exception
+              </Button>
             )}
           </div>
 
@@ -294,7 +304,14 @@ export function CounterExceptionsPage() {
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
+                      <TableHead
+                        key={header.id}
+                        className={
+                          header.column.id === "actions"
+                            ? "text-right"
+                            : undefined
+                        }
+                      >
                         {flexRender(
                           header.column.columnDef.header,
                           header.getContext(),
@@ -305,7 +322,26 @@ export function CounterExceptionsPage() {
                 ))}
               </TableHeader>
               <TableBody style={isFetching ? { opacity: 0.55 } : undefined}>
-                {!isLoading &&
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, rowIndex) => (
+                    <TableRow key={rowIndex}>
+                      {columns.map((_, colIndex) => (
+                        <TableCell key={colIndex}>
+                          <Skeleton className="h-4 w-full" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : exceptions.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center text-muted-foreground"
+                    >
+                      No counter exceptions found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id}>
                       {row.getVisibleCells().map((cell) => (
@@ -317,18 +353,15 @@ export function CounterExceptionsPage() {
                         </TableCell>
                       ))}
                     </TableRow>
-                  ))}
+                  ))
+                )}
               </TableBody>
             </Table>
-            {isLoading && <div className="empty-state">Loading…</div>}
-            {!isLoading && exceptions.length === 0 && (
-              <div className="empty-state">No counter exceptions found.</div>
-            )}
           </div>
         </CardContent>
 
-        <CardFooter className="justify-between">
-          <Field orientation="horizontal" className="w-fit">
+        <CardFooter className="flex-wrap justify-between gap-3">
+          <p className="text-xs text-muted-foreground">
             {total === 0 ? (
               "0 exceptions"
             ) : (
@@ -338,34 +371,35 @@ export function CounterExceptionsPage() {
                 <strong>{total}</strong> exceptions
               </>
             )}
-          </Field>
-          <Field orientation="horizontal" className="w-fit">
-            <FieldLabel>Page size</FieldLabel>
-            <Select
-              value={String(pageSize)}
-              onValueChange={(value) =>
-                setPagination({
-                  pageIndex: 0,
-                  pageSize: Number(value),
-                })
-              }
-              disabled={isFetching}
-            >
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue placeholder="Page size" />
-              </SelectTrigger>
+          </p>
+          <div className="flex items-center gap-3">
+            <Field orientation="horizontal" className="w-fit">
+              <FieldLabel className="text-xs">Page size</FieldLabel>
+              <Select
+                value={String(pageSize)}
+                onValueChange={(value) =>
+                  setPagination({
+                    pageIndex: 0,
+                    pageSize: Number(value),
+                  })
+                }
+                disabled={isFetching}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Page size" />
+                </SelectTrigger>
 
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Page size</SelectLabel>
-                  {pageSizeOptions.map((size) => (
-                    <SelectItem key={size} value={String(size)}>
-                      {size}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+                <SelectContent>
+                  <SelectGroup>
+                    {pageSizeOptions.map((size) => (
+                      <SelectItem key={size} value={String(size)}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Field>
             <Pagination className="mx-0 w-auto justify-end">
               <PaginationContent>
                 <PaginationItem>
@@ -423,7 +457,7 @@ export function CounterExceptionsPage() {
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
-          </Field>
+          </div>
         </CardFooter>
       </Card>
 
