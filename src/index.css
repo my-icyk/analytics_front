@@ -202,8 +202,48 @@ button { cursor: pointer; }
 .pagination-info { display: flex; align-items: center; gap: 6px; font-weight: 500; }
 .pagination-info strong { color: var(--ink); font-weight: 700; }
 .pagination-controls { display: flex; align-items: center; gap: 8px; }
-.pagination-size { display: flex; align-items: center; gap: 6px; }
-.pagination-size select { padding: 4px 8px; border: 1px solid var(--line); border-radius: 5px; background: white; color: var(--ink); font-size: 11px; font-weight: 600; cursor: pointer; }
+
+/* 1. opt in to the customizable select */
+.pagination-size select,
+.pagination-size select::picker(select) {
+  appearance: base-select;
+}
+
+/* 2. the closed select: keep your look */
+.pagination-size select {
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: white;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 3. the popup that holds the options */
+.pagination-size select::picker(select) {
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow: 0 12px 32px rgba(34, 49, 38, 0.14);
+}
+
+/* 4. each option */
+.pagination-size option {
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.pagination-size option:hover   { background: #f0f3ea; }
+.pagination-size option:checked { background: #dcebd1; color: #234e3a; }
+
+/* 5. little arrow that flips when open */
+.pagination-size select::picker-icon { transition: rotate 0.15s; }
+.pagination-size select:open::picker-icon { rotate: 180deg; }
+
 .pagination-buttons { display: flex; align-items: center; gap: 4px; }
 .pagination-btn { display: inline-grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--line); border-radius: 5px; background: white; color: var(--ink); cursor: pointer; transition: all .12s ease; }
 .pagination-btn:hover:not(:disabled) { background: #f0f4ec; border-color: #b7d1a5; color: var(--green); }
@@ -312,3 +352,4 @@ button { cursor: pointer; }
   display: block;
   margin-top: 8px;
 }
+
