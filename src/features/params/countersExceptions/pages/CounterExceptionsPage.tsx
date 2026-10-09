@@ -10,30 +10,78 @@ import {
   CounterExceptionCreate,
 } from "../countersExceptions.types";
 import { ExceptionFormModal } from "../components/ExceptionFormModal";
-import { Column, DataTable } from "../../../../components/DataTable";
 import { useMemo, useState } from "react";
-import { Pagination } from "../../../../components/Pagination";
-import { Slicer, SlicerOption } from "../../../../components/common/Slicer";
+import {
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  type ColumnDef,
+  type PaginationState,
+} from "@tanstack/react-table";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Edit3,
+  Trash2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/pagination";
 import { formatDateTime } from "../../../../utils/utils";
-import { TableActions } from "../../../../components/TableActions";
 import { usePermissions } from "../../../../auth/AuthContext";
 import { PERMISSIONS } from "../../../../constants/permissions";
-import { CreateButton } from "../../../../components/CreateButton";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Table,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableCell,
+  TableBody,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectLabel,
+} from "@/components/ui/select";
+import { Field, FieldLabel } from "@/components/ui/field";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
 
 export function CounterExceptionsPage() {
   const { can } = usePermissions();
   const canCreate = can(PERMISSIONS.PARAMS.COUNTER_EXCEPTION.CREATE);
   const canUpdate = can(PERMISSIONS.PARAMS.COUNTER_EXCEPTION.UPDATE);
   const canDelete = can(PERMISSIONS.PARAMS.COUNTER_EXCEPTION.DELETE);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   const [selectedCounterIds, setSelectedCounterIds] = useState<
     (string | number)[]
   >([]);
+
   const { data: countersData } = useCounters();
   const createException = useCreateException();
   const updateException = useUpdateException();
   const deleteException = useDeleteException();
+  const pageSizeOptions = [10, 20, 50, 100];
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingException, setEditingException] =
@@ -44,23 +92,18 @@ export function CounterExceptionsPage() {
   const counterId =
     selectedCounterIds.length > 0 ? Number(selectedCounterIds[0]) : undefined;
 
-  const { data, isLoading, isFetching, error } = useExceptions({
+  const { data, isLoading, isFetching } = useExceptions({
     counterId,
-    page,
+    page: pageIndex + 1,
     pageSize,
   });
 
   const exceptions = data?.items ?? [];
   const total = data?.total ?? 0;
 
-  function handlePageSizeChange(size: number) {
-    setPageSize(size);
-    setPage(1);
-  }
-
   function handleCounterChange(selected: (string | number)[]) {
     setSelectedCounterIds(selected);
-    setPage(1);
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }
 
   function handleOpenCreate() {
@@ -102,8 +145,8 @@ export function CounterExceptionsPage() {
     setActionError("");
     try {
       await deleteException.mutateAsync(exception.id);
-      if (exceptions.length === 1 && page > 1) {
-        setPage(page - 1);
+      if (exceptions.length === 1 && pageIndex > 0) {
+        setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex - 1 }));
       }
     } catch (err) {
       setActionError(
@@ -112,7 +155,9 @@ export function CounterExceptionsPage() {
     }
   }
 
-  const counterOptions: SlicerOption[] = useMemo(
+  type CounterOption = { id: string | number; label: string; badge?: number };
+
+  const counterOptions: CounterOption[] = useMemo(
     () =>
       (countersData ?? []).map((counter) => ({
         id: counter.id,
@@ -122,86 +167,265 @@ export function CounterExceptionsPage() {
     [countersData],
   );
 
-  const columns: Column<CounterException>[] = [
-    { key: "id", header: "ID", render: (u) => u.id },
-    { key: "counter_id", header: "Counter ID", render: (u) => u.counter_id },
-    { key: "valid_from", header: "Valid From", render: (u) => u.valid_from },
-    { key: "valid_to", header: "Valid To", render: (u) => u.valid_to },
-    { key: "visitors", header: "Visitors", render: (u) => u.visitors },
+  const columns: ColumnDef<CounterException>[] = [
+    { accessorKey: "id", header: "ID" },
+    { accessorKey: "counter_id", header: "Counter ID" },
+    { accessorKey: "valid_from", header: "Valid From" },
+    { accessorKey: "valid_to", header: "Valid To" },
+    { accessorKey: "visitors", header: "Visitors" },
     {
-      key: "is_auto",
+      accessorKey: "is_auto",
       header: "Auto",
-      render: (u) => (u.is_auto ? "Yes" : "No"),
+      cell: ({ getValue }) => (getValue<boolean>() ? "Yes" : "No"),
     },
+    { accessorKey: "created_by", header: "Created By" },
     {
-      key: "created_by",
-      header: "Created By",
-      render: (u) => u.created_by,
-    },
-    {
-      key: "updated_at",
+      accessorKey: "updated_at",
       header: "Updated At",
-      render: (u) => formatDateTime(u.updated_at),
+      cell: ({ getValue }) => formatDateTime(getValue<string>()),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-1">
+          {canUpdate && (
+            <Button
+              variant="outline"
+              size="icon-sm"
+              title={`Edit exception ${row.original.id}`}
+              aria-label={`Edit exception ${row.original.id}`}
+              onClick={() => handleOpenEdit(row.original)}
+            >
+              <Edit3 />
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              variant="destructive"
+              size="icon-sm"
+              title={`Delete exception ${row.original.id}`}
+              aria-label={`Delete exception ${row.original.id}`}
+              onClick={() => void handleDelete(row.original)}
+              disabled={deleteException.isPending}
+            >
+              <Trash2 />
+            </Button>
+          )}
+        </div>
+      ),
     },
   ];
 
+  const table = useReactTable({
+    data: exceptions,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getRowId: (row) => String(row.id),
+    manualPagination: true,
+    pageCount: Math.max(1, Math.ceil(total / pageSize)),
+    state: { pagination: { pageIndex, pageSize } },
+    onPaginationChange: setPagination,
+  });
+
+  const totalPages = table.getPageCount();
+  const currentPage = pageIndex + 1;
+  const offset = pageIndex * pageSize;
+
   return (
-    <section className="management-panel">
+    <section>
       <div className="section-heading">
         <div>
           <h2>Counter Exceptions</h2>
           <p>Validity windows for counters.</p>
         </div>
-        {canCreate && (
-          <CreateButton onClick={handleOpenCreate}>New exception</CreateButton>
-        )}
       </div>
 
-      <div className="slicers-bar">
-        <div className="slicers-group">
-          <Slicer
-            title="Counter"
-            options={counterOptions}
-            selectedValues={selectedCounterIds}
-            onChange={handleCounterChange}
-            multiSelect={false}
-            placeholder="All counters"
-            searchPlaceholder="Filter counters..."
-          />
-        </div>
-      </div>
+      <Card>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Combobox
+                items={counterOptions}
+                itemToStringValue={(option) => option.label}
+                value={counterOptions.find(
+                  (option) => String(option.id) === String(counterId),
+                )}
+                onValueChange={(option) => {
+                  if (!option) {
+                    handleCounterChange([]);
+                  } else {
+                    handleCounterChange([option.id]);
+                  }
+                }}
+              >
+                <ComboboxInput placeholder="All counters" showClear />
 
-      <DataTable
-        columns={columns}
-        data={exceptions}
-        rowKey={(u) => u.id}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        error={actionError}
-        emptyText="No counter exceptions found."
-        renderActions={(exception) => (
-          <TableActions
-            onEdit={canUpdate ? () => handleOpenEdit(exception) : undefined}
-            onDelete={
-              canDelete ? () => void handleDelete(exception) : undefined
-            }
-            editLabel={`Edit exception ${exception.id}`}
-            deleteLabel={`Delete exception ${exception.id}`}
-            disabled={deleteException.isPending}
-          />
-        )}
-        footer={
-          <Pagination
-            total={total}
-            page={page}
-            pageSize={pageSize}
-            onPageChange={setPage}
-            onPageSizeChange={handlePageSizeChange}
-            loading={isFetching}
-            entityLabel="exceptions"
-          />
-        }
-      />
+                <ComboboxContent>
+                  <ComboboxEmpty>No counter found.</ComboboxEmpty>
+
+                  <ComboboxList>
+                    {(option) => (
+                      <ComboboxItem key={option.id} value={option}>
+                        <span>{option.label}</span>
+
+                        {option.badge != null && (
+                          <span className="ml-auto text-xs text-muted-foreground">
+                            {option.badge}
+                          </span>
+                        )}
+                      </ComboboxItem>
+                    )}
+                  </ComboboxList>
+                </ComboboxContent>
+              </Combobox>
+            </div>
+
+            {canCreate && (
+              <Button onClick={handleOpenCreate}>New exception</Button>
+            )}
+          </div>
+
+          <div>
+            {actionError && <p className="auth-error">{actionError}</p>}
+
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody style={isFetching ? { opacity: 0.55 } : undefined}>
+                {!isLoading &&
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+            {isLoading && <div className="empty-state">Loading…</div>}
+            {!isLoading && exceptions.length === 0 && (
+              <div className="empty-state">No counter exceptions found.</div>
+            )}
+          </div>
+        </CardContent>
+
+        <CardFooter className="justify-between">
+          <Field orientation="horizontal" className="w-fit">
+            {total === 0 ? (
+              "0 exceptions"
+            ) : (
+              <>
+                Showing <strong>{offset + 1}</strong>–
+                <strong>{Math.min(offset + pageSize, total)}</strong> of{" "}
+                <strong>{total}</strong> exceptions
+              </>
+            )}
+          </Field>
+          <Field orientation="horizontal" className="w-fit">
+            <FieldLabel>Page size</FieldLabel>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) =>
+                setPagination({
+                  pageIndex: 0,
+                  pageSize: Number(value),
+                })
+              }
+              disabled={isFetching}
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="Page size" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Page size</SelectLabel>
+                  {pageSizeOptions.map((size) => (
+                    <SelectItem key={size} value={String(size)}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <Pagination className="mx-0 w-auto justify-end">
+              <PaginationContent>
+                <PaginationItem>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    title="First page"
+                    aria-label="First page"
+                    disabled={!table.getCanPreviousPage() || isFetching}
+                    onClick={() => table.firstPage()}
+                  >
+                    <ChevronsLeft />
+                  </Button>
+                </PaginationItem>
+                <PaginationItem>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    title="Previous page"
+                    aria-label="Previous page"
+                    disabled={!table.getCanPreviousPage() || isFetching}
+                    onClick={() => table.previousPage()}
+                  >
+                    <ChevronLeft />
+                  </Button>
+                </PaginationItem>
+                <PaginationItem>
+                  <span className="px-2 text-xs font-semibold">
+                    {currentPage} / {totalPages}
+                  </span>
+                </PaginationItem>
+                <PaginationItem>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    title="Next page"
+                    aria-label="Next page"
+                    disabled={!table.getCanNextPage() || isFetching}
+                    onClick={() => table.nextPage()}
+                  >
+                    <ChevronRight />
+                  </Button>
+                </PaginationItem>
+                <PaginationItem>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    title="Last page"
+                    aria-label="Last page"
+                    disabled={!table.getCanNextPage() || isFetching}
+                    onClick={() => table.lastPage()}
+                  >
+                    <ChevronsRight />
+                  </Button>
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </Field>
+        </CardFooter>
+      </Card>
 
       {modalOpen && (
         <ExceptionFormModal
