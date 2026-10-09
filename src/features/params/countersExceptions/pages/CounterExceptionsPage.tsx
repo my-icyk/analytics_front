@@ -10,26 +10,34 @@ import {
   CounterExceptionCreate,
 } from "../countersExceptions.types";
 import { ExceptionFormModal } from "../components/ExceptionFormModal";
-import { Column, DataTable } from "../../../../components/DataTable";
 import { useMemo, useState } from "react";
-import { Pagination } from "../../../../components/Pagination";
-import { Slicer, SlicerOption } from "../../../../components/common/Slicer";
+import {
+  Alert,
+  App as AntdApp,
+  Button,
+  Card,
+  Flex,
+  Select,
+  Space,
+  Table,
+  Tag,
+  Typography,
+} from "antd";
+import type { TableProps } from "antd";
+import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { formatDateTime } from "../../../../utils/utils";
-import { TableActions } from "../../../../components/TableActions";
 import { usePermissions } from "../../../../auth/AuthContext";
 import { PERMISSIONS } from "../../../../constants/permissions";
-import { CreateButton } from "../../../../components/CreateButton";
 
 export function CounterExceptionsPage() {
   const { can } = usePermissions();
   const canCreate = can(PERMISSIONS.PARAMS.COUNTER_EXCEPTION.CREATE);
   const canUpdate = can(PERMISSIONS.PARAMS.COUNTER_EXCEPTION.UPDATE);
   const canDelete = can(PERMISSIONS.PARAMS.COUNTER_EXCEPTION.DELETE);
+  const { modal } = AntdApp.useApp();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [selectedCounterIds, setSelectedCounterIds] = useState<
-    (string | number)[]
-  >([]);
+  const [counterId, setCounterId] = useState<number | undefined>(undefined);
   const { data: countersData } = useCounters();
   const createException = useCreateException();
   const updateException = useUpdateException();
@@ -41,10 +49,7 @@ export function CounterExceptionsPage() {
   const [modalError, setModalError] = useState("");
   const [actionError, setActionError] = useState("");
 
-  const counterId =
-    selectedCounterIds.length > 0 ? Number(selectedCounterIds[0]) : undefined;
-
-  const { data, isLoading, isFetching, error } = useExceptions({
+  const { data, isFetching } = useExceptions({
     counterId,
     page,
     pageSize,
@@ -53,13 +58,8 @@ export function CounterExceptionsPage() {
   const exceptions = data?.items ?? [];
   const total = data?.total ?? 0;
 
-  function handlePageSizeChange(size: number) {
-    setPageSize(size);
-    setPage(1);
-  }
-
-  function handleCounterChange(selected: (string | number)[]) {
-    setSelectedCounterIds(selected);
+  function handleCounterChange(value?: number) {
+    setCounterId(value);
     setPage(1);
   }
 
@@ -94,54 +94,85 @@ export function CounterExceptionsPage() {
     }
   }
 
-  async function handleDelete(exception: CounterException) {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete exception #${exception.id} for counter ${exception.counter_id}?`,
-    );
-    if (!confirmed) return;
-    setActionError("");
-    try {
-      await deleteException.mutateAsync(exception.id);
-      if (exceptions.length === 1 && page > 1) {
-        setPage(page - 1);
-      }
-    } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Failed to delete exception",
-      );
-    }
+  function handleDelete(exception: CounterException) {
+    modal.confirm({
+      title: "Delete exception",
+      content: `Are you sure you want to delete exception #${exception.id} for counter ${exception.counter_id}?`,
+      okText: "Delete",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        setActionError("");
+        try {
+          await deleteException.mutateAsync(exception.id);
+          if (exceptions.length === 1 && page > 1) {
+            setPage(page - 1);
+          }
+        } catch (err) {
+          setActionError(
+            err instanceof Error ? err.message : "Failed to delete exception",
+          );
+          throw err;
+        }
+      },
+    });
   }
 
-  const counterOptions: SlicerOption[] = useMemo(
+  const counterOptions = useMemo(
     () =>
       (countersData ?? []).map((counter) => ({
-        id: counter.id,
+        value: counter.id,
         label: `Counter ${counter.id}`,
-        badge: counter.exception_count,
+        count: counter.exception_count,
       })),
     [countersData],
   );
 
-  const columns: Column<CounterException>[] = [
-    { key: "id", header: "ID", render: (u) => u.id },
-    { key: "counter_id", header: "Counter ID", render: (u) => u.counter_id },
-    { key: "valid_from", header: "Valid From", render: (u) => u.valid_from },
-    { key: "valid_to", header: "Valid To", render: (u) => u.valid_to },
-    { key: "visitors", header: "Visitors", render: (u) => u.visitors },
+  const columns: TableProps<CounterException>["columns"] = [
+    { title: "ID", dataIndex: "id", width: 70 },
+    { title: "Counter ID", dataIndex: "counter_id", width: 110 },
+    { title: "Valid From", dataIndex: "valid_from" },
+    { title: "Valid To", dataIndex: "valid_to" },
+    { title: "Visitors", dataIndex: "visitors", align: "right" },
     {
-      key: "is_auto",
-      header: "Auto",
-      render: (u) => (u.is_auto ? "Yes" : "No"),
+      title: "Auto",
+      dataIndex: "is_auto",
+      render: (isAuto: boolean) =>
+        isAuto ? <Tag color="success">Yes</Tag> : <Tag>No</Tag>,
+    },
+    { title: "Created By", dataIndex: "created_by" },
+    {
+      title: "Updated At",
+      dataIndex: "updated_at",
+      render: (value: string) => formatDateTime(value),
     },
     {
-      key: "created_by",
-      header: "Created By",
-      render: (u) => u.created_by,
-    },
-    {
-      key: "updated_at",
-      header: "Updated At",
-      render: (u) => formatDateTime(u.updated_at),
+      title: "Actions",
+      key: "actions",
+      align: "right",
+      width: 110,
+      render: (_, exception) => (
+        <Space size={4}>
+          {canUpdate && (
+            <Button
+              size="small"
+              icon={<EditOutlined />}
+              title={`Edit exception ${exception.id}`}
+              aria-label={`Edit exception ${exception.id}`}
+              onClick={() => handleOpenEdit(exception)}
+            />
+          )}
+          {canDelete && (
+            <Button
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              title={`Delete exception ${exception.id}`}
+              aria-label={`Delete exception ${exception.id}`}
+              onClick={() => handleDelete(exception)}
+            />
+          )}
+        </Space>
+      ),
     },
   ];
 
@@ -149,59 +180,86 @@ export function CounterExceptionsPage() {
     <section className="management-panel">
       <div className="section-heading">
         <div>
-          <h2>Counter Exceptions</h2>
-          <p>Validity windows for counters.</p>
+          <Typography.Title level={3} style={{ margin: 0 }}>
+            Counter Exceptions
+          </Typography.Title>
+          <Typography.Text type="secondary">
+            Validity windows for counters.
+          </Typography.Text>
         </div>
-        {canCreate && (
-          <CreateButton onClick={handleOpenCreate}>New exception</CreateButton>
-        )}
       </div>
 
-      <div className="slicers-bar">
-        <div className="slicers-group">
-          <Slicer
-            title="Counter"
-            options={counterOptions}
-            selectedValues={selectedCounterIds}
-            onChange={handleCounterChange}
-            multiSelect={false}
+      <Card>
+        <Flex
+          justify="space-between"
+          align="center"
+          wrap
+          gap={12}
+          style={{ marginBottom: 16 }}
+        >
+          <Select<number>
+            allowClear
+            showSearch
             placeholder="All counters"
-            searchPlaceholder="Filter counters..."
+            style={{ minWidth: 220 }}
+            value={counterId}
+            options={counterOptions}
+            optionFilterProp="label"
+            onChange={handleCounterChange}
+            optionRender={(option) => (
+              <Flex justify="space-between" align="center" gap={8}>
+                <span>{option.label}</span>
+                <Tag style={{ marginInlineEnd: 0 }}>{option.data.count}</Tag>
+              </Flex>
+            )}
           />
-        </div>
-      </div>
+          {canCreate && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleOpenCreate}
+            >
+              New exception
+            </Button>
+          )}
+        </Flex>
 
-      <DataTable
-        columns={columns}
-        data={exceptions}
-        rowKey={(u) => u.id}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        error={actionError}
-        emptyText="No counter exceptions found."
-        renderActions={(exception) => (
-          <TableActions
-            onEdit={canUpdate ? () => handleOpenEdit(exception) : undefined}
-            onDelete={
-              canDelete ? () => void handleDelete(exception) : undefined
-            }
-            editLabel={`Edit exception ${exception.id}`}
-            deleteLabel={`Delete exception ${exception.id}`}
-            disabled={deleteException.isPending}
+        {actionError && (
+          <Alert
+            type="error"
+            showIcon
+            message={actionError}
+            style={{ marginBottom: 16 }}
           />
         )}
-        footer={
-          <Pagination
-            total={total}
-            page={page}
-            pageSize={pageSize}
-            onPageChange={setPage}
-            onPageSizeChange={handlePageSizeChange}
-            loading={isFetching}
-            entityLabel="exceptions"
-          />
-        }
-      />
+
+        <Table<CounterException>
+          rowKey="id"
+          size="small"
+          columns={columns}
+          dataSource={exceptions}
+          loading={isFetching}
+          locale={{ emptyText: "No counter exceptions found." }}
+          pagination={{
+            current: page,
+            pageSize,
+            total,
+            showSizeChanger: true,
+            pageSizeOptions: [10, 20, 50, 100],
+            showTotal: (t, range) =>
+              `${range[0]}–${range[1]} of ${t} exceptions`,
+          }}
+          onChange={(pagination) => {
+            const nextSize = pagination.pageSize ?? pageSize;
+            if (nextSize !== pageSize) {
+              setPageSize(nextSize);
+              setPage(1);
+            } else {
+              setPage(pagination.current ?? 1);
+            }
+          }}
+        />
+      </Card>
 
       {modalOpen && (
         <ExceptionFormModal
