@@ -1,6 +1,4 @@
-import { PageContainer, ProTable } from "@ant-design/pro-components";
-import type { ProColumns } from "@ant-design/pro-components";
-import { useParams } from "@umijs/max";
+import { PageContainer } from "@ant-design/pro-components";
 import { Button, List, Popconfirm, Modal, Select, message } from "antd";
 import { useEffect, useState } from "react";
 import {
