@@ -1,8 +1,8 @@
 /** Generic shapes shared by every list endpoint. */
 
 export type PageParams = {
-  current: number;
-  pageSize: number;
+  page?: number;
+  limit?: number;
 };
 
 export type PageResult<T> = {

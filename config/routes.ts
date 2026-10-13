@@ -32,6 +32,11 @@ export default [
         access: PERMISSIONS.AUTH.USERS.READ,
       },
       {
+        path: "/users/:id",
+        component: "./Users/Detail",
+        access: PERMISSIONS.AUTH.USERS.READ,
+      },
+      {
         path: "/roles",
         name: "Roles",
         icon: "team",
