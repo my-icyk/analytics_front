@@ -25,3 +25,26 @@ export function deleteRole(id: number) {
     method: "DELETE",
   });
 }
+
+export function getPermissions() {
+  return request("/api/v1/permissions");
+}
+
+export function getRolePermissions(role_id: number) {
+  return request(`/api/v1/roles/${role_id}/permissions`);
+}
+
+export function addRolePermission(role_id: number, permission_id: number) {
+  return request(
+    `/api/v1/roles/${role_id}/permissions?permission_id=${permission_id}`,
+    {
+      method: "POST",
+    },
+  );
+}
+
+export function removeRolePermission(role_id: number, permission_id: number) {
+  return request(`/api/v1/roles/${role_id}/permissions/${permission_id}`, {
+    method: "DELETE",
+  });
+}

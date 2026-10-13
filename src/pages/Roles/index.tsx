@@ -10,14 +10,18 @@ import { useAccess } from "@umijs/max";
 import { Button, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import RoleFormModal from "./RoleFormModal";
+import { useNavigate } from "@@/exports";
 
 export default function RolesPage() {
+  const navigate = useNavigate();
+
+  const handleView = (record: Role) => {
+    navigate(`/roles/${record.id}`);
+  };
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
   const access = useAccess();
-
-  const canDeleteRole = access["finance:role:delete"];
 
   const actionRef = useRef<ActionType>();
   const handleEdit = (role: Role) => {
@@ -37,13 +41,14 @@ export default function RolesPage() {
   };
 
   const columns = useMemo(
-    () => getColumns(handleDelete, handleEdit),
-    [canDeleteRole],
+    () => getColumns(handleDelete, handleEdit, handleView, access),
+    [access],
   );
   return (
     <PageContainer>
       <ProTable<Role>
         actionRef={actionRef}
+
         rowKey="id"
         columns={columns}
         form={{ syncToUrl: true }}
