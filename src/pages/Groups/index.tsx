@@ -56,12 +56,12 @@ export default function GroupsPage() {
           pageSize = DEFAULT_PAGE_SIZE,
           group_type_ids,
         }) => {
-          const { list, total } = await fetchGroups({
+          const { data, total, success } = await fetchGroups({
             page: current,
             limit: pageSize,
             group_type_ids,
           });
-          return { data: list, total, success: true };
+          return { data, total, success };
         }}
         toolBarRender={() => [
           <Button

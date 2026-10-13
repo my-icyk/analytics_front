@@ -72,12 +72,12 @@ type Values<T> = T extends string
   ? T
   : { [K in keyof T]: Values<T[K]> }[keyof T];
 
-export type Permission = Values<typeof PERMISSIONS>;
+export type PermissionName = Values<typeof PERMISSIONS>;
 
-export function getPermissionValues(obj: object): Permission[] {
+export function getPermissionValues(obj: object): PermissionName[] {
   return Object.values(obj).flatMap((value) =>
-    typeof value === 'string'
-      ? [value as Permission]
+    typeof value === "string"
+      ? [value as PermissionName]
       : getPermissionValues(value),
   );
 }

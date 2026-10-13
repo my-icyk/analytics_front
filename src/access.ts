@@ -1,5 +1,9 @@
-import type { InitialState } from '@/runtime/initialState';
-import { Permission, PERMISSIONS , getPermissionValues } from '../config/permissions';
+import type { InitialState } from "@/runtime/initialState";
+import {
+  PermissionName,
+  PERMISSIONS,
+  getPermissionValues,
+} from "../config/permissions";
 
 /**
 TODO: de verificat daca modalitatea data este ok
@@ -10,11 +14,9 @@ export default function access(initialState?: InitialState) {
   const currentUser = initialState?.currentUser;
   const isAdmin = currentUser?.is_admin === true;
 
-  const userPermissions = new Set<string>(
-    currentUser?.permissions ?? [],
-  );
+  const userPermissions = new Set<string>(currentUser?.permissions ?? []);
 
-  const allPermissions: Permission[] = ALL_PERMISSIONS;
+  const allPermissions: PermissionName[] = ALL_PERMISSIONS;
 
   return Object.fromEntries(
     allPermissions.map((permission) => [

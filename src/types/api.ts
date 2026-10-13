@@ -6,7 +6,7 @@ export type PageParams = {
 };
 
 export type PageResult<T> = {
-  list: T[];
+  data: T[];
   total: number;
   success: boolean;
 };
