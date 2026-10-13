@@ -1,0 +1,7 @@
+{
+  "extends": "./src/.umi/tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true
+  },
+  "include": ["src", "config", "mock", "typings.d.ts"]
+}
