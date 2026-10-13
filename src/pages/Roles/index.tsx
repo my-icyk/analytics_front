@@ -9,17 +9,21 @@ import { getColumns } from "./columns";
 import { useAccess } from "@umijs/max";
 import { Button, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import CreateRoleModal from "./CreateRoleMoldal";
+import RoleFormModal from "./RoleFormModal";
 
 export default function RolesPage() {
-  const [createOpen, setCreateOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
   const access = useAccess();
 
   const canDeleteRole = access["finance:role:delete"];
 
   const actionRef = useRef<ActionType>();
-
+  const handleEdit = (role: Role) => {
+    setSelectedRole(role);
+    setModalOpen(true);
+  };
   const handleDelete = async (id: number) => {
     try {
       await deleteRole(id); // Your API function
@@ -32,7 +36,10 @@ export default function RolesPage() {
     }
   };
 
-  const columns = useMemo(() => getColumns(handleDelete), [canDeleteRole]);
+  const columns = useMemo(
+    () => getColumns(handleDelete, handleEdit),
+    [canDeleteRole],
+  );
   return (
     <PageContainer>
       <ProTable<Role>
@@ -68,17 +75,21 @@ export default function RolesPage() {
             key="create"
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => setCreateOpen(true)}
+            onClick={() => {
+              setSelectedRole(null);
+              setModalOpen(true);
+            }}
           >
             Create Role
           </Button>,
         ]}
       />
-      <CreateRoleModal
-        open={createOpen}
-        onCancel={() => setCreateOpen(false)}
+      <RoleFormModal
+        open={modalOpen}
+        role={selectedRole} // Pass the selected role for editing, null for creating a new role
+        onCancel={() => setModalOpen(false)}
         onSuccess={() => {
-          setCreateOpen(false);
+          setModalOpen(false);
           actionRef.current?.reload();
         }}
       />

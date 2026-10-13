@@ -1,37 +1,49 @@
-import { Form, Input, Modal, Select } from "antd";
+import { Form, Input, Modal } from "antd";
 import { useEffect } from "react";
 
-import type { RoleCreate } from "@/types/auth";
-import { createRole } from "@/services/roles";
+import type { Role, RoleCreate } from "@/types/auth";
+import { createRole, updateRole } from "@/services/roles";
 
 type Props = {
   open: boolean;
+  role?: Role | null; // set = edit, empty = create
   onCancel: () => void;
   onSuccess: () => void;
 };
 
-export default function CreateRoleModal({ open, onCancel, onSuccess }: Props) {
+export default function RoleFormModal({
+  open,
+  role,
+  onCancel,
+  onSuccess,
+}: Props) {
   const [form] = Form.useForm<RoleCreate>();
+  const isEdit = !!role;
 
   useEffect(() => {
     if (open) {
       form.resetFields();
+      if (role) form.setFieldsValue(role); // prefill on edit
     }
-  }, [open, form]);
+  }, [open, role, form]);
 
   const handleSubmit = async () => {
     const values = await form.validateFields();
-    await createRole(values);
+    if (role) {
+      await updateRole(role.id, values);
+    } else {
+      await createRole(values);
+    }
     onSuccess();
   };
 
   return (
     <Modal
-      title="Create Role"
+      title={isEdit ? "Edit Role" : "Create Role"}
       open={open}
       onCancel={onCancel}
       onOk={handleSubmit}
-      okText="Create"
+      okText={isEdit ? "Save" : "Create"}
       destroyOnHidden
     >
       <Form form={form} layout="vertical">
@@ -42,12 +54,7 @@ export default function CreateRoleModal({ open, onCancel, onSuccess }: Props) {
         >
           <Input />
         </Form.Item>
-
-        <Form.Item
-          name="description"
-          label="Role Description"
-          rules={[{ required: false, message: "Enter a role description" }]}
-        >
+        <Form.Item name="description" label="Role Description">
           <Input />
         </Form.Item>
       </Form>

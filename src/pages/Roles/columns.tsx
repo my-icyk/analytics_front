@@ -5,6 +5,7 @@ import { Popconfirm, Tag, Button } from "antd";
 
 export const getColumns = (
   handleDelete: (id: number) => void,
+  handleEdit: (role: Role) => void,
 ): ProColumns<Role>[] => [
   { title: "ID", dataIndex: "id", search: false },
   { title: "Name", dataIndex: "name" },
@@ -31,6 +32,9 @@ export const getColumns = (
           Delete
         </Button>
       </Popconfirm>,
+      <Button key="edit-button" type="link" onClick={() => handleEdit(record)}>
+        Edit
+      </Button>,
     ],
   },
 ];
