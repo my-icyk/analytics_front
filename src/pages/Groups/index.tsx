@@ -2,7 +2,7 @@ import { PageContainer, ProTable } from "@ant-design/pro-components";
 import { useMemo, useRef, useState } from "react";
 import type { ActionType } from "@ant-design/pro-components";
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from "@/constants/app";
-import { fetchGroups, deleteGroup } from "@/services/groups";
+import { fetchGroups, deleteGroup, getGroupTypes } from "@/services/groups";
 import type { Group } from "@/types/groups";
 import { getColumns } from "./columns";
 
@@ -10,6 +10,8 @@ import { useAccess } from "@umijs/max";
 import { Button, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import CreateGroupModal from "./CreateGroupModal";
+import { useRequest } from "ahooks";
+import { getDivisions } from "@/services/divisions";
 
 export default function GroupsPage() {
   const [createOpen, setCreateOpen] = useState(false);
@@ -32,7 +34,22 @@ export default function GroupsPage() {
     }
   };
 
-  const columns = useMemo(() => getColumns(handleDelete), [canDeleteGroup]);
+  const { data: types = [] } = useRequest(getGroupTypes);
+  const groupTypeOptions = useMemo(
+    () => types.map((t) => ({ label: t.name, value: t.id })),
+    [types],
+  );
+
+  const { data: divisions = [] } = useRequest(getDivisions);
+  const divisionOptions = useMemo(
+    () => divisions.map((d) => ({ label: d.name, value: d.id })),
+    [divisions],
+  );
+
+  const columns = useMemo(
+    () => getColumns(groupTypeOptions, divisionOptions, handleDelete),
+    [groupTypeOptions, divisionOptions, canDeleteGroup],
+  );
   return (
     <PageContainer>
       <ProTable<Group>

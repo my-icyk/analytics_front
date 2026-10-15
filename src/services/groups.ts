@@ -1,21 +1,33 @@
-import { request } from '@umijs/max';
-import type { PageResult } from '@/types/api';
-import { fetchGroupsParams, Group, GroupCreate } from '@/types/groups';
+import { request } from "@umijs/max";
+import type { PageResult } from "@/types/api";
+import {
+  fetchGroupsParams,
+  Group,
+  GroupCreate,
+  GroupType,
+} from "@/types/groups";
 
+const BASE = "/api/v1/finance/groups";
 
 export function fetchGroups(params: fetchGroupsParams) {
-  return request<PageResult<Group>>('/api/v1/finance/groups', { params });
+  return request<PageResult<Group>>(`${BASE}`, { params });
 }
 
 export function deleteGroup(id: number) {
-  return request(`/api/v1/finance/groups/${id}`, {
-    method: 'DELETE',
+  return request(`${BASE}/${id}`, {
+    method: "DELETE",
   });
 }
 
 export function createGroup(data: GroupCreate) {
-  return request('/api/v1/finance/groups', {
-    method: 'POST',
+  return request(`${BASE}`, {
+    method: "POST",
     data,
+  });
+}
+
+export function getGroupTypes() {
+  return request<GroupType[]>(`${BASE}/types`, {
+    method: "GET",
   });
 }

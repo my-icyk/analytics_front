@@ -1,10 +1,12 @@
-import { Group } from "@/types/groups";
+import { Group, GroupType } from "@/types/groups";
 import DeleteOutlined from "@ant-design/icons/lib/icons/DeleteOutlined";
 import type { ProColumns } from "@ant-design/pro-components";
 import { Popconfirm, Tag, Button } from "antd";
 
 /** Table columns of the Users page, kept apart so index.tsx stays short. */
 export const getColumns = (
+  groupTypeOptions: { label: string; value: number }[],
+  divisionOptions: { label: string; value: number }[],
   handleDelete: (id: number) => void,
 ): ProColumns<Group>[] => [
   { title: "ID", dataIndex: "id", search: false },
@@ -14,12 +16,10 @@ export const getColumns = (
     dataIndex: "division",
     key: "division_ids",
     valueType: "select",
-    valueEnum: {
-      1: { text: "Nerepartizat" },
-      26: { text: "B2B" },
-      27: { text: "B2C" },
-    },
+
     fieldProps: {
+      options: divisionOptions,
+      allowClear: true,
       mode: "multiple",
       placeholder: "Select Divisions",
     },
@@ -30,12 +30,10 @@ export const getColumns = (
     dataIndex: "group_type",
     key: "group_type_ids",
     valueType: "select",
-    valueEnum: {
-      1: { text: "Nerepartizat" },
-      26: { text: "B2B" },
-      27: { text: "B2C" },
-    },
+
     fieldProps: {
+      options: groupTypeOptions,
+      allowClear: true,
       mode: "multiple",
       placeholder: "Select Group Types",
     },
