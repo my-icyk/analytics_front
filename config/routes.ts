@@ -22,29 +22,30 @@ export default [
     redirect: "/404",
   },
   {
+    path: "/auth",
     name: "Auth",
     routes: [
       {
-        path: "/users",
+        path: "users",
         name: "Users",
         icon: "team",
         component: "./Users",
         access: PERMISSIONS.AUTH.USERS.READ,
       },
       {
-        path: "/users/:id",
+        path: "`users/:id",
         component: "./Users/Detail",
         access: PERMISSIONS.AUTH.USERS.READ,
       },
       {
-        path: "/roles",
+        path: "roles",
         name: "Roles",
         icon: "team",
         component: "./Roles",
         access: PERMISSIONS.AUTH.ROLES.READ,
       },
       {
-        path: "/roles/:id",
+        path: "roles/:id",
         component: "./Roles/Detail",
         access: PERMISSIONS.AUTH.ROLES.READ,
       },
@@ -53,14 +54,38 @@ export default [
   {
     path: "/finance",
     name: "Finance",
-    access: PERMISSIONS.FINANCE.GROUP.READ,
     routes: [
       {
-        path: "/finance/groups",
+        path: "groups",
         name: "Groups",
         icon: "team",
         component: "./Groups",
         access: PERMISSIONS.FINANCE.GROUP.READ,
+      },
+      {
+        path: "divisions",
+        name: "Divisions",
+        access: PERMISSIONS.FINANCE.DIVISION.READ,
+      },
+      {
+        path: "departments",
+        name: "Departments",
+        access: PERMISSIONS.FINANCE.DEPARTMENT.READ,
+      },
+      {
+        path: "rules",
+        name: "Rules",
+        access: PERMISSIONS.FINANCE.RULE.READ,
+      },
+    ],
+  },
+  {
+    path: "/params",
+    name: "Params",
+    routes: [
+      {
+        path: "counters",
+        name: "Counters",
       },
     ],
   },
