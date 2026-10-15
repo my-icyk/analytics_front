@@ -1,4 +1,4 @@
-import { Form, Input, Modal } from "antd";
+import { Form, Input, Modal, Switch } from "antd";
 import { useEffect, useState } from "react";
 
 import { createUser, updateUser } from "@/services/users";
@@ -16,6 +16,7 @@ type FormValues = {
   email: string;
   name: string;
   password?: string;
+  is_active: boolean;
 };
 
 export default function UserFormModal({
@@ -36,16 +37,17 @@ export default function UserFormModal({
         username: user.username,
         email: user.email,
         name: user.name,
+        is_active: user.is_active,
       }); // password is never prefilled
     }
   }, [open, user, form]);
 
   const handleSubmit = async () => {
-    const { password, ...rest } = await form.validateFields();
+    const { password, is_active, ...rest } = await form.validateFields();
     setSaving(true);
     try {
       if (user) {
-        await updateUser(user.id, rest);
+        await updateUser(user.id, { ...rest, is_active });
       } else {
         await createUser({ ...rest, password: password! });
       }
@@ -103,6 +105,11 @@ export default function UserFormModal({
             ]}
           >
             <Input.Password autoComplete="new-password" />
+          </Form.Item>
+        )}
+        {isEdit && (
+          <Form.Item name="is_active" label="Active" valuePropName="checked">
+            <Switch />
           </Form.Item>
         )}
       </Form>
