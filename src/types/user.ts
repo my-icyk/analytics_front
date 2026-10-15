@@ -9,6 +9,7 @@ export type User = {
   is_admin: boolean;
   email: string;
   name: string;
+  is_active: boolean;
 };
 
 export type UserCreate = {
@@ -22,4 +23,5 @@ export type UserUpdate = {
   username: string;
   email: string;
   name: string;
+  is_active: boolean;
 };

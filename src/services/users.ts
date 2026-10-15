@@ -10,6 +10,16 @@ export function fetchUsers(params: PageParams) {
   return request<PageResult<User>>("/api/v1/users", { params });
 }
 
+export function getUser(user_id: number) {
+  return request<User>(`${BASE}/${user_id}`);
+}
+
+export function deleteUser(user_id: number) {
+  return request(`${BASE}/${user_id}`, {
+    method: "DELETE",
+  });
+}
+
 export function createUser(payload: UserCreate) {
   return request(BASE, {
     method: "POST",
