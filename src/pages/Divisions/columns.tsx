@@ -7,9 +7,23 @@ export const getColumns = (
   handleDelete: (id: number) => void,
 ): ProColumns<Division>[] => [
   {
+    title: "ID",
+    dataIndex: "id",
+    key: "id",
+    search: true,
+    sorter: (a, b) => a.id - b.id,
+  },
+  {
     title: "Division Name",
     dataIndex: "name",
     key: "name",
+    sorter: (a, b) => a.name.localeCompare(b.name),
+  },
+  {
+    title: "Groups Nr:",
+    dataIndex: "group_count",
+    key: "group_count",
+    sorter: (a, b) => a.group_count - b.group_count,
   },
   {
     title: "Actions",
