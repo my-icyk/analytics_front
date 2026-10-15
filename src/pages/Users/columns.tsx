@@ -28,7 +28,7 @@ export const getColumns = (
         <Button
           key="view"
           type="link"
-          onClick={() => history.push(`/users/${record.id}`)}
+          onClick={() => history.push(`users/${record.id}`)}
         >
           View
         </Button>
