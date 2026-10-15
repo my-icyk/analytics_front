@@ -4,7 +4,7 @@ import type { SelectProps } from "antd";
 import debounce from "lodash/debounce";
 
 export interface DebounceSelectProps<ValueType = unknown> extends Omit<
-  SelectProps<ValueType | ValueType[]>,
+  SelectProps<ValueType>,
   "options" | "children" | "onSearch" | "showSearch"
 > {
   fetchOptions: (search: string) => Promise<ValueType[]>;

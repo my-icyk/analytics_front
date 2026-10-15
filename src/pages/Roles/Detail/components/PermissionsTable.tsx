@@ -3,18 +3,12 @@ import { Button, Card, Empty, List, Popconfirm, Space, message } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   addRolePermission,
-  getPermissions,
   getRolePermissions,
   removeRolePermission,
   permissionsLookup,
 } from "@/services/roles";
 import { DebounceSelect } from "@/components/DebounceSelect";
-
-type Permission = {
-  id: number;
-  name: string;
-  description: string;
-};
+import { Permission } from "@/types/auth";
 
 export default function PermissionsTable({ roleId }: { roleId: number }) {
   const [assigned, setAssigned] = useState<Permission[]>([]);
@@ -64,6 +58,7 @@ export default function PermissionsTable({ roleId }: { roleId: number }) {
     <Card>
       <Space.Compact style={{ width: "100%", marginBottom: 16 }}>
         <DebounceSelect
+          value={selected}
           allowClear
           placeholder="Select permissions to assign"
           fetchOptions={loadPermissions}
