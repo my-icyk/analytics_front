@@ -8,8 +8,3 @@ export type User = {
   username: string;
   is_admin: boolean;
 };
-
-export type UserLookupResult = {
-  id: number;
-  username: string;
-};

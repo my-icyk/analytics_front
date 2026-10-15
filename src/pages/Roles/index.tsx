@@ -10,7 +10,7 @@ import { useAccess } from "@umijs/max";
 import { Button, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import RoleFormModal from "./RoleFormModal";
-import { useNavigate } from "@@/exports";
+import { useNavigate } from "@umijs/max";
 
 export default function RolesPage() {
   const navigate = useNavigate();

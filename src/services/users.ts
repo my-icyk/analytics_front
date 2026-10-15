@@ -1,6 +1,7 @@
 import { request } from "@umijs/max";
 import type { PageParams, PageResult } from "@/types/api";
-import type { User, UserLookupResult } from "@/types/user";
+import type { User } from "@/types/user";
+import type { LookupOption } from "@/types/common";
 import { Role } from "@/types/auth";
 
 export function fetchUsers(params: PageParams) {
@@ -23,7 +24,7 @@ export function removeUserRole(user_id: number, role_id: number) {
   });
 }
 export function usersLookup(search?: string) {
-  return request<UserLookupResult[]>("/api/v1/users/lookup", {
+  return request<LookupOption[]>("/api/v1/users/lookup", {
     params: { search },
   });
 }
