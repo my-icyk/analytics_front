@@ -55,3 +55,7 @@ export function removeRolePermission(role_id: number, permission_id: number) {
     method: "DELETE",
   });
 }
+
+export function rolesLookup(search: string) {
+  return request(`/api/v1/roles/lookup?search=${search}`);
+}

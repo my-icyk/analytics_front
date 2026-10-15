@@ -1,94 +1,184 @@
 import { PageContainer } from "@ant-design/pro-components";
-import { useParams, history } from "@umijs/max";
-import { Button, List, Modal, Popconfirm, Select, message } from "antd";
-import { useEffect, useState } from "react";
+import { history, useAccess, useParams } from "@umijs/max";
+import {
+  Avatar,
+  Button,
+  Card,
+  Empty,
+  List,
+  Popconfirm,
+  Space,
+  Tabs,
+  Tag,
+  Typography,
+  message,
+} from "antd";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  UserOutlined,
+  UsergroupAddOutlined,
+} from "@ant-design/icons";
+import { useRequest } from "ahooks";
+import { useCallback, useState } from "react";
 
-import { addUserRole, getUserRoles, removeUserRole } from "@/services/users";
+import { DebounceSelect } from "@/components/DebounceSelect";
+import {
+  addUserRole,
+  deleteUser,
+  getUser,
+  getUserRoles,
+  removeUserRole,
+} from "@/services/users";
 import { getRoles } from "@/services/roles";
-import type { Role } from "@/types/auth";
+import { PERMISSIONS } from "../../../../config/permissions";
+import UserFormModal from "../UserFormModal";
+import RoleAssignment from "./components/roleAsigment";
+
+type Option = { label: React.ReactNode; value: number };
 
 export default function UserDetail() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const userId = Number(id);
+  const access = useAccess();
 
-  const [assigned, setAssigned] = useState<Role[]>([]);
-  const [all, setAll] = useState<Role[]>([]);
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<number[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selected, setSelected] = useState<Option | undefined>();
+  const [assigning, setAssigning] = useState(false);
 
-  const load = async () => setAssigned(await getUserRoles(userId));
+  const valid = !!id && !Number.isNaN(userId);
 
-  useEffect(() => {
-    load();
-    getRoles({ page: 1, limit: 100 }).then((r) => setAll(r.data));
-  }, [userId]);
+  const {
+    data: user,
+    loading,
+    refresh,
+  } = useRequest(() => getUser(userId), {
+    ready: valid,
+    refreshDeps: [id],
+  });
 
-  const available = all.filter((r) => !assigned.some((a) => a.id === r.id));
+  const {
+    data: assigned = [],
+    loading: rolesLoading,
+    refresh: refreshRoles,
+  } = useRequest(() => getUserRoles(userId), {
+    ready: valid,
+    refreshDeps: [id],
+  });
+
+  // only roles that are not assigned yet
+  const loadRoles = useCallback(
+    async (search: string): Promise<Option[]> => {
+      const res = await getRoles({ page: 1, limit: 50, name: search });
+      return res.data
+        .filter((r) => !assigned.some((a) => a.id === r.id))
+        .map((r) => ({ label: r.name, value: r.id }));
+    },
+    [assigned],
+  );
+
+  const handleAssign = async () => {
+    if (!selected) return;
+    setAssigning(true);
+    try {
+      await addUserRole(userId, selected.value);
+      message.success("Role assigned");
+      setSelected(undefined);
+      refreshRoles();
+    } finally {
+      setAssigning(false);
+    }
+  };
 
   const handleRevoke = async (roleId: number) => {
     await removeUserRole(userId, roleId);
     message.success("Role removed");
-    load();
+    refreshRoles();
   };
 
-  const handleAssign = async () => {
-    await Promise.all(selected.map((rid) => addUserRole(userId, rid)));
-    message.success("Roles assigned");
-    setOpen(false);
-    setSelected([]);
-    load();
+  const handleDelete = async () => {
+    await deleteUser(userId);
+    message.success("User deleted");
+    history.replace("/auth/users");
   };
 
   return (
     <PageContainer
-      onBack={() => history.push("/users")}
+      loading={loading}
       extra={[
-        <Button key="assign" type="primary" onClick={() => setOpen(true)}>
-          Assign role
-        </Button>,
+        access[PERMISSIONS.AUTH.USERS.UPDATE] && (
+          <Button
+            key="edit"
+            icon={<EditOutlined />}
+            onClick={() => setModalOpen(true)}
+          >
+            Edit
+          </Button>
+        ),
+        access[PERMISSIONS.AUTH.USERS.DELETE] && (
+          <Popconfirm
+            key="delete"
+            title="Delete this user?"
+            description={`Are you sure you want to delete "${user?.username}"?`}
+            okText="Delete"
+            okButtonProps={{ danger: true }}
+            onConfirm={handleDelete}
+          >
+            <Button danger icon={<DeleteOutlined />}>
+              Delete
+            </Button>
+          </Popconfirm>
+        ),
       ]}
     >
-      <List
-        bordered
-        dataSource={assigned}
-        renderItem={(r) => (
-          <List.Item
-            actions={[
-              <Popconfirm
-                key="revoke"
-                title="Remove this role from the user?"
-                onConfirm={() => handleRevoke(r.id)}
-              >
-                <Button type="link" danger>
-                  Revoke
-                </Button>
-              </Popconfirm>,
-            ]}
-          >
-            {r.name}
-          </List.Item>
-        )}
-      />
+      <Space direction="vertical" size={16} style={{ width: "100%" }}>
+        <Card>
+          <Space size={16} align="center">
+            <Avatar
+              size={64}
+              icon={<UserOutlined />}
+              style={{ background: "#1677ff1A", color: "#1677ff" }}
+            />
+            <div>
+              <Typography.Title level={4} style={{ margin: 0 }}>
+                {user?.name ?? "User"}
+              </Typography.Title>
+              <Typography.Text type="secondary">{user?.email}</Typography.Text>
+              <div style={{ marginTop: 4 }}>
+                <Space size={8}>
+                  <Tag>ID: {user?.id}</Tag>
+                  <Tag>@{user?.username}</Tag>
+                  <Tag color={user?.is_active ? "green" : "red"}>
+                    {user?.is_active ? "Active" : "Inactive"}
+                  </Tag>
+                </Space>
+              </div>
+            </div>
+          </Space>
+        </Card>
 
-      <Modal
-        title="Assign roles"
-        open={open}
-        onCancel={() => setOpen(false)}
-        onOk={handleAssign}
-        okText="Assign"
-        okButtonProps={{ disabled: selected.length === 0 }}
-        destroyOnHidden
-      >
-        <Select
-          mode="multiple"
-          style={{ width: "100%" }}
-          placeholder="Select roles"
-          value={selected}
-          onChange={setSelected}
-          optionFilterProp="label"
-          options={available.map((r) => ({ label: r.name, value: r.id }))}
-        />
-      </Modal>
+        <Card>
+          <Tabs
+            items={[
+              {
+                key: "Roles",
+                label: "Roles",
+                children: <RoleAssignment userId={userId} />,
+              },
+            ]}
+          />
+        </Card>
+      </Space>
+
+      <UserFormModal
+        open={modalOpen}
+        user={user}
+        onCancel={() => setModalOpen(false)}
+        onSuccess={() => {
+          setModalOpen(false);
+          refresh();
+        }}
+      />
     </PageContainer>
   );
 }
