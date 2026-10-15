@@ -37,6 +37,7 @@ export default [
         name: "User Details",
         path: "users/:id",
         component: "./Users/Detail",
+        hideInMenu: true,
         access: PERMISSIONS.AUTH.USERS.READ,
       },
       {
