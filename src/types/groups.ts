@@ -1,7 +1,4 @@
-export type Division = {
-  id: number;
-  name: string;
-};
+import type { Division } from "@/types/divisions";
 
 export type GroupType = {
   id: number;
@@ -43,7 +40,7 @@ export type GroupFilterParams = {
 };
 
 export type fetchGroupsParams = {
-    page?: number;
-    limit?: number;
-    group_type_ids?: number;
-}
+  page?: number;
+  limit?: number;
+  group_type_ids?: number;
+};
