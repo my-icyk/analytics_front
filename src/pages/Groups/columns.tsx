@@ -10,7 +10,7 @@ export const getColumns = (
   handleDelete: (id: number) => void,
 ): ProColumns<Group>[] => [
   { title: "ID", dataIndex: "id", search: false },
-  { title: "Name", dataIndex: "name" },
+  { title: "Name", dataIndex: "name", key: "search" },
   {
     title: "Division",
     dataIndex: "division",

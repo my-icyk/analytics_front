@@ -44,4 +44,5 @@ export type fetchGroupsParams = {
   limit?: number;
   group_type_ids?: number[];
   division_ids?: number[];
+  search?: string;
 };
