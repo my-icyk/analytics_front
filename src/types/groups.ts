@@ -42,5 +42,6 @@ export type GroupFilterParams = {
 export type fetchGroupsParams = {
   page?: number;
   limit?: number;
-  group_type_ids?: number;
+  group_type_ids?: number[];
+  division_ids?: number[];
 };

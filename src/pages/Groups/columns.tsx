@@ -1,39 +1,49 @@
-import { Group } from '@/types/groups';
-import DeleteOutlined from '@ant-design/icons/lib/icons/DeleteOutlined';
-import type { ProColumns } from '@ant-design/pro-components';
-import { Popconfirm, Tag, Button } from 'antd';
-
+import { Group } from "@/types/groups";
+import DeleteOutlined from "@ant-design/icons/lib/icons/DeleteOutlined";
+import type { ProColumns } from "@ant-design/pro-components";
+import { Popconfirm, Tag, Button } from "antd";
 
 /** Table columns of the Users page, kept apart so index.tsx stays short. */
 export const getColumns = (
-    handleDelete: (id: number) => void
+  handleDelete: (id: number) => void,
 ): ProColumns<Group>[] => [
-  { title: 'ID', dataIndex: 'id' , search: false,},
-  { title: 'Name', dataIndex: 'name' },
+  { title: "ID", dataIndex: "id", search: false },
+  { title: "Name", dataIndex: "name" },
   {
-    title: 'Division',
-    dataIndex: 'division',
+    title: "Division",
+    dataIndex: "division",
+    key: "division_ids",
+    valueType: "select",
+    valueEnum: {
+      1: { text: "Nerepartizat" },
+      26: { text: "B2B" },
+      27: { text: "B2C" },
+    },
+    fieldProps: {
+      mode: "multiple",
+      placeholder: "Select Divisions",
+    },
     render: (_, group) => <Tag color="blue">{group.division.name}</Tag>,
   },
   {
-    title: 'Group Type',
-    dataIndex: 'group_type',
-    key: 'group_type_ids',
-    valueType: 'select',
+    title: "Group Type",
+    dataIndex: "group_type",
+    key: "group_type_ids",
+    valueType: "select",
     valueEnum: {
-        1: { text: 'Nerepartizat' },
-        2: { text: 'Vanzari' },
-        3: { text: 'Type 3' },
+      1: { text: "Nerepartizat" },
+      26: { text: "B2B" },
+      27: { text: "B2C" },
     },
     fieldProps: {
-    mode: 'multiple',
-    placeholder: 'Select group types',
-  },
+      mode: "multiple",
+      placeholder: "Select Group Types",
+    },
     render: (_, group) => <Tag color="green">{group.group_type.name}</Tag>,
   },
-    {
-    title: 'Actions',
-    valueType: 'option',
+  {
+    title: "Actions",
+    valueType: "option",
     render: (_, record) => [
       <Popconfirm
         key="delete"
@@ -54,5 +64,5 @@ export const getColumns = (
         </Button>
       </Popconfirm>,
     ],
-  }
+  },
 ];

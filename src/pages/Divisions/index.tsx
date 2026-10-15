@@ -10,6 +10,7 @@ import { useAccess } from "@umijs/max";
 import { Button, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import DivisionFormModal from "./DivisionFormModal";
+import { history } from "@umijs/max";
 
 export default function DivisionsPage() {
   const [createOpen, setCreateOpen] = useState(false);
@@ -32,7 +33,14 @@ export default function DivisionsPage() {
     }
   };
 
-  const columns = useMemo(() => getColumns(handleDelete), [canDeleteGroup]);
+  const handleViewGroups = (divisionId: number) => {
+    history.push(`groups?division_ids=${divisionId}`);
+  };
+
+  const columns = useMemo(
+    () => getColumns(handleDelete, handleViewGroups),
+    [canDeleteGroup],
+  );
   return (
     <PageContainer>
       <ProTable<Division>
@@ -45,6 +53,8 @@ export default function DivisionsPage() {
           searchText: "Filter",
           resetText: "Reset",
         }}
+
+        tableLayout="auto"
         pagination={{
           pageSizeOptions: PAGE_SIZE_OPTIONS,
           defaultPageSize: DEFAULT_PAGE_SIZE,

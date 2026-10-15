@@ -55,11 +55,13 @@ export default function GroupsPage() {
           current = 1,
           pageSize = DEFAULT_PAGE_SIZE,
           group_type_ids,
+          division_ids,
         }) => {
           const { data, total, success } = await fetchGroups({
             page: current,
             limit: pageSize,
             group_type_ids,
+            division_ids,
           });
           return { data, total, success };
         }}

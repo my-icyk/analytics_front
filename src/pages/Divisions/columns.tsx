@@ -5,24 +5,28 @@ import { DeleteOutlined } from "@ant-design/icons";
 
 export const getColumns = (
   handleDelete: (id: number) => void,
+  handleViewGroups: (divisionId: number) => void,
 ): ProColumns<Division>[] => [
   {
     title: "ID",
     dataIndex: "id",
     key: "id",
     search: true,
+    valueType: "digit",
     sorter: (a, b) => a.id - b.id,
   },
   {
     title: "Division Name",
     dataIndex: "name",
     key: "name",
+    valueType: "text",
     sorter: (a, b) => a.name.localeCompare(b.name),
   },
   {
     title: "Groups Nr:",
     dataIndex: "group_count",
     key: "group_count",
+    valueType: "digit",
     sorter: (a, b) => a.group_count - b.group_count,
   },
   {
@@ -48,6 +52,13 @@ export const getColumns = (
           Delete
         </Button>
       </Popconfirm>,
+      <Button
+        key="view-groups-button"
+        type="link"
+        onClick={() => handleViewGroups(record.id)}
+      >
+        View Groups
+      </Button>,
     ],
   },
 ];
