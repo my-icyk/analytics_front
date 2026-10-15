@@ -34,6 +34,7 @@ export default [
         access: PERMISSIONS.AUTH.USERS.READ,
       },
       {
+        name: "User Details",
         path: "users/:id",
         component: "./Users/Detail",
         access: PERMISSIONS.AUTH.USERS.READ,
