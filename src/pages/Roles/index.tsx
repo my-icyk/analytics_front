@@ -16,7 +16,7 @@ export default function RolesPage() {
   const navigate = useNavigate();
 
   const handleView = (record: Role) => {
-    navigate(`/roles/${record.id}`);
+    navigate(`/auth/roles/${record.id}`);
   };
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);

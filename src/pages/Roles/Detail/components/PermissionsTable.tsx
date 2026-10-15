@@ -1,12 +1,14 @@
-import { PageContainer } from "@ant-design/pro-components";
-import { Button, List, Popconfirm, Modal, Select, message } from "antd";
-import { useEffect, useState } from "react";
+import { DeleteOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
+import { Button, Card, Empty, List, Popconfirm, Space, message } from "antd";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  getRolePermissions,
-  getPermissions,
   addRolePermission,
+  getPermissions,
+  getRolePermissions,
   removeRolePermission,
+  permissionsLookup,
 } from "@/services/roles";
+import { DebounceSelect } from "@/components/DebounceSelect";
 
 type Permission = {
   id: number;
@@ -16,21 +18,41 @@ type Permission = {
 
 export default function PermissionsTable({ roleId }: { roleId: number }) {
   const [assigned, setAssigned] = useState<Permission[]>([]);
-  const [all, setAll] = useState<Permission[]>([]);
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<number[]>([]);
+  const [selected, setSelected] = useState<
+    { label: string; value: number } | undefined
+  >();
+  const [loading, setLoading] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+  const loadPermissions = useCallback(
+    (search: string) => permissionsLookup(search),
+    [],
+  );
 
   const load = async () => {
-    setAssigned(await getRolePermissions(roleId)); // GET /roles/:id/permissions
+    setLoading(true);
+    try {
+      setAssigned(await getRolePermissions(roleId));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     load();
-    getPermissions().then(setAll); // GET /permissions
   }, [roleId]);
 
-  // only permissions that are not assigned yet
-  const available = all.filter((p) => !assigned.some((a) => a.id === p.id));
+  const handleAssign = async () => {
+    if (selected === undefined) return;
+    setAssigning(true);
+    try {
+      await addRolePermission(roleId, selected.value);
+      message.success("Permissions assigned");
+      setSelected(undefined);
+      await load();
+    } finally {
+      setAssigning(false);
+    }
+  };
 
   const handleRevoke = async (permissionId: number) => {
     await removeRolePermission(roleId, permissionId);
@@ -38,61 +60,67 @@ export default function PermissionsTable({ roleId }: { roleId: number }) {
     load();
   };
 
-  const handleAssign = async () => {
-    await Promise.all(selected.map((pid) => addRolePermission(roleId, pid)));
-    message.success("Permissions assigned");
-    setOpen(false);
-    setSelected([]);
-    load();
-  };
   return (
-    <PageContainer
-      extra={[
-        <Button key="assign" type="primary" onClick={() => setOpen(true)}>
-          Assign permission
-        </Button>,
-      ]}
-    >
+    <Card>
+      <Space.Compact style={{ width: "100%", marginBottom: 16 }}>
+        <DebounceSelect
+          allowClear
+          placeholder="Select permissions to assign"
+          fetchOptions={loadPermissions}
+          onChange={(value) => setSelected(value)}
+        />
+        <Button
+          type="primary"
+          disabled={selected === undefined}
+          loading={assigning}
+          onClick={handleAssign}
+        >
+          Assign
+        </Button>
+      </Space.Compact>
+
       <List
-        bordered
+        loading={loading}
         dataSource={assigned}
+        locale={{
+          emptyText: (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="No permissions assigned to this role"
+            />
+          ),
+        }}
         renderItem={(p) => (
           <List.Item
             actions={[
               <Popconfirm
                 key="revoke"
                 title="Revoke this permission?"
+                okText="Revoke"
+                okButtonProps={{ danger: true }}
                 onConfirm={() => handleRevoke(p.id)}
               >
-                <Button type="link" danger>
-                  Revoke
-                </Button>
+                <Button
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                  size="large"
+                />
               </Popconfirm>,
             ]}
           >
-            {p.name}
+            <List.Item.Meta
+              avatar={
+                <SafetyCertificateOutlined
+                  style={{ fontSize: 20, marginTop: 4 }}
+                />
+              }
+              title={p.name}
+              description={`id: ${p.id}`}
+            />
           </List.Item>
         )}
       />
-
-      <Modal
-        title="Assign permissions"
-        open={open}
-        onCancel={() => setOpen(false)}
-        onOk={handleAssign}
-        okText="Assign"
-        okButtonProps={{ disabled: selected.length === 0 }}
-      >
-        <Select
-          mode="multiple"
-          style={{ width: "100%" }}
-          placeholder="Select permissions"
-          value={selected}
-          onChange={setSelected}
-          optionFilterProp="label"
-          options={available.map((p) => ({ label: p.name, value: p.id }))}
-        />
-      </Modal>
-    </PageContainer>
+    </Card>
   );
 }

@@ -6,6 +6,10 @@ export function getRoles(params: FetchRolesParams) {
   return request<PageResult<Role>>("/api/v1/roles", { params });
 }
 
+export function getRole(id: number) {
+  return request<Role>(`/api/v1/roles/${id}`);
+}
+
 export function createRole(data: RoleCreate) {
   return request("/api/v1/roles", {
     method: "POST",
@@ -28,6 +32,9 @@ export function deleteRole(id: number) {
 
 export function getPermissions() {
   return request("/api/v1/permissions");
+}
+export function permissionsLookup(search: string) {
+  return request(`/api/v1/permissions/lookup?search=${search}`);
 }
 
 export function getRolePermissions(role_id: number) {

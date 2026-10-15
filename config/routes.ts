@@ -24,6 +24,7 @@ export default [
   {
     path: "/auth",
     name: "Auth",
+    icon: "safety",
     routes: [
       {
         path: "users",
@@ -33,7 +34,7 @@ export default [
         access: PERMISSIONS.AUTH.USERS.READ,
       },
       {
-        path: "`users/:id",
+        path: "users/:id",
         component: "./Users/Detail",
         access: PERMISSIONS.AUTH.USERS.READ,
       },
@@ -45,8 +46,10 @@ export default [
         access: PERMISSIONS.AUTH.ROLES.READ,
       },
       {
+        name: "Role Details",
         path: "roles/:id",
         component: "./Roles/Detail",
+        hideInMenu: true,
         access: PERMISSIONS.AUTH.ROLES.READ,
       },
     ],
