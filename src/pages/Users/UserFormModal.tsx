@@ -69,9 +69,27 @@ export default function UserFormModal({
     >
       <Form form={form} layout="vertical" preserve={false}>
         <Form.Item
+          name="name"
+          label="Name"
+          rules={[{ required: true, message: "Enter a name" }]}
+        >
+          <Input autoComplete="off" />
+        </Form.Item>
+        <Form.Item
           name="username"
           label="Username"
-          rules={[{ required: true, message: "Enter a username" }]}
+          rules={[
+            { required: true, message: "Enter a username" },
+            {
+              min: 6,
+              message: "Username must contain at least 6 characters.",
+            },
+            {
+              pattern: /^[a-z0-9.-]+$/,
+              message:
+                "Use only lowercase letters, numbers, dots (.) and hyphens (-). No spaces allowed.",
+            },
+          ]}
         >
           <Input autoComplete="off" />
         </Form.Item>
@@ -80,17 +98,9 @@ export default function UserFormModal({
           name="email"
           label="Email"
           rules={[
-            { required: true, message: "Enter an email" },
+            { required: false, message: "Enter an email" },
             { type: "email", message: "Enter a valid email" },
           ]}
-        >
-          <Input autoComplete="off" />
-        </Form.Item>
-
-        <Form.Item
-          name="name"
-          label="Name"
-          rules={[{ required: true, message: "Enter a name" }]}
         >
           <Input autoComplete="off" />
         </Form.Item>

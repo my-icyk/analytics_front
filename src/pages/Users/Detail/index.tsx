@@ -1,16 +1,7 @@
 import { PageContainer } from "@ant-design/pro-components";
 import { useState } from "react";
 import { history, useAccess, useParams } from "@umijs/max";
-import {
-  Button,
-  Card,
-  Popconfirm,
-  Space,
-  Tabs,
-  Tag,
-  Typography,
-  message,
-} from "antd";
+import { Button, Card, Popconfirm, Space, Tabs, message } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { useRequest } from "ahooks";
 
@@ -99,6 +90,7 @@ export default function UserDetail() {
         onCancel={() => setModalOpen(false)}
         onSuccess={() => {
           setModalOpen(false);
+          message.success(user ? "User updated" : "User created");
           refresh();
         }}
       />
