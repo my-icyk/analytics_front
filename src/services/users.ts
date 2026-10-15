@@ -1,11 +1,27 @@
 import { request } from "@umijs/max";
 import type { PageParams, PageResult } from "@/types/api";
-import type { User } from "@/types/user";
+import type { User, UserCreate, UserUpdate } from "@/types/user";
 import type { LookupOption } from "@/types/common";
 import { Role } from "@/types/auth";
 
+const BASE = "/api/v1/users";
+
 export function fetchUsers(params: PageParams) {
   return request<PageResult<User>>("/api/v1/users", { params });
+}
+
+export function createUser(payload: UserCreate) {
+  return request(BASE, {
+    method: "POST",
+    data: payload,
+  });
+}
+
+export function updateUser(user_id: number, payload: UserUpdate) {
+  return request(`${BASE}/${user_id}`, {
+    method: "PUT",
+    data: payload,
+  });
 }
 
 export function getUserRoles(user_id: number) {

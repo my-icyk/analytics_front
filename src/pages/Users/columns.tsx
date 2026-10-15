@@ -33,7 +33,6 @@ export const getColumns = (
           View
         </Button>
       ),
-      // ...edit, delete
     ],
   },
 ];
