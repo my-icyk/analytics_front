@@ -5,6 +5,7 @@ import { useState } from "react";
 import { getGroup } from "@/services/groups";
 import { Button } from "antd";
 import GroupOverview from "./components/overview-tab";
+import RulesTab from "./components/rules-tab";
 
 export default function GroupDetails() {
   const [activeTab, setActiveTab] = useState("1");
@@ -50,6 +51,8 @@ export default function GroupDetails() {
       ]}
     >
       {activeTab === "1" && group && <GroupOverview {...group} />}
+      {/* {activeTab === "2" && group && <DepartmentsTab group_id={group.id} />} */}
+      {activeTab === "3" && group && <RulesTab groupId={group.id} />}
     </PageContainer>
   );
 }
