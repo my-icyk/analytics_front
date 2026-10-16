@@ -1,4 +1,4 @@
-import { Department } from "@/types/deparments";
+import { Department } from "@/types/departments";
 import { ProColumns } from "@ant-design/pro-components";
 
 export const getColumns = (): ProColumns<Department>[] => [

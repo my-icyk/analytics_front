@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ProTable } from "@ant-design/pro-components";
 import { useMemo } from "react";
-import type { Department } from "@/types/deparments";
+import type { Department } from "@/types/departments";
 import { getDepartments } from "@/services/groups";
 import { getColumns } from "./columns";
 

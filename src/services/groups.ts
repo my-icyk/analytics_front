@@ -27,7 +27,7 @@ export function getDepartments() {
   });
 }
 
-import type { Department, Repartition } from "@/types/deparments";
+import type { Department, Repartition } from "@/types/departments";
 
 export function deleteGroup(id: number) {
   return request(`${BASE}/${id}`, {
