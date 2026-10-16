@@ -56,3 +56,27 @@ export const numberSorter =
 
     return na - nb;
   };
+
+type TextLike = string | null | undefined;
+
+const toText = (value: TextLike): string | null => {
+  const text = value?.trim();
+  return text ? text : null;
+};
+
+/** Sort by a text field (locale-aware, case-insensitive). Empty values stay at the bottom. */
+export const stringSorter =
+  <T>(key: keyof T) =>
+  (a: T, b: T, sortOrder?: SortOrder): number => {
+    const sa = toText(a[key] as TextLike);
+    const sb = toText(b[key] as TextLike);
+
+    if (sa === null && sb === null) return 0;
+    if (sa === null) return sortOrder === "descend" ? -1 : 1;
+    if (sb === null) return sortOrder === "descend" ? 1 : -1;
+
+    return sa.localeCompare(sb, undefined, {
+      sensitivity: "base",
+      numeric: true,
+    });
+  };
