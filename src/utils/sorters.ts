@@ -23,3 +23,9 @@ export const dateSorter =
 
     return ta - tb;
   };
+
+export const dateSorterNullAsMax =
+  <T>(key: keyof T) =>
+  (a: T, b: T): number =>
+    (toTime(a[key] as DateLike) ?? Infinity) -
+    (toTime(b[key] as DateLike) ?? Infinity);
