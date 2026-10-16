@@ -13,6 +13,12 @@ export function fetchGroups(params: fetchGroupsParams) {
   return request<PageResult<Group>>(`${BASE}`, { params });
 }
 
+export function getGroup(id: number) {
+  return request<Group>(`${BASE}/${id}`, {
+    method: "GET",
+  });
+}
+
 export function getDepartments() {
   return request<Department[]>(`${BASE}/departments`, {
     method: "GET",
