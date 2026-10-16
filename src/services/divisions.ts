@@ -1,3 +1,4 @@
+import { LookupOption } from "@/types/common";
 import { Division } from "@/types/divisions";
 import { request } from "@umijs/max";
 
@@ -26,5 +27,11 @@ export function updateDivision(id: number, data: { name: string }) {
 export function deleteDivision(id: number) {
   return request<Division>(`${BASE}/${id}`, {
     method: "DELETE",
+  });
+}
+
+export function lookupDivisions(search?: string) {
+  return request<LookupOption[]>(`${BASE}/lookup`, {
+    params: { search },
   });
 }
