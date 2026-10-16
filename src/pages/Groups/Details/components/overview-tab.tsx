@@ -2,8 +2,6 @@ import { ProCard, ProDescriptions } from "@ant-design/pro-components";
 import { Space, Statistic, Tag, Typography } from "antd";
 import type { Group } from "@/types/groups";
 
-const { Text } = Typography;
-
 export default function GroupOverview(group: Group) {
   const stats = [
     {
@@ -28,8 +26,8 @@ export default function GroupOverview(group: Group) {
           column={{ xs: 1, md: 2 }}
           dataSource={group}
           columns={[
-            { title: "Division", dataIndex: "division" },
-            { title: "Group type", dataIndex: "type" },
+            { title: "Division", dataIndex: "division_name" },
+            { title: "Group type", dataIndex: "group_type_name" },
           ]}
         />
       </ProCard>

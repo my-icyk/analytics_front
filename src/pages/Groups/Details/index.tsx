@@ -1,21 +1,36 @@
+import { useMemo, useState } from "react";
 import { useRequest } from "ahooks";
 import { PageContainer } from "@ant-design/pro-components";
-import { history, useAccess, useParams } from "@umijs/max";
-import { useState } from "react";
-import { getGroup } from "@/services/groups";
+import { useParams } from "@umijs/max";
 import { Button } from "antd";
+import { getGroup, getGroupTypes } from "@/services/groups";
 import GroupOverview from "./components/overview-tab";
 import RulesTab from "./components/rules-tab";
 import DepartmentTab from "./components/department-tab";
+import CreateGroupModal from "../CreateGroupModal";
+
+enum TabKey {
+  Overview = "overview",
+  Departments = "departments",
+  Rules = "rules",
+}
+
+const TABS = [
+  { tab: "Overview", key: TabKey.Overview },
+  { tab: "Departments", key: TabKey.Departments },
+  { tab: "Rules", key: TabKey.Rules },
+];
 
 export default function GroupDetails() {
-  const TABS = [
-    { tab: "Overview", key: "1" },
-    { tab: "Departments", key: "2" },
-    { tab: "Rules", key: "3" },
-  ];
-  const [activeTab, setActiveTab] = useState("1");
   const { id } = useParams<{ id: string }>();
+  const [activeTab, setActiveTab] = useState<string>(TabKey.Overview);
+  const [editOpen, setEditOpen] = useState(false);
+
+  const { data: types = [] } = useRequest(getGroupTypes);
+  const groupTypeOptions = useMemo(
+    () => types.map((t) => ({ label: t.name, value: t.id })),
+    [types],
+  );
 
   const {
     data: group,
@@ -26,26 +41,45 @@ export default function GroupDetails() {
     refreshDeps: [id],
   });
 
+  const handleEditSuccess = () => {
+    setEditOpen(false);
+    refresh(); // reload group data so header + tabs show the changes
+  };
+
   return (
     <PageContainer
+      loading={loading}
       header={{ title: group?.name ?? "Group", ghost: true }}
-
       tabList={TABS}
       tabActiveKey={activeTab}
-      onTabChange={(key) => setActiveTab(key)}
-
+      onTabChange={setActiveTab}
       extra={[
-        <Button key="1" type="primary">
-          Edit
+        <Button key="edit" type="primary" onClick={() => setEditOpen(true)}>
+          Edit Group
         </Button>,
-        <Button key="2" danger type="default">
+        <Button key="delete" danger>
           Delete
         </Button>,
       ]}
     >
-      {activeTab === "1" && group && <GroupOverview {...group} />}
-      {activeTab === "2" && group && <DepartmentTab groupId={group.id} />}
-      {activeTab === "3" && group && <RulesTab groupId={group.id} />}
+      {group && (
+        <>
+          {activeTab === TabKey.Overview && <GroupOverview {...group} />}
+          {activeTab === TabKey.Departments && (
+            <DepartmentTab groupId={group.id} />
+          )}
+          {activeTab === TabKey.Rules && <RulesTab groupId={group.id} />}
+
+          <CreateGroupModal
+            key={group.id}
+            group={group}
+            open={editOpen}
+            types={groupTypeOptions}
+            onCancel={() => setEditOpen(false)}
+            onSuccess={handleEditSuccess}
+          />
+        </>
+      )}
     </PageContainer>
   );
 }
