@@ -12,8 +12,11 @@ export type GroupTypeDetails = GroupType & {
 export type Group = {
   id: number;
   name: string;
-  division: Division;
-  group_type: GroupType;
+  division: string;
+  group_type: string;
+  is_active: boolean;
+  rules_count: number;
+  repartitions_count: number;
 };
 
 export type GroupPage = {
