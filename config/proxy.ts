@@ -7,10 +7,8 @@
  * the target below.
  */
 export default {
-
-
-    '/api': {
-      target: 'http://172.28.130.61:8000',
-      changeOrigin: true,
-    },
-  }
+  "/api": {
+    target: "http://localhost:8000",
+    changeOrigin: true,
+  },
+};
