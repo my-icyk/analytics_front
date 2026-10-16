@@ -1,4 +1,12 @@
 import { Repartition } from "@/types/departments";
+import { formatDate } from "@/utils/formatDate";
+import {
+  numberSorter,
+  boolSorter,
+  dateSorter,
+  dateSorterNullAsMax,
+  stringSorter,
+} from "@/utils/sorters";
 import { ProColumns } from "@ant-design/pro-components";
 
 export const getColumns = (): ProColumns<Repartition>[] => [
@@ -7,7 +15,7 @@ export const getColumns = (): ProColumns<Repartition>[] => [
     dataIndex: "id",
     key: "id",
     search: false,
-    sorter: (a, b) => a.id - b.id,
+    sorter: numberSorter<Repartition>("id"),
   },
 
   {
@@ -15,7 +23,7 @@ export const getColumns = (): ProColumns<Repartition>[] => [
     dataIndex: "department",
     key: "department",
     search: true,
-    sorter: (a, b) => a.department.localeCompare(b.department),
+    sorter: stringSorter<Repartition>("department"),
     valueType: "text",
   },
 
@@ -24,28 +32,28 @@ export const getColumns = (): ProColumns<Repartition>[] => [
     dataIndex: "valid_from",
     key: "valid_from",
     search: false,
-    sorter: (a, b) =>
-      new Date(a.valid_from).getTime() - new Date(b.valid_from).getTime(),
+    sorter: dateSorter<Repartition>("valid_from"),
     valueType: "date",
+    render: (_, record) => formatDate(record.valid_from),
   },
   {
     title: "Valid To",
     dataIndex: "valid_to",
     key: "valid_to",
     search: false,
-    sorter: (a, b) =>
-      new Date(a.valid_to).getTime() - new Date(b.valid_to).getTime(),
+    sorter: dateSorterNullAsMax<Repartition>("valid_to"),
     valueType: "date",
+    render: (_, record) => formatDate(record.valid_to),
   },
   {
     title: "Active",
     dataIndex: "is_active",
     key: "is_active",
-    search: true,
-    sorter: (a, b) => Number(a.is_active) - Number(b.is_active),
+    width: 110,
+    sorter: boolSorter<Repartition>("is_active"),
     valueEnum: {
-      true: "Active",
-      false: "Inactive",
+      true: { text: "Active", status: "Success" },
+      false: { text: "Inactive", status: "Default" },
     },
   },
 ];

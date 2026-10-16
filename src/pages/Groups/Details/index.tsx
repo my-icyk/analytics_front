@@ -6,8 +6,14 @@ import { getGroup } from "@/services/groups";
 import { Button } from "antd";
 import GroupOverview from "./components/overview-tab";
 import RulesTab from "./components/rules-tab";
+import DepartmentTab from "./components/department-tab";
 
 export default function GroupDetails() {
+  const TABS = [
+    { tab: "Overview", key: "1" },
+    { tab: "Departments", key: "2" },
+    { tab: "Rules", key: "3" },
+  ];
   const [activeTab, setActiveTab] = useState("1");
   const { id } = useParams<{ id: string }>();
 
@@ -24,20 +30,7 @@ export default function GroupDetails() {
     <PageContainer
       header={{ title: group?.name ?? "Group", ghost: true }}
 
-      tabList={[
-        {
-          tab: "Overview",
-          key: "1",
-        },
-        {
-          tab: "Departments",
-          key: "2",
-        },
-        {
-          tab: "Rules",
-          key: "3",
-        },
-      ]}
+      tabList={TABS}
       tabActiveKey={activeTab}
       onTabChange={(key) => setActiveTab(key)}
 
@@ -51,7 +44,7 @@ export default function GroupDetails() {
       ]}
     >
       {activeTab === "1" && group && <GroupOverview {...group} />}
-      {/* {activeTab === "2" && group && <DepartmentsTab group_id={group.id} />} */}
+      {activeTab === "2" && group && <DepartmentTab groupId={group.id} />}
       {activeTab === "3" && group && <RulesTab groupId={group.id} />}
     </PageContainer>
   );
