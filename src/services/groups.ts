@@ -1,6 +1,6 @@
 import { request } from "@umijs/max";
 import type { PageResult } from "@/types/api";
-import type { Rule } from "@/services/rules";
+import type { Rule } from "@/types/rules";
 
 import {
   fetchGroupsParams,
