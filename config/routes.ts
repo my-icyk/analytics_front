@@ -68,6 +68,13 @@ export default [
         access: PERMISSIONS.FINANCE.GROUP.READ,
       },
       {
+        path: "groups/:id",
+        name: "Group Details",
+        hideInMenu: true,
+        component: "./Groups/Details",
+        access: PERMISSIONS.FINANCE.GROUP.READ,
+      },
+      {
         path: "divisions",
         name: "Divisions",
         access: PERMISSIONS.FINANCE.DIVISION.READ,

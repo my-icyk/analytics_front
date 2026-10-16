@@ -1,8 +1,8 @@
-import { Group, GroupType } from "@/types/groups";
+import { Group } from "@/types/groups";
 import DeleteOutlined from "@ant-design/icons/lib/icons/DeleteOutlined";
 import type { ProColumns } from "@ant-design/pro-components";
 import { Popconfirm, Tag, Button } from "antd";
-
+import { history } from "@umijs/max";
 /** Table columns of the Users page, kept apart so index.tsx stays short. */
 export const getColumns = (
   groupTypeOptions: { label: string; value: number }[],
@@ -43,6 +43,13 @@ export const getColumns = (
     title: "Actions",
     valueType: "option",
     render: (_, record) => [
+      <Button
+        key="view"
+        type="link"
+        onClick={() => history.push(`groups/${record.id}`)}
+      >
+        View
+      </Button>,
       <Popconfirm
         key="delete"
         title="Delete this group?"
