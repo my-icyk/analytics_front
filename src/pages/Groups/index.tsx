@@ -12,13 +12,14 @@ import { PlusOutlined } from "@ant-design/icons";
 import CreateGroupModal from "./CreateGroupModal";
 import { useRequest } from "ahooks";
 import { getDivisions } from "@/services/divisions";
+import { PERMISSIONS } from "../../../config/permissions";
 
 export default function GroupsPage() {
   const [createOpen, setCreateOpen] = useState(false);
 
   const access = useAccess();
 
-  const canDeleteGroup = access["finance:group:delete"];
+  const canDeleteGroup = access[PERMISSIONS.FINANCE.GROUP.DELETE];
 
   const actionRef = useRef<ActionType>();
 
