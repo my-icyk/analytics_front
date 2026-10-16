@@ -77,6 +77,7 @@ export default [
         path: "departments",
         name: "Departments",
         access: PERMISSIONS.FINANCE.DEPARTMENT.READ,
+        component: "./Departments",
       },
       {
         path: "rules",

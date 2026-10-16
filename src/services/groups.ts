@@ -13,6 +13,14 @@ export function fetchGroups(params: fetchGroupsParams) {
   return request<PageResult<Group>>(`${BASE}`, { params });
 }
 
+export function getDepartments() {
+  return request<Department[]>(`${BASE}/departments`, {
+    method: "GET",
+  });
+}
+
+import type { Department } from "@/types/deparments";
+
 export function deleteGroup(id: number) {
   return request(`${BASE}/${id}`, {
     method: "DELETE",
