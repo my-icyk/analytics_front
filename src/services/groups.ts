@@ -9,6 +9,7 @@ import {
   GroupType,
   GroupUpdate,
 } from "@/types/groups";
+import type { Department, Repartition } from "@/types/departments";
 
 const BASE = "/api/v1/finance/groups";
 
@@ -28,7 +29,9 @@ export function getDepartments() {
   });
 }
 
-import type { Department, Repartition } from "@/types/departments";
+export function lookupDepartments(search: string) {
+  return request(`${BASE}/departments/lookup?search=${search}`);
+}
 
 export function deleteGroup(id: number) {
   return request(`${BASE}/${id}`, {
