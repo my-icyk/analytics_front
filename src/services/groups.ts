@@ -7,6 +7,7 @@ import {
   Group,
   GroupCreate,
   GroupType,
+  GroupUpdate,
 } from "@/types/groups";
 
 const BASE = "/api/v1/finance/groups";
@@ -38,6 +39,13 @@ export function deleteGroup(id: number) {
 export function createGroup(data: GroupCreate) {
   return request(`${BASE}`, {
     method: "POST",
+    data,
+  });
+}
+
+export function updateGroup(id: number, data: GroupUpdate) {
+  return request(`${BASE}/${id}`, {
+    method: "PUT",
     data,
   });
 }
