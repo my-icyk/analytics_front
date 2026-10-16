@@ -29,3 +29,30 @@ export const dateSorterNullAsMax =
   (a: T, b: T): number =>
     (toTime(a[key] as DateLike) ?? Infinity) -
     (toTime(b[key] as DateLike) ?? Infinity);
+
+export const boolSorter =
+  <T>(key: keyof T) =>
+  (a: T, b: T): number =>
+    Number(Boolean(a[key])) - Number(Boolean(b[key]));
+
+type NumberLike = number | string | null | undefined;
+
+const toNumber = (value: NumberLike): number | null => {
+  if (value == null || value === "") return null;
+  const n = Number(value);
+  return Number.isNaN(n) ? null : n;
+};
+
+/** Sort by a numeric field. Empty values always stay at the bottom. */
+export const numberSorter =
+  <T>(key: keyof T) =>
+  (a: T, b: T, sortOrder?: SortOrder): number => {
+    const na = toNumber(a[key] as NumberLike);
+    const nb = toNumber(b[key] as NumberLike);
+
+    if (na === null && nb === null) return 0;
+    if (na === null) return sortOrder === "descend" ? -1 : 1;
+    if (nb === null) return sortOrder === "descend" ? 1 : -1;
+
+    return na - nb;
+  };
