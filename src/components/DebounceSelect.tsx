@@ -1,80 +1,109 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Avatar, Select, Spin } from "antd";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Empty, Select, Spin } from "antd";
 import type { SelectProps } from "antd";
+import type { DefaultOptionType, LabeledValue } from "antd/es/select";
 import debounce from "lodash/debounce";
 
-export interface DebounceSelectProps<ValueType = unknown> extends Omit<
-  SelectProps<ValueType>,
-  "options" | "children" | "onSearch" | "showSearch"
+type RemoteValue = LabeledValue | LabeledValue[];
+
+export interface DebounceSelectProps<
+  TOption extends DefaultOptionType = DefaultOptionType,
+> extends Omit<
+  SelectProps<RemoteValue, TOption>,
+  | "options"
+  | "children"
+  | "onSearch"
+  | "showSearch"
+  | "labelInValue"
+  | "filterOption"
 > {
-  fetchOptions: (search: string) => Promise<ValueType[]>;
+  /** Receives the search text and an AbortSignal you can pass to fetch/axios. */
+  fetchOptions: (search: string, signal: AbortSignal) => Promise<TOption[]>;
   debounceTimeout?: number;
+  onFetchError?: (error: unknown) => void;
 }
 
 export function DebounceSelect<
-  ValueType extends {
-    key?: string;
-    label: React.ReactNode;
-    value: string | number;
-  } = any,
+  TOption extends DefaultOptionType = DefaultOptionType,
 >({
   fetchOptions,
   debounceTimeout = 300,
-  ...props
-}: DebounceSelectProps<ValueType>) {
+  onFetchError,
+  onOpenChange,
+  notFoundContent,
+  ...rest
+}: DebounceSelectProps<TOption>) {
+  const [options, setOptions] = useState<TOption[]>([]);
   const [fetching, setFetching] = useState(false);
-  const [options, setOptions] = useState<ValueType[]>([]);
-  const fetchRef = useRef(0);
 
-  const debounceFetcher = useMemo(() => {
-    const loadOptions = async (search: string) => {
-      const fetchId = ++fetchRef.current;
+  const abortRef = useRef<AbortController | null>(null);
+  const hasLoadedRef = useRef(false);
 
-      setFetching(true);
-
-      try {
-        const results = await fetchOptions(search);
-
-        if (fetchId === fetchRef.current) {
-          setOptions(results);
-        }
-      } catch (error) {
-        if (fetchId === fetchRef.current) {
-          setOptions([]);
-        }
-        console.error("Failed to fetch select options:", error);
-      } finally {
-        if (fetchId === fetchRef.current) {
-          setFetching(false);
-        }
-      }
-    };
-
-    return debounce(loadOptions, debounceTimeout);
-  }, [fetchOptions, debounceTimeout]);
-
+  // "Latest ref" pattern: the debouncer stays stable even if the parent
+  // passes an inline function.
+  const fetchOptionsRef = useRef(fetchOptions);
+  const onErrorRef = useRef(onFetchError);
   useEffect(() => {
-    return () => {
-      debounceFetcher.cancel();
-      fetchRef.current += 1;
-    };
-  }, [debounceFetcher]);
+    fetchOptionsRef.current = fetchOptions;
+    onErrorRef.current = onFetchError;
+  });
+
+  const load = useCallback(async (search: string) => {
+    abortRef.current?.abort(); // cancel the previous in-flight request
+    const controller = new AbortController();
+    abortRef.current = controller;
+    hasLoadedRef.current = true;
+    setFetching(true);
+
+    try {
+      const results = await fetchOptionsRef.current(search, controller.signal);
+      if (!controller.signal.aborted) setOptions(results);
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      setOptions([]);
+      onErrorRef.current?.(error);
+    } finally {
+      if (abortRef.current === controller) setFetching(false);
+    }
+  }, []);
+
+  const debouncedLoad = useMemo(
+    () => debounce(load, debounceTimeout),
+    [load, debounceTimeout],
+  );
+
+  useEffect(
+    () => () => {
+      debouncedLoad.cancel();
+      abortRef.current?.abort();
+      abortRef.current = null; // prevents setState after unmount
+    },
+    [debouncedLoad],
+  );
+
+  const handleOpenChange = (open: boolean) => {
+    if (open && !hasLoadedRef.current) void load(""); // first open: load immediately
+    onOpenChange?.(open); // don't swallow the consumer's handler
+  };
 
   return (
-    <Select
-      {...props}
+    <Select<RemoteValue, TOption>
+      notFoundContent={
+        notFoundContent ??
+        (fetching ? (
+          <Spin size="small" />
+        ) : (
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        ))
+      }
+      {...rest}
       labelInValue
       showSearch
       filterOption={false}
-      onSearch={debounceFetcher}
-      notFoundContent={fetching ? <Spin size="small" /> : "No results found"}
+      loading={fetching}
       options={options}
-      onOpenChange={(open) => {
-        if (open && options.length === 0 && !fetching) {
-          debounceFetcher("");
-        }
-      }}
-      optionRender={(option) => <div>{option.label}</div>}
+      onSearch={debouncedLoad}
+      onOpenChange={handleOpenChange}
     />
   );
 }
