@@ -10,6 +10,7 @@ import {
   GroupUpdate,
 } from "@/types/groups";
 import type { Department, Repartition } from "@/types/departments";
+import { LookupOption } from "@/types/common";
 
 const BASE = "/api/v1/finance/groups";
 
@@ -30,7 +31,7 @@ export function getDepartments() {
 }
 
 export function lookupDepartments(search: string) {
-  return request(`${BASE}/departments/lookup?search=${search}`);
+  return request<LookupOption[]>(`${BASE}/departments/lookup?search=${search}`);
 }
 
 export function deleteGroup(id: number) {
