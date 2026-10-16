@@ -1,5 +1,7 @@
 import { request } from "@umijs/max";
 import type { PageResult } from "@/types/api";
+import type { Rule } from "@/services/rules";
+
 import {
   fetchGroupsParams,
   Group,
@@ -25,7 +27,7 @@ export function getDepartments() {
   });
 }
 
-import type { Department } from "@/types/deparments";
+import type { Department, Repartition } from "@/types/deparments";
 
 export function deleteGroup(id: number) {
   return request(`${BASE}/${id}`, {
@@ -42,6 +44,18 @@ export function createGroup(data: GroupCreate) {
 
 export function getGroupTypes() {
   return request<GroupType[]>(`${BASE}/types`, {
+    method: "GET",
+  });
+}
+
+export function getRepartitions(id: number) {
+  return request<Repartition[]>(`${BASE}/${id}/repartitions`, {
+    method: "GET",
+  });
+}
+
+export function getRules(id: number) {
+  return request<Rule[]>(`${BASE}/${id}/rules`, {
     method: "GET",
   });
 }
