@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ProTable } from "@ant-design/pro-components";
 import { useMemo } from "react";
 
-import { getColumns } from "./colomns";
+import { getColumns } from "./columns";
 import { Rule } from "@/types/rules";
 import { getRules } from "@/services/groups";
 
