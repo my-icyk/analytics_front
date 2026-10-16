@@ -2,7 +2,7 @@ import { Button, List, Modal, Popconfirm, Select, message } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
 import debounce from "lodash/debounce";
 
-import { usersLookup } from "@/services/users";
+import { lookupUsers } from "@/services/users";
 import { getUserRoles, addUserRole, removeUserRole } from "@/services/users";
 
 type User = { id: number; username: string };
@@ -28,7 +28,7 @@ export default function UsersList({ roleId }: { roleId: number }) {
     const id = ++requestId.current;
     setLoading(true);
     try {
-      const users = await usersLookup(text || undefined);
+      const users = await lookupUsers(text || undefined);
       if (id !== requestId.current) return;
       setOptions(users.map((u) => ({ label: u.username, value: u.id })));
     } finally {

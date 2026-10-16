@@ -49,7 +49,7 @@ export function removeUserRole(user_id: number, role_id: number) {
     method: "DELETE",
   });
 }
-export function usersLookup(search?: string) {
+export function lookupUsers(search?: string) {
   return request<LookupOption[]>("/api/v1/users/lookup", {
     params: { search },
   });
