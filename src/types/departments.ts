@@ -7,12 +7,10 @@ export type Department = {
 
 export type Repartition = {
   id: number;
-  department_id: number;
-  department_code: string;
-  department_name: string;
-  group_id: number;
+  department: string;
   valid_from: string;
   valid_to: string;
+  is_active: boolean;
 };
 
 export type RepartitionCreate = Omit<Repartition, "id">;
