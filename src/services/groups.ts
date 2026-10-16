@@ -30,6 +30,10 @@ export function getDepartments() {
   });
 }
 
+export function lookupGroups(search: string) {
+  return request<LookupOption[]>(`${BASE}/lookup?search=${search}`);
+}
+
 export function lookupDepartments(search: string) {
   return request<LookupOption[]>(`${BASE}/departments/lookup?search=${search}`);
 }

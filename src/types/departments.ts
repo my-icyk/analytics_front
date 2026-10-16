@@ -13,5 +13,17 @@ export type Repartition = {
   is_active: boolean;
 };
 
-export type RepartitionCreate = Omit<Repartition, "id">;
-export type RepartitionUpdate = Repartition;
+export type RepartitionCreate = {
+  department_id: number;
+  group_id: number;
+  valid_from: string;
+  valid_to: string;
+};
+
+export type RepartitionUpdate = {
+  id: number;
+  department_id: number;
+  group_id: number;
+  valid_from: string;
+  valid_to: string;
+};
