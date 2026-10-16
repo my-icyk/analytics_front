@@ -1,11 +1,13 @@
+import { Form, Input, Modal, Select } from "antd";
+import { useCallback, useEffect } from "react";
+import { lookupDivisions } from "@/services/divisions";
 
-import { Form, Input, Modal, Select } from 'antd';
-import { useEffect } from 'react';
-
-import type { GroupCreate } from '@/types/groups';
-import { createGroup } from '@/services/groups';
+import type { GroupCreate } from "@/types/groups";
+import { createGroup } from "@/services/groups";
+import { DebounceSelect } from "@/components/DebounceSelect";
 
 type Props = {
+  types: { label: string; value: number }[];
   open: boolean;
   onCancel: () => void;
   onSuccess: () => void;
@@ -15,8 +17,14 @@ export default function CreateGroupModal({
   open,
   onCancel,
   onSuccess,
+  types,
 }: Props) {
   const [form] = Form.useForm<GroupCreate>();
+
+  const loadDivisions = useCallback(
+    (search: string) => lookupDivisions(search),
+    [],
+  );
 
   useEffect(() => {
     if (open) {
@@ -43,7 +51,7 @@ export default function CreateGroupModal({
         <Form.Item
           name="name"
           label="Group Name"
-          rules={[{ required: true, message: 'Enter a group name' }]}
+          rules={[{ required: true, message: "Enter a group name" }]}
         >
           <Input />
         </Form.Item>
@@ -51,23 +59,27 @@ export default function CreateGroupModal({
         <Form.Item
           name="division_id"
           label="Division"
-          rules={[{ required: true, message: 'Select a division' }]}
+          rules={[{ required: true, message: "Select a division" }]}
+          // form stores only the number...
+          normalize={(option?: { value: number }) => option?.value}
+          // ...while the select still receives { label, value }
+          getValueProps={(id?: number) => ({
+            value: id == null ? undefined : { value: id },
+          })}
         >
-          <Select
+          <DebounceSelect
+            allowClear
             placeholder="Select a division"
-            options={[]}
+            fetchOptions={loadDivisions}
           />
         </Form.Item>
 
         <Form.Item
           name="group_type_id"
           label="Group Type"
-          rules={[{ required: true, message: 'Select a group type' }]}
+          rules={[{ required: true, message: "Select a group type" }]}
         >
-          <Select
-            placeholder="Select a group type"
-            options={[]}
-          />
+          <Select placeholder="Select a group type" options={types} />
         </Form.Item>
       </Form>
     </Modal>
