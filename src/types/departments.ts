@@ -16,7 +16,6 @@ export type Repartition = {
 
 export type RepartitionCreate = {
   department_id: number;
-  group_id: number;
   valid_from: string;
   valid_to: string | null;
 };
@@ -24,7 +23,6 @@ export type RepartitionCreate = {
 export type RepartitionUpdate = {
   id: number;
   department_id: number;
-  group_id: number;
   valid_from: string;
   valid_to: string | null;
 };
