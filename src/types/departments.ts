@@ -7,9 +7,10 @@ export type Department = {
 
 export type Repartition = {
   id: number;
-  department: string;
+  department_id: number;
+  department_name: string;
   valid_from: string;
-  valid_to: string;
+  valid_to: string | null;
   is_active: boolean;
 };
 
@@ -17,7 +18,7 @@ export type RepartitionCreate = {
   department_id: number;
   group_id: number;
   valid_from: string;
-  valid_to: string;
+  valid_to: string | null;
 };
 
 export type RepartitionUpdate = {
@@ -25,5 +26,5 @@ export type RepartitionUpdate = {
   department_id: number;
   group_id: number;
   valid_from: string;
-  valid_to: string;
+  valid_to: string | null;
 };
