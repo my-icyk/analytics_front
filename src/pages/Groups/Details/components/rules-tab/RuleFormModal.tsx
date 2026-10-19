@@ -12,13 +12,15 @@ import type { Rule, RuleCreate } from "@/types/rules";
 type Props = {
   open: boolean;
   initialValues?: Rule; // undefined = create mode
+  saving?: boolean;
   onCancel: () => void;
-  onSubmit: (values: RuleCreate) => Promise<void>;
+  onSubmit: (values: RuleCreate) => Promise<unknown>;
 };
 
 export default function RuleFormModal({
   open,
   initialValues,
+  saving,
   onCancel,
   onSubmit,
 }: Props) {
@@ -28,6 +30,7 @@ export default function RuleFormModal({
       width="min(400px, 95vw)"
       open={open}
       modalProps={{ destroyOnClose: true, onCancel }}
+      submitter={{ submitButtonProps: { loading: saving } }}
       initialValues={
         initialValues
           ? {

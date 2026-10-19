@@ -1,14 +1,19 @@
-import { getRules } from "@/services/groups";
-import { useLocalFilter } from "@/hooks/useLocalFilter";
-import { deleteRule, updateRule, createRule } from "@/services/groups";
-import { useEditModal } from "@/hooks/useEditModal";
-import { Rule, RuleCreate } from "@/types/rules";
-import { EntityTable } from "@/components/EntityTable";
-import RuleFormModal from "./RuleFormModal";
-import { getColumns } from "./columns";
+import { useMemo } from "react";
 import { message } from "antd";
 import { useRequest } from "ahooks";
-import { useMemo } from "react";
+
+import {
+  getRules,
+  createRule,
+  updateRule,
+  deleteRule,
+} from "@/services/groups";
+import { useLocalFilter } from "@/hooks/useLocalFilter";
+import { useEditModal } from "@/hooks/useEditModal";
+import { EntityTable } from "@/components/EntityTable";
+import type { Rule, RuleCreate } from "@/types/rules";
+import RuleFormModal from "./RuleFormModal";
+import { getColumns } from "./columns";
 
 export default function RulesTab({ groupId }: { groupId: number }) {
   const {
@@ -35,7 +40,7 @@ export default function RulesTab({ groupId }: { groupId: number }) {
     },
   );
 
-  const { runAsync: saveRule } = useRequest(
+  const { runAsync: saveRule, loading: saving } = useRequest(
     (payload: RuleCreate) =>
       modal.record
         ? updateRule(groupId, modal.record.id, payload)
@@ -58,7 +63,7 @@ export default function RulesTab({ groupId }: { groupId: number }) {
 
   return (
     <>
-      <EntityTable
+      <EntityTable<Rule>
         columns={columns}
         data={rows}
         loading={loading}
@@ -70,6 +75,7 @@ export default function RulesTab({ groupId }: { groupId: number }) {
       <RuleFormModal
         open={modal.open}
         initialValues={modal.record}
+        saving={saving}
         onCancel={modal.close}
         onSubmit={saveRule}
       />
