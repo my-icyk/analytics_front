@@ -1,54 +1,26 @@
 // RepartitionModal.tsx
-import { useEffect, useState } from "react";
-import { DatePicker, Form, Modal } from "antd";
-import type { LabeledValue } from "antd/es/select";
-import dayjs, { type Dayjs } from "dayjs";
-
-import { DebounceSelect } from "@/components/DebounceSelect";
-import { lookupDepartments, lookupGroups } from "@/services/groups";
+import {
+  ModalForm,
+  ProFormDatePicker,
+  ProFormDependency,
+  ProFormSelect,
+} from "@ant-design/pro-components";
+import type { Dayjs } from "dayjs";
+import { lookupDepartments } from "@/services/groups";
 import type { RepartitionCreate, RepartitionUpdate } from "@/types/departments";
+import { Rule } from "antd/es/form";
 
-const DATE_FORMAT = "YYYY-MM-DD";
-
-/** Existing record, with labels so the selects can display names instead of ids. */
+/** Existing record, with the label so the select shows a name instead of an id. */
 export type RepartitionInitialValues = RepartitionUpdate & {
   department_name?: string;
 };
-
-interface FormValues {
-  department: LabeledValue;
-  period: [Dayjs, Dayjs | null];
-}
 
 export interface RepartitionModalProps {
   open: boolean;
   initialValues?: RepartitionInitialValues;
   onCancel: () => void;
-  /** Reject to keep the modal open. The caller is responsible for showing the error. */
+  /** Reject to keep the modal open. The caller shows the error. */
   onSubmit: (payload: RepartitionCreate | RepartitionUpdate) => Promise<void>;
-}
-
-function toFormValues(record: RepartitionInitialValues): FormValues {
-  return {
-    department: {
-      value: record.department_id,
-      label: record.department_name ?? record.department_id,
-    },
-    period: [
-      dayjs(record.valid_from),
-      record.valid_to ? dayjs(record.valid_to) : null,
-    ],
-  };
-}
-
-function toPayload(values: FormValues): RepartitionCreate {
-  const [from, to] = values.period;
-
-  return {
-    department_id: Number(values.department.value),
-    valid_from: from.format(DATE_FORMAT),
-    valid_to: to ? to.format(DATE_FORMAT) : null,
-  };
 }
 
 export function RepartitionModal({
@@ -57,82 +29,77 @@ export function RepartitionModal({
   onCancel,
   onSubmit,
 }: RepartitionModalProps) {
-  const [form] = Form.useForm<FormValues>();
-  const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-
-    form.resetFields(); // clear anything left from the previous open
-    if (initialValues) {
-      form.setFieldsValue(toFormValues(initialValues));
-    }
-  }, [open, initialValues, form]);
-
-  const handleOk = async () => {
-    let values: FormValues;
-
-    try {
-      values = await form.validateFields();
-    } catch {
-      return; // validation errors are already shown on the fields
-    }
-
-    const base = toPayload(values);
-
-    setSubmitting(true);
-    try {
-      await onSubmit(initialValues ? { id: initialValues.id, ...base } : base);
-    } catch {
-      // The parent reports the error and rejects to keep the modal open.
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const isEdit = !!initialValues;
 
   return (
-    <Modal
-      title={initialValues ? "Edit repartition" : "Create repartition"}
+    <ModalForm<RepartitionCreate>
+      title={isEdit ? "Edit repartition" : "Create repartition"}
+      width={400}
       open={open}
-      okText={initialValues ? "Save" : "Create"}
-      confirmLoading={submitting}
-      onOk={handleOk}
-      onCancel={onCancel}
-      maskClosable={!submitting}
-      keyboard={!submitting}
-      destroyOnHidden
+      layout="vertical"
+      requiredMark="optional"
+      modalProps={{ destroyOnHidden: true, onCancel }}
+      submitter={{ searchConfig: { submitText: isEdit ? "Save" : "Create" } }}
+      initialValues={
+        initialValues && {
+          ...initialValues,
+          department: {
+            value: initialValues.department_id,
+            label: initialValues.department_name ?? initialValues.department_id,
+          },
+        }
+      }
+      onFinish={async (values) => {
+        try {
+          await onSubmit(isEdit ? { id: initialValues.id, ...values } : values);
+          return true; // close
+        } catch {
+          return false; // keep open, the parent already showed the error
+        }
+      }}
     >
-      <Form<FormValues>
-        form={form}
-        layout="vertical"
+      <ProFormSelect
+        name="department"
+        label="Department"
+        placeholder="Search department"
+        showSearch
+        allowClear
+        debounceTime={300}
+        request={({ keyWords }) => lookupDepartments(keyWords ?? "")}
+        fieldProps={{ labelInValue: true }}
+        // form holds { value, label }, the API gets department_id
+        transform={(v) => ({ department_id: Number(v.value) })}
+        rules={[{ required: true, message: "Select a department" }]}
+      />
 
-        requiredMark="optional"
-        disabled={submitting}
-      >
-        <Form.Item
-          name="department"
-          label="Department"
-          rules={[{ required: true, message: "Select a department" }]}
-        >
-          <DebounceSelect
-            fetchOptions={lookupDepartments}
-            placeholder="Search department"
-            allowClear
-          />
-        </Form.Item>
+      <ProFormDatePicker
+        name="valid_from"
+        label="Valid from"
+        width="100%"
+        rules={[{ required: true, message: "Select the start date" }]}
+        fieldProps={{
+          format: "DD.MM.YYYY",
+        }}
+      />
 
-        <Form.Item
-          name="period"
-          label="Valid period"
-          rules={[{ required: true, message: "Select the valid period" }]}
-        >
-          <DatePicker.RangePicker
-            style={{ width: "100%" }}
-            format={DATE_FORMAT}
-            allowEmpty={[false, true]}
+      <ProFormDependency name={["valid_from"]}>
+        {({ valid_from }: { valid_from?: Dayjs }) => (
+          <ProFormDatePicker
+            name="valid_to"
+            label="Valid until (optional)"
+            tooltip="Leave empty for no end date"
+            width="100%"
+            fieldProps={{
+              disabledDate: (d: Dayjs) =>
+                !!valid_from && d.isBefore(valid_from, "day"),
+              format: "DD.MM.YYYY",
+            }}
+            transform={(v: string | undefined) => ({
+              valid_to: v ?? null,
+            })}
           />
-        </Form.Item>
-      </Form>
-    </Modal>
+        )}
+      </ProFormDependency>
+    </ModalForm>
   );
 }
