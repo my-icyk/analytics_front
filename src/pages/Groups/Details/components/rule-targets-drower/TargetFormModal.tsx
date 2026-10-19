@@ -44,12 +44,12 @@ export default function TargetFormModal({
             }
           : {}
       }
-      onFinish={async (values) => {
+      onFinish={async ({ group_id, allocation_type, percent_value }) => {
         try {
-          await onSubmit(values);
-          return true; // close
+          await onSubmit({ group_id, allocation_type, percent_value });
+          return true;
         } catch {
-          return false; // keep open, the page already showed the error
+          return false;
         }
       }}
     >

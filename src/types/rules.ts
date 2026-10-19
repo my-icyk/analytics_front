@@ -43,5 +43,9 @@ export type Target = TargetBase & {
   group_name: string;
 };
 
-export type TargetCreate = TargetBase;
-export type TargetUpdate = Partial<TargetBase>;
+export type TargetCreate = {
+  group_id: number;
+  allocation_type: AllocationType;
+  percent_value: number;
+};
+export type TargetUpdate = TargetCreate;
