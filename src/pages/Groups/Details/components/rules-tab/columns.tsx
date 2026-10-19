@@ -1,5 +1,11 @@
 import { Rule } from "@/types/rules";
 import { ProColumns } from "@ant-design/pro-components";
+import {
+  stringSorter,
+  numberSorter,
+  dateSorterNullAsMax,
+  dateSorter,
+} from "@/utils/sorters";
 
 export const getColumns = (): ProColumns<Rule>[] => [
   {
@@ -7,23 +13,14 @@ export const getColumns = (): ProColumns<Rule>[] => [
     dataIndex: "id",
     key: "id",
     search: false,
-    sorter: (a, b) => a.id - b.id,
+    sorter: numberSorter<Rule>("id"),
   },
   {
     title: "Name",
     dataIndex: "name",
     key: "name",
     search: true,
-    sorter: (a, b) => a.name.localeCompare(b.name),
-    valueType: "text",
-  },
-
-  {
-    title: "Group",
-    dataIndex: "group_name",
-    key: "group_name",
-    search: true,
-    sorter: (a, b) => a.group_name.localeCompare(b.group_name),
+    sorter: stringSorter<Rule>("name"),
     valueType: "text",
   },
 
@@ -32,8 +29,7 @@ export const getColumns = (): ProColumns<Rule>[] => [
     dataIndex: "valid_from",
     key: "valid_from",
     search: false,
-    sorter: (a, b) =>
-      new Date(a.valid_from).getTime() - new Date(b.valid_from).getTime(),
+    sorter: dateSorter<Rule>("valid_from"),
     valueType: "date",
   },
   {
@@ -41,8 +37,7 @@ export const getColumns = (): ProColumns<Rule>[] => [
     dataIndex: "valid_to",
     key: "valid_to",
     search: false,
-    sorter: (a, b) =>
-      new Date(a.valid_to).getTime() - new Date(b.valid_to).getTime(),
+    sorter: dateSorterNullAsMax<Rule>("valid_to"),
     valueType: "date",
   },
 ];
