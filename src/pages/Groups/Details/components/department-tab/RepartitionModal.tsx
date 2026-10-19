@@ -1,60 +1,59 @@
-// RepartitionModal.tsx
 import {
   ModalForm,
   ProFormDatePicker,
   ProFormDependency,
   ProFormSelect,
 } from "@ant-design/pro-components";
+import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
 import { lookupDepartments } from "@/services/groups";
-import type { RepartitionCreate, RepartitionUpdate } from "@/types/departments";
-import { Rule } from "antd/es/form";
+import type { Repartition, RepartitionCreate } from "@/types/departments";
 
-/** Existing record, with the label so the select shows a name instead of an id. */
-export type RepartitionInitialValues = RepartitionUpdate & {
-  department_name?: string;
-};
-
-export interface RepartitionModalProps {
+type Props = {
   open: boolean;
-  initialValues?: RepartitionInitialValues;
+  initialValues?: Repartition; // undefined = create mode
+  saving?: boolean;
   onCancel: () => void;
-  /** Reject to keep the modal open. The caller shows the error. */
-  onSubmit: (payload: RepartitionCreate | RepartitionUpdate) => Promise<void>;
-}
+  onSubmit: (values: RepartitionCreate) => Promise<unknown>;
+};
 
 export function RepartitionModal({
   open,
   initialValues,
+  saving,
   onCancel,
   onSubmit,
-}: RepartitionModalProps) {
-  const isEdit = !!initialValues;
-
+}: Props) {
   return (
     <ModalForm<RepartitionCreate>
-      title={isEdit ? "Edit repartition" : "Create repartition"}
-      width={400}
+      title={initialValues ? "Edit repartition" : "Create repartition"}
+      width="min(400px, 95vw)"
       open={open}
       layout="vertical"
       requiredMark="optional"
       modalProps={{ destroyOnHidden: true, onCancel }}
-      submitter={{ searchConfig: { submitText: isEdit ? "Save" : "Create" } }}
+      submitter={{ submitButtonProps: { loading: saving } }}
       initialValues={
-        initialValues && {
-          ...initialValues,
-          department: {
-            value: initialValues.department_id,
-            label: initialValues.department_name ?? initialValues.department_id,
-          },
-        }
+        initialValues
+          ? {
+              // labelInValue: the select shows a name instead of an id
+              department: {
+                value: initialValues.department_id,
+                label: initialValues.department_name,
+              },
+              valid_from: dayjs(initialValues.valid_from),
+              valid_to: initialValues.valid_to
+                ? dayjs(initialValues.valid_to)
+                : undefined,
+            }
+          : {}
       }
       onFinish={async (values) => {
         try {
-          await onSubmit(isEdit ? { id: initialValues.id, ...values } : values);
+          await onSubmit(values);
           return true; // close
         } catch {
-          return false; // keep open, the parent already showed the error
+          return false; // keep open, the page already showed the error
         }
       }}
     >
@@ -77,9 +76,6 @@ export function RepartitionModal({
         label="Valid from"
         width="100%"
         rules={[{ required: true, message: "Select the start date" }]}
-        fieldProps={{
-          format: "DD.MM.YYYY",
-        }}
       />
 
       <ProFormDependency name={["valid_from"]}>
@@ -92,7 +88,6 @@ export function RepartitionModal({
             fieldProps={{
               disabledDate: (d: Dayjs) =>
                 !!valid_from && d.isBefore(valid_from, "day"),
-              format: "DD.MM.YYYY",
             }}
             transform={(v: string | undefined) => ({
               valid_to: v ?? null,

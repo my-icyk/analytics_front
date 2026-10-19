@@ -16,7 +16,7 @@ export function createRepartition(
 export function updateRepartition(
   group_id: number,
   repartition_id: number,
-  payload: RepartitionUpdate,
+  payload: RepartitionCreate,
 ) {
   return request(`${BASE}/${group_id}/repartitions/${repartition_id}`, {
     method: "PUT",
