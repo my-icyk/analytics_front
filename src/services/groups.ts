@@ -1,6 +1,13 @@
 import { request } from "@umijs/max";
 import type { PageResult } from "@/types/api";
-import type { Rule, RuleCreate, RuleUpdate } from "@/types/rules";
+import type {
+  Rule,
+  RuleCreate,
+  RuleUpdate,
+  Target,
+  TargetCreate,
+  TargetUpdate,
+} from "@/types/rules";
 
 import {
   fetchGroupsParams,
@@ -94,4 +101,39 @@ export function deleteRule(groupId: number, ruleId: number) {
   return request(`${BASE}/${groupId}/rules/${ruleId}`, {
     method: "DELETE",
   });
+}
+
+const url = (groupId: number, ruleId: number, targetId?: number) =>
+  `${BASE}/${groupId}/rules/${ruleId}/targets${targetId ? `/${targetId}` : ""}`;
+
+export function getTargets(groupId: number, ruleId: number) {
+  return request<Target[]>(url(groupId, ruleId), { method: "GET" });
+}
+
+export function createTarget(
+  groupId: number,
+  ruleId: number,
+  data: TargetCreate,
+) {
+  return request<Target>(url(groupId, ruleId), { method: "POST", data });
+}
+
+export function updateTarget(
+  groupId: number,
+  ruleId: number,
+  targetId: number,
+  data: TargetUpdate,
+) {
+  return request<Target>(url(groupId, ruleId, targetId), {
+    method: "PUT",
+    data,
+  });
+}
+
+export function deleteTarget(
+  groupId: number,
+  ruleId: number,
+  targetId: number,
+) {
+  return request(url(groupId, ruleId, targetId), { method: "DELETE" });
 }
