@@ -28,8 +28,11 @@ export function getColumns({
     {
       title: "Department",
       dataIndex: "department_name",
+      search: true,
       valueType: "text",
       sorter: stringSorter<Repartition>("department_name"),
+      render: (_, record) =>
+        `${record.department_name} (${record.department_id})`,
     },
     {
       title: "Valid From",
