@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { ProTable } from "@ant-design/pro-components";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 
 import { getColumns } from "./columns";
 import { Rule } from "@/types/rules";
 import { getRules } from "@/services/groups";
+import { Button } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import RuleFormModal from "./RuleFormModal";
 
 type RulesTabProps = {
   groupId: number;
@@ -14,6 +17,9 @@ export default function RulesTab(props: RulesTabProps) {
   const [rules, setRules] = useState<Rule[]>([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<Partial<Rule>>({});
+
+  const [modal, setModal] = useState({ open: false });
+  const openCreate = useCallback(() => setModal({ open: true }), []);
 
   const filteredRules = useMemo(() => {
     return rules.filter((rule) => {
@@ -60,27 +66,49 @@ export default function RulesTab(props: RulesTabProps) {
   }, []);
 
   return (
-    <ProTable<Rule>
-      rowKey="id"
-      columns={getColumns()}
-      dataSource={filteredRules}
-      loading={loading}
-      search={{
-        labelWidth: "auto",
-        searchText: "Filter",
-        resetText: "Reset",
-      }}
-      onSubmit={(params) => {
-        setFilters(params);
-      }}
-      onReset={() => {
-        setFilters({});
-      }}
-      pagination={{
-        defaultPageSize: 10,
-        showSizeChanger: false,
-        showTotal: (total) => `Total ${total} items`,
-      }}
-    />
+    <>
+      <ProTable<Rule>
+        rowKey="id"
+        columns={getColumns()}
+        dataSource={filteredRules}
+        loading={loading}
+        toolBarRender={() => [
+          <Button
+            key="create"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={openCreate}
+          >
+            New rule
+          </Button>,
+        ]}
+        search={{
+          labelWidth: "auto",
+          searchText: "Filter",
+          resetText: "Reset",
+        }}
+        onSubmit={(params) => {
+          setFilters(params);
+        }}
+        onReset={() => {
+          setFilters({});
+        }}
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: false,
+          showTotal: (total) => `Total ${total} items`,
+        }}
+      />
+      <RuleFormModal
+        groupId={props.groupId}
+        open={modal.open}
+        onCancel={() => setModal({ open: false })}
+        onSuccess={() => {
+          setModal({ open: false });
+          // Reload rules after successful creation or update
+          getRules(props.groupId).then(setRules).catch(console.error);
+        }}
+      />
+    </>
   );
 }
