@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { message } from "antd";
+import { useState } from "react";
 import { useRequest } from "ahooks";
 
 import {
@@ -14,6 +15,7 @@ import { EntityTable } from "@/components/EntityTable";
 import type { Rule, RuleCreate } from "@/types/rules";
 import RuleFormModal from "./RuleFormModal";
 import { getColumns } from "./columns";
+import TargetsDrawer from "../rule-targets-drower/TargetDrawer";
 
 export default function RulesTab({ groupId }: { groupId: number }) {
   const {
@@ -27,7 +29,7 @@ export default function RulesTab({ groupId }: { groupId: number }) {
 
   const { rows, setFilters, resetFilters } = useLocalFilter(rules);
   const modal = useEditModal<Rule>();
-
+  const [targetsRule, setTargetsRule] = useState<Rule>();
   const { run: removeRule } = useRequest(
     (id: number) => deleteRule(groupId, id),
     {
@@ -57,7 +59,7 @@ export default function RulesTab({ groupId }: { groupId: number }) {
   );
 
   const columns = useMemo(
-    () => getColumns(modal.openEdit, removeRule),
+    () => getColumns(modal.openEdit, removeRule, setTargetsRule),
     [modal.openEdit, removeRule],
   );
 
@@ -78,6 +80,12 @@ export default function RulesTab({ groupId }: { groupId: number }) {
         saving={saving}
         onCancel={modal.close}
         onSubmit={saveRule}
+      />
+      <TargetsDrawer
+        open={!!targetsRule}
+        groupId={groupId}
+        rule={targetsRule}
+        onClose={() => setTargetsRule(undefined)}
       />
     </>
   );

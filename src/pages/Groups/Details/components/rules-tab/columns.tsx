@@ -7,13 +7,14 @@ import {
   dateSorter,
 } from "@/utils/sorters";
 import { Button, Tooltip } from "antd";
-import { EditOutlined } from "@ant-design/icons";
+import { ApartmentOutlined } from "@ant-design/icons";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
 import { EditActionButton } from "@/components/EditActionButton";
 
 export const getColumns = (
   onEdit: (record: Rule) => void,
   onDelete: (id: number) => void,
+  onOpenTargets: (record: Rule) => void,
 ): ProColumns<Rule>[] => [
   {
     title: "ID",
@@ -61,10 +62,19 @@ export const getColumns = (
     dataIndex: "actions",
     key: "actions",
     search: false,
-    width: 100,
+    width: 120,
     align: "right",
     fixed: "right",
     render: (_, record) => [
+      <Tooltip key="targets" title="Targets">
+        <Button
+          type="text"
+          size="small"
+          icon={<ApartmentOutlined />}
+          aria-label={`Targets of ${record.name}`}
+          onClick={() => onOpenTargets(record)}
+        />
+      </Tooltip>,
       <EditActionButton
         key="edit"
         itemLabel={record.name}
