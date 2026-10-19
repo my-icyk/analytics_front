@@ -6,8 +6,10 @@ import {
   dateSorterNullAsMax,
   dateSorter,
 } from "@/utils/sorters";
-import { Button } from "antd";
+import { Button, Tooltip } from "antd";
+import { EditOutlined } from "@ant-design/icons";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
+import { EditActionButton } from "@/components/EditActionButton";
 
 export const getColumns = (
   onEdit: (record: Rule) => void,
@@ -59,15 +61,16 @@ export const getColumns = (
     dataIndex: "actions",
     key: "actions",
     search: false,
+    width: 100,
+    align: "right",
+    fixed: "right",
     render: (_, record) => [
-      <Button
+      <EditActionButton
         key="edit"
-        type="text"
-        size="small"
+        itemLabel={record.name}
         onClick={() => onEdit(record)}
-      >
-        Edit
-      </Button>,
+      />,
+
       <DeleteActionButton
         key="delete"
         entityName="rule"

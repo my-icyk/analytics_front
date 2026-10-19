@@ -1,11 +1,10 @@
-import { Popconfirm, Button, type ButtonProps } from "antd";
+import { Popconfirm, Button, Tooltip, type ButtonProps } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 
 type DeleteButtonProps = {
   entityName: string;
   itemLabel?: string;
   onConfirm: () => void | Promise<void>;
-  label?: string;
   buttonProps?: Omit<ButtonProps, "onClick" | "danger" | "icon">;
 };
 
@@ -13,7 +12,6 @@ export function DeleteActionButton({
   entityName,
   itemLabel,
   onConfirm,
-  label = "Delete",
   buttonProps,
 }: DeleteButtonProps) {
   return (
@@ -29,9 +27,18 @@ export function DeleteActionButton({
       cancelText="Cancel"
       okButtonProps={{ danger: true }}
     >
-      <Button danger type="text" icon={<DeleteOutlined />} {...buttonProps}>
-        {label}
-      </Button>
+      <Tooltip title="Delete">
+        <Button
+          danger
+          type="text"
+          size="middle"
+          icon={<DeleteOutlined />}
+          aria-label={
+            itemLabel ? `Delete ${itemLabel}` : `Delete ${entityName}`
+          }
+          {...buttonProps}
+        />
+      </Tooltip>
     </Popconfirm>
   );
 }
