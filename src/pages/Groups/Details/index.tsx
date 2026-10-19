@@ -7,7 +7,7 @@ import { getGroup, getGroupTypes } from "@/services/groups";
 import GroupOverview from "./components/overview-tab";
 import RulesTab from "./components/rules-tab";
 import DepartmentTab from "./components/department-tab";
-import CreateGroupModal from "../CreateGroupModal";
+import GroupFormModal from "../GroupFormModal";
 
 enum TabKey {
   Overview = "overview",
@@ -70,7 +70,7 @@ export default function GroupDetails() {
           )}
           {activeTab === TabKey.Rules && <RulesTab groupId={group.id} />}
 
-          <CreateGroupModal
+          <GroupFormModal
             key={group.id}
             group={group}
             open={editOpen}
