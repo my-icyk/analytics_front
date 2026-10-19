@@ -9,10 +9,10 @@ import { getColumns } from "./columns";
 import { useAccess } from "@umijs/max";
 import { Button, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import CreateGroupModal from "./CreateGroupModal";
 import { useRequest } from "ahooks";
 import { getDivisions } from "@/services/divisions";
 import { PERMISSIONS } from "../../../config/permissions";
+import GroupFormModal from "./GroupFormModal";
 
 export default function GroupsPage() {
   const [createOpen, setCreateOpen] = useState(false);
@@ -96,7 +96,7 @@ export default function GroupsPage() {
           </Button>,
         ]}
       />
-      <CreateGroupModal
+      <GroupFormModal
         open={createOpen}
         onCancel={() => setCreateOpen(false)}
         onSuccess={() => {
