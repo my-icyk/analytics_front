@@ -1,96 +1,77 @@
-import { useCallback, useEffect, useState, useMemo } from "react";
-import { PlusOutlined } from "@ant-design/icons";
-import { ProTable } from "@ant-design/pro-components";
-import { Button, message } from "antd";
-import { filterRows, matchesFilters } from "@/utils/filterRows";
-
 import { getRules } from "@/services/groups";
-import type { Rule } from "@/types/rules";
-import { getColumns } from "./columns";
+import { useLocalFilter } from "@/hooks/useLocalFilter";
+import { deleteRule, updateRule, createRule } from "@/services/groups";
+import { useEditModal } from "@/hooks/useEditModal";
+import { Rule, RuleCreate } from "@/types/rules";
+import { EntityTable } from "@/components/EntityTable";
 import RuleFormModal from "./RuleFormModal";
+import { getColumns } from "./columns";
+import { message } from "antd";
+import { useRequest } from "ahooks";
+import { useMemo } from "react";
 
-type RulesTabProps = {
-  groupId: number;
-};
+export default function RulesTab({ groupId }: { groupId: number }) {
+  const {
+    data: rules = [],
+    loading,
+    refresh,
+  } = useRequest(() => getRules(groupId), {
+    refreshDeps: [groupId],
+    onError: () => message.error("Failed to load rules"),
+  });
 
-const columns = getColumns();
+  const { rows, setFilters, resetFilters } = useLocalFilter(rules);
+  const modal = useEditModal<Rule>();
 
-export default function RulesTab({ groupId }: RulesTabProps) {
-  const [rules, setRules] = useState<Rule[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const [filters, setFilters] = useState<Partial<Record<keyof Rule, unknown>>>(
-    {},
-  );
-
-  const visibleRules = useMemo(
-    () => filterRows(rules, filters),
-    [rules, filters],
-  );
-
-  const loadRules = useCallback(
-    async (signal?: { cancelled: boolean }) => {
-      setLoading(true);
-      try {
-        const data = await getRules(groupId);
-        if (!signal?.cancelled) setRules(data);
-      } catch {
-        if (!signal?.cancelled) message.error("Failed to load rules");
-      } finally {
-        if (!signal?.cancelled) setLoading(false);
-      }
+  const { run: removeRule } = useRequest(
+    (id: number) => deleteRule(groupId, id),
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success("Rule deleted");
+        refresh();
+      },
+      onError: () => message.error("Could not delete the rule"),
     },
-    [groupId],
   );
 
-  useEffect(() => {
-    const signal = { cancelled: false };
-    void loadRules(signal);
-    return () => {
-      signal.cancelled = true;
-    };
-  }, [loadRules]);
+  const { runAsync: saveRule } = useRequest(
+    (payload: RuleCreate) =>
+      modal.record
+        ? updateRule(groupId, modal.record.id, payload)
+        : createRule(groupId, payload),
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success("Saved");
+        modal.close();
+        refresh();
+      },
+      onError: () => message.error("Could not save the rule"),
+    },
+  );
+
+  const columns = useMemo(
+    () => getColumns(modal.openEdit, removeRule),
+    [modal.openEdit, removeRule],
+  );
 
   return (
     <>
-      <ProTable<Rule>
-        rowKey="id"
+      <EntityTable
         columns={columns}
-        dataSource={visibleRules}
-        onSubmit={setFilters}
-        onReset={() => setFilters({})}
+        data={rows}
         loading={loading}
-        toolBarRender={() => [
-          <Button
-            key="create"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setModalOpen(true)}
-          >
-            New rule
-          </Button>,
-        ]}
-        search={{
-          labelWidth: "auto",
-          searchText: "Filter",
-          resetText: "Reset",
-        }}
-        pagination={{
-          defaultPageSize: 10,
-          showSizeChanger: true,
-          showTotal: (total) => `Total ${total} items`,
-        }}
+        createLabel="New rule"
+        onCreate={modal.openCreate}
+        onFilter={setFilters}
+        onReset={resetFilters}
       />
-
       <RuleFormModal
-        groupId={groupId}
-        open={modalOpen}
-        onCancel={() => setModalOpen(false)}
-        onSuccess={() => {
-          setModalOpen(false);
-          void loadRules();
-        }}
+        open={modal.open}
+        initialValues={modal.record}
+        onCancel={modal.close}
+        onSubmit={saveRule}
       />
     </>
   );

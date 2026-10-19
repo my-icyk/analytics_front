@@ -1,52 +1,53 @@
-import { createRule, updateRule } from "@/services/groups";
-import type { Rule, RuleUpdate, RuleCreate } from "@/types/rules";
 import {
+  ModalForm,
   ProFormDatePicker,
   ProFormDependency,
-  ProFormText,
   ProFormDigit,
+  ProFormText,
 } from "@ant-design/pro-components";
-import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import { ModalForm } from "@ant-design/pro-components";
+import type { Dayjs } from "dayjs";
+import type { Rule, RuleCreate } from "@/types/rules";
 
 type Props = {
-  groupId: number;
-  rule?: Rule;
   open: boolean;
+  initialValues?: Rule; // undefined = create mode
   onCancel: () => void;
-  onSuccess: () => void;
+  onSubmit: (values: RuleCreate) => Promise<void>;
 };
 
 export default function RuleFormModal({
-  groupId,
-  rule,
   open,
+  initialValues,
   onCancel,
-  onSuccess,
+  onSubmit,
 }: Props) {
   return (
     <ModalForm<RuleCreate>
-      title={rule ? "Edit Rule" : "Create Rule"}
+      title={initialValues ? "Edit Rule" : "Create Rule"}
       width="min(400px, 95vw)"
       open={open}
       modalProps={{ destroyOnClose: true, onCancel }}
-      onFinish={async (values) => {
-        await (rule
-          ? updateRule(groupId, rule.id, values)
-          : createRule(groupId, values));
-        onSuccess();
-        return true;
-      }}
       initialValues={
-        rule
+        initialValues
           ? {
-              name: rule.name,
-              valid_from: rule.valid_from,
-              valid_to: rule.valid_to ? dayjs(rule.valid_to) : undefined,
+              name: initialValues.name,
+              valid_from: dayjs(initialValues.valid_from) as unknown as string,
+              valid_to: initialValues.valid_to
+                ? (dayjs(initialValues.valid_to) as unknown as string)
+                : undefined,
+              percent_value: initialValues.percent_value,
             }
           : {}
       }
+      onFinish={async (values) => {
+        try {
+          await onSubmit(values);
+          return true;
+        } catch {
+          return false; // page already showed the error; keep modal open
+        }
+      }}
     >
       <ProFormText name="name" label="Rule Name" rules={[{ required: true }]} />
 
