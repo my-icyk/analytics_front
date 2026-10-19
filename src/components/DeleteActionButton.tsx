@@ -29,7 +29,7 @@ export function DeleteActionButton({
       cancelText="Cancel"
       okButtonProps={{ danger: true }}
     >
-      <Button danger icon={<DeleteOutlined />} {...buttonProps}>
+      <Button danger type="text" icon={<DeleteOutlined />} {...buttonProps}>
         {label}
       </Button>
     </Popconfirm>
