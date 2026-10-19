@@ -37,15 +37,46 @@ export type TargetBase = {
 };
 
 // What the server returns
-export type Target = TargetBase & {
+export type Target = {
   id: number;
-  rule_id: number;
+  group_id: number;
   group_name: string;
+  allocation_type: AllocationType;
+  percent_value: number | null;
 };
 
 export type TargetCreate = {
   group_id: number;
   allocation_type: AllocationType;
-  percent_value: number;
+  percent_value: number | null;
 };
 export type TargetUpdate = TargetCreate;
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Informative only. The back end is the one that enforces the rules. */
+export function summarizeAllocation(
+  targets: Pick<Target, "allocation_type" | "percent_value">[],
+) {
+  const sumOf = (type: AllocationType) =>
+    round2(
+      targets
+        .filter((t) => t.allocation_type === type)
+        .reduce((total, t) => total + Number(t.percent_value ?? 0), 0),
+    );
+
+  const direct = sumOf("DIRECT");
+  const fixedStatic = sumOf("STATIC");
+  const fixed = round2(direct + fixedStatic);
+
+  return {
+    direct,
+    static: fixedStatic,
+    fixed,
+    // what proportional targets share between them
+    remaining: round2(Math.max(0, 100 - fixed)),
+    proportionalCount: targets.filter(
+      (t) => t.allocation_type === "PROPORTIONAL",
+    ).length,
+  };
+}

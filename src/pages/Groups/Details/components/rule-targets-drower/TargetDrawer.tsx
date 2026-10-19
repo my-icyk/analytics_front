@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Drawer, message } from "antd";
+import { Alert, Drawer, message } from "antd";
 import { useRequest } from "ahooks";
 
 import {
@@ -13,6 +13,7 @@ import { useEditModal } from "@/hooks/useEditModal";
 import { EntityTable } from "@/components/EntityTable";
 import type { Rule } from "@/types/rules";
 import type { Target, TargetCreate } from "@/types/rules";
+import { summarizeAllocation } from "@/types/rules";
 import TargetFormModal from "./TargetFormModal";
 import { getColumns } from "./columns";
 
@@ -77,6 +78,19 @@ export default function TargetsDrawer({ open, groupId, rule, onClose }: Props) {
     [modal.openEdit, removeTarget],
   );
 
+  // Informative only, the back end enforces the real rules.
+  const summary = useMemo(() => summarizeAllocation(targets), [targets]);
+
+  const summaryText = [
+    `Direct ${summary.direct}%`,
+    `Static ${summary.static}%`,
+    summary.proportionalCount > 0
+      ? `Proportional shares the remaining ${summary.remaining}% (${summary.proportionalCount} ${
+          summary.proportionalCount === 1 ? "target" : "targets"
+        })`
+      : `${summary.remaining}% not allocated`,
+  ].join(" · ");
+
   return (
     <Drawer
       title={rule ? `Targets: ${rule.name}` : "Targets"}
@@ -85,6 +99,12 @@ export default function TargetsDrawer({ open, groupId, rule, onClose }: Props) {
       onClose={onClose}
       destroyOnHidden
     >
+      <Alert
+        showIcon
+        type={summary.fixed > 100 ? "error" : "info"}
+        message={summaryText}
+        style={{ marginBottom: 16 }}
+      />
       <EntityTable<Target>
         columns={columns}
         data={rows}

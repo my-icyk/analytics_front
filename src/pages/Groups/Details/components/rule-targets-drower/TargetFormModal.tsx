@@ -1,11 +1,13 @@
 import {
   ModalForm,
+  ProFormDependency,
   ProFormDigit,
   ProFormSelect,
 } from "@ant-design/pro-components";
 import { lookupGroups } from "@/services/groups";
 import type { Target, TargetCreate } from "@/types/rules";
 import { ALLOCATION_OPTIONS } from "@/types/rules";
+import { Typography } from "antd";
 
 type Props = {
   open: boolean;
@@ -46,10 +48,17 @@ export default function TargetFormModal({
       }
       onFinish={async ({ group_id, allocation_type, percent_value }) => {
         try {
-          await onSubmit({ group_id, allocation_type, percent_value });
-          return true;
+          // Build the payload explicitly: no leftover `group` object, and
+          // PROPORTIONAL always sends null even if a value was typed before.
+          await onSubmit({
+            group_id,
+            allocation_type,
+            percent_value:
+              allocation_type === "PROPORTIONAL" ? null : percent_value,
+          });
+          return true; // close
         } catch {
-          return false;
+          return false; // keep open, the page already showed the error
         }
       }}
     >
@@ -75,14 +84,25 @@ export default function TargetFormModal({
         rules={[{ required: true, message: "Select an allocation type" }]}
       />
 
-      <ProFormDigit
-        name="percent_value"
-        label="Percentage"
-        min={0}
-        max={100}
-        fieldProps={{ precision: 2, step: 0.01 }}
-        rules={[{ required: true, message: "Enter a percentage" }]}
-      />
+      <ProFormDependency name={["allocation_type"]}>
+        {({ allocation_type }) =>
+          allocation_type === "PROPORTIONAL" ? (
+            <Typography.Paragraph type="secondary">
+              Proportional targets have no percentage. They share whatever is
+              left after the direct and static targets.
+            </Typography.Paragraph>
+          ) : (
+            <ProFormDigit
+              name="percent_value"
+              label="Percentage"
+              min={0}
+              max={100}
+              fieldProps={{ precision: 2, step: 0.01 }}
+              rules={[{ required: true, message: "Enter a percentage" }]}
+            />
+          )
+        }
+      </ProFormDependency>
     </ModalForm>
   );
 }

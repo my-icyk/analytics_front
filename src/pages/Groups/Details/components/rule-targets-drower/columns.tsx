@@ -38,7 +38,10 @@ export const getColumns = (
     dataIndex: "percent_value",
     search: false,
     sorter: numberSorter<Target>("percent_value"),
-    render: (_, record) => `${Number(record.percent_value).toFixed(2)}%`,
+    render: (_, record) =>
+      record.percent_value === null
+        ? "-"
+        : `${Number(record.percent_value).toFixed(2)}%`,
   },
   {
     title: "Actions",
