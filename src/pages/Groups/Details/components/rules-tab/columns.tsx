@@ -40,4 +40,13 @@ export const getColumns = (): ProColumns<Rule>[] => [
     sorter: dateSorterNullAsMax<Rule>("valid_to"),
     valueType: "date",
   },
+  {
+    title: "Percentage",
+    dataIndex: "percent_value",
+    key: "percent_value",
+    search: false,
+    sorter: numberSorter<Rule>("percent_value"),
+    valueType: "digit",
+    render: (_, record) => `${record.percent_value.toFixed(2)}%`,
+  },
 ];
