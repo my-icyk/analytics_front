@@ -1,6 +1,6 @@
 import { request } from "@umijs/max";
 import type { PageResult } from "@/types/api";
-import type { Rule } from "@/types/rules";
+import type { Rule, RuleCreate, RuleUpdate } from "@/types/rules";
 
 import {
   fetchGroupsParams,
@@ -73,5 +73,25 @@ export function getRepartitions(id: number) {
 export function getRules(id: number) {
   return request<Rule[]>(`${BASE}/${id}/rules`, {
     method: "GET",
+  });
+}
+
+export function createRule(groupId: number, data: RuleCreate) {
+  return request(`${BASE}/${groupId}/rules`, {
+    method: "POST",
+    data,
+  });
+}
+
+export function updateRule(groupId: number, ruleId: number, data: RuleUpdate) {
+  return request(`${BASE}/${groupId}/rules/${ruleId}`, {
+    method: "PUT",
+    data,
+  });
+}
+
+export function deleteRule(groupId: number, ruleId: number) {
+  return request(`${BASE}/${groupId}/rules/${ruleId}`, {
+    method: "DELETE",
   });
 }
