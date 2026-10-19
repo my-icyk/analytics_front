@@ -1,4 +1,3 @@
-import { Button } from "antd";
 import type { ProColumns } from "@ant-design/pro-components";
 
 import type { Repartition } from "@/types/departments";
@@ -10,13 +9,17 @@ import {
   numberSorter,
   stringSorter,
 } from "@/utils/sorters";
+import { EditActionButton } from "@/components/EditActionButton";
+import { DeleteActionButton } from "@/components/DeleteActionButton";
 
 type GetColumnsParams = {
   onEdit: (record: Repartition) => void;
+  onDelete: (id: number) => void;
 };
 
 export function getColumns({
   onEdit,
+  onDelete,
 }: GetColumnsParams): ProColumns<Repartition>[] {
   return [
     {
@@ -60,18 +63,25 @@ export function getColumns({
     },
     {
       title: "Actions",
-      valueType: "option",
-      width: 90,
+      dataIndex: "actions",
+      key: "actions",
+      search: false,
+      width: 100,
+      align: "right",
       fixed: "right",
       render: (_, record) => [
-        <Button
+        <EditActionButton
           key="edit"
-          type="link"
-          size="small"
+          itemLabel={record.department_name}
           onClick={() => onEdit(record)}
-        >
-          Edit
-        </Button>,
+        />,
+
+        <DeleteActionButton
+          key="delete"
+          entityName="department"
+          itemLabel={record.department_name}
+          onConfirm={() => onDelete(record.id)}
+        />,
       ],
     },
   ];
