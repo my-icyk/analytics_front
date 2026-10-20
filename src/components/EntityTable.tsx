@@ -20,6 +20,7 @@ export function EntityTable<T extends { id: number }>(p: Props<T>) {
       columns={p.columns}
       dataSource={p.data}
       loading={p.loading}
+      form={{ syncToUrl: true }}
       search={{ labelWidth: "auto", searchText: "Filter", resetText: "Reset" }}
       onSubmit={(params) => p.onFilter(params as Partial<T>)}
       onReset={p.onReset}
