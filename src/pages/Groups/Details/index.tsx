@@ -24,7 +24,7 @@ const TABS = [
 
 export default function GroupDetails() {
   const { id } = useParams<{ id: string }>();
-  const [activeTab, setActiveTab] = useTabParam(TABS, TabKey.Rules);
+  const [activeTab, setActiveTab] = useTabParam(TABS, TabKey.Overview);
   const [editOpen, setEditOpen] = useState(false);
 
   const { data: types = [] } = useRequest(getGroupTypes);
