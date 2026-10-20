@@ -5,12 +5,15 @@ import { Popconfirm, Tag, Button } from "antd";
 import { history } from "@umijs/max";
 import { Link } from "@umijs/max";
 import { GroupTabKey } from "@/constants/groups";
+import { EditActionButton } from "@/components/EditActionButton";
+import { DeleteActionButton } from "@/components/DeleteActionButton";
 
 /** Table columns of the Users page, kept apart so index.tsx stays short. */
 export const getColumns = (
   groupTypes: GroupType[],
   divisionOptions: { label: string; value: number }[],
-  handleDelete: (id: number) => void,
+  onEdit: (record: Group) => void,
+  onDelete: (record: Group) => void,
 ): ProColumns<Group>[] => [
   { title: "ID", dataIndex: "id", search: false },
   {
@@ -21,6 +24,8 @@ export const getColumns = (
   },
   {
     title: "Division",
+    dataIndex: "division_name",
+    key: "division_ids",
     valueType: "select",
     fieldProps: {
       options: divisionOptions,
@@ -66,33 +71,25 @@ export const getColumns = (
 
   {
     title: "Actions",
-    valueType: "option",
+    dataIndex: "actions",
+    key: "actions",
+    search: false,
+    width: 120,
+    align: "right",
+    fixed: "right",
     render: (_, record) => [
-      <Button
-        key="view"
-        type="link"
-        onClick={() => history.push(`groups/${record.id}`)}
-      >
-        View
-      </Button>,
-      <Popconfirm
+      <EditActionButton
+        key="edit"
+        itemLabel={record.name}
+        onClick={() => onEdit(record)}
+      />,
+
+      <DeleteActionButton
         key="delete"
-        title="Delete this group?"
-        description={`Are you sure you want to delete "${record.name}"?`}
-        onConfirm={() => handleDelete(record.id)}
-        okText="Delete"
-        cancelText="Cancel"
-        okButtonProps={{ danger: true }}
-      >
-        <Button
-          key="delete-button"
-          type="link"
-          danger
-          icon={<DeleteOutlined />}
-        >
-          Delete
-        </Button>
-      </Popconfirm>,
+        entityName="group"
+        itemLabel={record.name}
+        onConfirm={() => onDelete(record)}
+      />,
     ],
   },
 ];

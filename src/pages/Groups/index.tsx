@@ -21,18 +21,21 @@ export default function GroupsPage() {
   const access = useAccess();
 
   const canDeleteGroup = access[PERMISSIONS.FINANCE.GROUP.DELETE];
+  const handleEdit = (record: Group) => {
+    // Implement your edit logic here
+  };
 
   const actionRef = useRef<ActionType>();
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (record: Group) => {
     try {
-      await deleteGroup(id); // Your API function
+      await deleteGroup(record.id); // Your API function
 
-      message.success("Group deleted successfully");
+      message.success(`Group ${record.name} deleted successfully`);
 
       actionRef.current?.reload();
     } catch {
-      message.error("Failed to delete group");
+      message.error(`Failed to delete group ${record.name}`);
     }
   };
 
@@ -45,7 +48,7 @@ export default function GroupsPage() {
   );
 
   const columns = useMemo(
-    () => getColumns(types, divisionOptions, handleDelete),
+    () => getColumns(types, divisionOptions, handleEdit, handleDelete),
     [types, divisionOptions, canDeleteGroup],
   );
   return (
