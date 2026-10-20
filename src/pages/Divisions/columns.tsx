@@ -3,6 +3,7 @@ import type { Division } from "@/types/divisions";
 import { useAccess } from "@umijs/max";
 import { PERMISSIONS } from "../../../config/permissions";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
+import { PermissionLink } from "@/components/PermissionLink";
 
 export const getColumns = (
   handleDelete: (record: Division) => void,
@@ -29,6 +30,14 @@ export const getColumns = (
     key: "group_count",
     valueType: "digit",
     sorter: (a, b) => a.group_count - b.group_count,
+    render: (_, record) => (
+      <PermissionLink
+        canAccess={access[PERMISSIONS.FINANCE.GROUP.READ]}
+        to={`/finance/groups?group_id=${record.id}`}
+      >
+        {record.group_count}
+      </PermissionLink>
+    ),
   },
   {
     title: "Actions",
