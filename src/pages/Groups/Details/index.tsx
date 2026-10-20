@@ -8,6 +8,7 @@ import GroupOverview from "./components/overview-tab";
 import RulesTab from "./components/rules-tab";
 import DepartmentTab from "./components/department-tab";
 import GroupFormModal from "../GroupFormModal";
+import { useTabParam } from "@/hooks/useTabParam";
 
 enum TabKey {
   Overview = "overview",
@@ -23,7 +24,7 @@ const TABS = [
 
 export default function GroupDetails() {
   const { id } = useParams<{ id: string }>();
-  const [activeTab, setActiveTab] = useState<string>(TabKey.Overview);
+  const [activeTab, setActiveTab] = useTabParam(TABS, TabKey.Rules);
   const [editOpen, setEditOpen] = useState(false);
 
   const { data: types = [] } = useRequest(getGroupTypes);
