@@ -11,28 +11,16 @@ import GroupFormModal from "../GroupFormModal";
 import { useTabParam } from "@/hooks/useTabParam";
 import { useGroupTypes } from "@/hooks/useReferenceData";
 
-enum TabKey {
-  Overview = "overview",
-  Departments = "departments",
-  Rules = "rules",
-}
-
-const TABS = [
-  { tab: "Overview", key: TabKey.Overview },
-  { tab: "Departments", key: TabKey.Departments },
-  { tab: "Rules", key: TabKey.Rules },
-];
-
+import { GroupTABS, GroupTabKey } from "@/constants/groups";
 export default function GroupDetails() {
   const { id } = useParams<{ id: string }>();
-  const [activeTab, setActiveTab] = useTabParam(TABS, TabKey.Overview);
+  const [activeTab, setActiveTab] = useTabParam(
+    GroupTABS,
+    GroupTabKey.Overview,
+  );
   const [editOpen, setEditOpen] = useState(false);
 
   const { data: types = [] } = useGroupTypes();
-  const groupTypeOptions = useMemo(
-    () => types.map((t) => ({ label: t.name, value: t.id })),
-    [types],
-  );
 
   const {
     data: group,
@@ -52,7 +40,7 @@ export default function GroupDetails() {
     <PageContainer
       loading={loading}
       header={{ title: group?.name ?? "Group", ghost: true }}
-      tabList={TABS}
+      tabList={GroupTABS}
       tabActiveKey={activeTab}
       onTabChange={setActiveTab}
       extra={[
@@ -66,17 +54,17 @@ export default function GroupDetails() {
     >
       {group && (
         <>
-          {activeTab === TabKey.Overview && <GroupOverview {...group} />}
-          {activeTab === TabKey.Departments && (
+          {activeTab === GroupTabKey.Overview && <GroupOverview {...group} />}
+          {activeTab === GroupTabKey.Departments && (
             <DepartmentTab groupId={group.id} />
           )}
-          {activeTab === TabKey.Rules && <RulesTab groupId={group.id} />}
+          {activeTab === GroupTabKey.Rules && <RulesTab groupId={group.id} />}
 
           <GroupFormModal
             key={group.id}
             group={group}
             open={editOpen}
-            types={groupTypeOptions}
+            types={types}
             onCancel={() => setEditOpen(false)}
             onSuccess={handleEditSuccess}
           />
