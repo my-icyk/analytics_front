@@ -1,11 +1,12 @@
 import { ProColumns } from "@ant-design/pro-components";
 import type { Division } from "@/types/divisions";
-import { Button, Popconfirm } from "antd";
-import { DeleteOutlined } from "@ant-design/icons";
+import { useAccess } from "@umijs/max";
+import { PERMISSIONS } from "../../../config/permissions";
+import { DeleteActionButton } from "@/components/DeleteActionButton";
 
 export const getColumns = (
-  handleDelete: (id: number) => void,
-  handleViewGroups: (divisionId: number) => void,
+  handleDelete: (record: Division) => void,
+  access: ReturnType<typeof useAccess>,
 ): ProColumns<Division>[] => [
   {
     title: "ID",
@@ -31,34 +32,21 @@ export const getColumns = (
   },
   {
     title: "Actions",
+    dataIndex: "actions",
     key: "actions",
     search: false,
+    width: 120,
+    align: "right",
+    fixed: "right",
     render: (_, record) => [
-      <Popconfirm
-        key="delete"
-        title="Delete this division?"
-        description={`Are you sure you want to delete "${record.name}"?`}
-        onConfirm={() => handleDelete(record.id)}
-        okText="Delete"
-        cancelText="Cancel"
-        okButtonProps={{ danger: true }}
-      >
-        <Button
+      access[PERMISSIONS.FINANCE.DIVISION.DELETE] && (
+        <DeleteActionButton
           key="delete-button"
-          type="link"
-          danger
-          icon={<DeleteOutlined />}
-        >
-          Delete
-        </Button>
-      </Popconfirm>,
-      <Button
-        key="view-groups-button"
-        type="link"
-        onClick={() => handleViewGroups(record.id)}
-      >
-        View Groups
-      </Button>,
+          entityName="division"
+          itemLabel={record.name}
+          onConfirm={() => handleDelete(record)}
+        />
+      ),
     ],
   },
 ];

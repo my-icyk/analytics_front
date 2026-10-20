@@ -10,37 +10,27 @@ import { useAccess } from "@umijs/max";
 import { Button, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import DivisionFormModal from "./DivisionFormModal";
-import { history } from "@umijs/max";
 
 export default function DivisionsPage() {
   const [createOpen, setCreateOpen] = useState(false);
 
   const access = useAccess();
 
-  const canDeleteGroup = access["finance:group:delete"];
-
   const actionRef = useRef<ActionType>();
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (division: Division) => {
     try {
-      await deleteDivision(id); // Your API function
+      await deleteDivision(division.id); // Your API function
 
-      message.success("Division deleted successfully");
+      message.success(`Division "${division.name}" deleted successfully`);
 
       actionRef.current?.reload();
     } catch {
-      message.error("Failed to delete division");
+      message.error(`Failed to delete division "${division.name}"`);
     }
   };
 
-  const handleViewGroups = (divisionId: number) => {
-    history.push(`groups?division_ids=${divisionId}`);
-  };
-
-  const columns = useMemo(
-    () => getColumns(handleDelete, handleViewGroups),
-    [canDeleteGroup],
-  );
+  const columns = useMemo(() => getColumns(handleDelete, access), [access]);
   return (
     <PageContainer>
       <ProTable<Division>
