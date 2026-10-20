@@ -37,10 +37,6 @@ export default function GroupsPage() {
   };
 
   const { data: types = [] } = useGroupTypes();
-  const groupTypeOptions = useMemo(
-    () => types.map((t) => ({ label: t.name, value: t.id })),
-    [types],
-  );
 
   const { data: divisions = [] } = useRequest(getDivisions);
   const divisionOptions = useMemo(
@@ -49,8 +45,8 @@ export default function GroupsPage() {
   );
 
   const columns = useMemo(
-    () => getColumns(groupTypeOptions, divisionOptions, handleDelete),
-    [groupTypeOptions, divisionOptions, canDeleteGroup],
+    () => getColumns(types, divisionOptions, handleDelete),
+    [types, divisionOptions, canDeleteGroup],
   );
   return (
     <PageContainer>
@@ -104,7 +100,7 @@ export default function GroupsPage() {
           setCreateOpen(false);
           actionRef.current?.reload();
         }}
-        types={groupTypeOptions}
+        types={types}
       />
     </PageContainer>
   );

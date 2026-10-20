@@ -1,7 +1,6 @@
 import { lookupDivisions } from "@/services/divisions";
 import { createGroup, updateGroup } from "@/services/groups";
-import { LookupOption } from "@/types/common";
-import { Group, GroupCreate } from "@/types/groups";
+import { Group, GroupCreate, GroupType } from "@/types/groups";
 
 import {
   ModalForm,
@@ -10,7 +9,7 @@ import {
 } from "@ant-design/pro-components";
 
 type Props = {
-  types: LookupOption[];
+  types: GroupType[];
   open: boolean;
   group?: Group;
   onCancel: () => void;
@@ -55,6 +54,7 @@ export default function GroupFormModal({
         name="group_type_id"
         label="Group Type"
         options={types}
+        fieldProps={{ fieldNames: { label: "name", value: "id" } }}
         rules={[{ required: true }]}
       />
     </ModalForm>
