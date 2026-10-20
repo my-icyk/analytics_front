@@ -13,6 +13,7 @@ import { useRequest } from "ahooks";
 import { getDivisions } from "@/services/divisions";
 import { PERMISSIONS } from "../../../config/permissions";
 import GroupFormModal from "./GroupFormModal";
+import { useGroupTypes } from "@/hooks/useReferenceData";
 
 export default function GroupsPage() {
   const [createOpen, setCreateOpen] = useState(false);
@@ -35,7 +36,7 @@ export default function GroupsPage() {
     }
   };
 
-  const { data: types = [] } = useRequest(getGroupTypes);
+  const { data: types = [] } = useGroupTypes();
   const groupTypeOptions = useMemo(
     () => types.map((t) => ({ label: t.name, value: t.id })),
     [types],
