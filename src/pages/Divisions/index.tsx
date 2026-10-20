@@ -12,7 +12,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import DivisionFormModal from "./DivisionFormModal";
 
 export default function DivisionsPage() {
-  const [createOpen, setCreateOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const access = useAccess();
 
@@ -78,17 +78,17 @@ export default function DivisionsPage() {
             key="create"
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => setCreateOpen(true)}
+            onClick={() => setModalOpen(true)}
           >
             Create Division
           </Button>,
         ]}
       />
       <DivisionFormModal
-        open={createOpen}
-        onCancel={() => setCreateOpen(false)}
+        open={modalOpen}
+        onCancel={() => setModalOpen(false)}
         onSuccess={() => {
-          setCreateOpen(false);
+          setModalOpen(false);
           actionRef.current?.reload();
         }}
       />
