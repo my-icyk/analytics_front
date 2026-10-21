@@ -8,7 +8,6 @@ import {
   updateRepartition,
   deleteRepartition,
 } from "@/services/repartition";
-import { useLocalFilter } from "@/hooks/useLocalFilter";
 import { useEditModal } from "@/hooks/useEditModal";
 import { EntityTable } from "@/components/EntityTable";
 import type { Repartition, RepartitionCreate } from "@/types/departments";
@@ -25,7 +24,6 @@ export default function DepartmentTab({ groupId }: { groupId: number }) {
     onError: () => message.error("Failed to load repartitions"),
   });
 
-  const { rows, setFilters, resetFilters } = useLocalFilter(repartitions);
   const modal = useEditModal<Repartition>();
 
   const { runAsync: saveRepartition, loading: saving } = useRequest(
@@ -66,12 +64,10 @@ export default function DepartmentTab({ groupId }: { groupId: number }) {
     <>
       <EntityTable<Repartition>
         columns={columns}
-        data={rows}
+        data={repartitions}
         loading={loading}
         createLabel="New repartition"
         onCreate={modal.openCreate}
-        onFilter={setFilters}
-        onReset={resetFilters}
       />
       <RepartitionModal
         open={modal.open}

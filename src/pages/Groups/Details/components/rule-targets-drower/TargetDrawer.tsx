@@ -8,7 +8,6 @@ import {
   updateTarget,
   deleteTarget,
 } from "@/services/groups";
-import { useLocalFilter } from "@/hooks/useLocalFilter";
 import { useEditModal } from "@/hooks/useEditModal";
 import { EntityTable } from "@/components/EntityTable";
 import type { Rule } from "@/types/rules";
@@ -37,7 +36,6 @@ export default function TargetsDrawer({ open, groupId, rule, onClose }: Props) {
     onError: () => message.error("Failed to load targets"),
   });
 
-  const { rows, setFilters, resetFilters } = useLocalFilter(targets);
   const modal = useEditModal<Target>();
 
   const { run: removeTarget } = useRequest(
@@ -107,12 +105,10 @@ export default function TargetsDrawer({ open, groupId, rule, onClose }: Props) {
       />
       <EntityTable<Target>
         columns={columns}
-        data={rows}
+        data={targets}
         loading={loading}
         createLabel="New target"
         onCreate={modal.openCreate}
-        onFilter={setFilters}
-        onReset={resetFilters}
       />
       <TargetFormModal
         open={modal.open}

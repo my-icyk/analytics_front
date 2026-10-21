@@ -1,5 +1,5 @@
 import { PageContainer, ProTable } from "@ant-design/pro-components";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import type { ActionType } from "@ant-design/pro-components";
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from "@/constants/app";
 import { getDivisions, deleteDivision } from "@/services/divisions";

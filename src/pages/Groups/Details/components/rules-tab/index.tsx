@@ -9,7 +9,7 @@ import {
   updateRule,
   deleteRule,
 } from "@/services/groups";
-import { useLocalFilter } from "@/hooks/useLocalFilter";
+
 import { useEditModal } from "@/hooks/useEditModal";
 import { EntityTable } from "@/components/EntityTable";
 import type { Rule, RuleCreate } from "@/types/rules";
@@ -27,7 +27,6 @@ export default function RulesTab({ groupId }: { groupId: number }) {
     onError: () => message.error("Failed to load rules"),
   });
 
-  const { rows, setFilters, resetFilters } = useLocalFilter(rules);
   const modal = useEditModal<Rule>();
   const [targetsRule, setTargetsRule] = useState<Rule>();
   const { run: removeRule } = useRequest(
@@ -67,12 +66,10 @@ export default function RulesTab({ groupId }: { groupId: number }) {
     <>
       <EntityTable<Rule>
         columns={columns}
-        data={rows}
+        data={rules}
         loading={loading}
         createLabel="New rule"
         onCreate={modal.openCreate}
-        onFilter={setFilters}
-        onReset={resetFilters}
       />
       <RuleFormModal
         open={modal.open}
