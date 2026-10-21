@@ -1,60 +1,64 @@
-import { PageContainer, ProTable } from "@ant-design/pro-components";
-import { useMemo, useRef } from "react";
-import type { ActionType } from "@ant-design/pro-components";
-import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from "@/constants/app";
-import { getDivisions, deleteDivision } from "@/services/divisions";
+import { useMemo } from "react";
+import { PageContainer } from "@ant-design/pro-components";
+import { useAccess } from "@umijs/max";
+import { useDeleteEntity } from "@/hooks/useDeleteEntity";
+
+import {
+  createDivision,
+  updateDivision,
+  deleteDivision,
+} from "@/services/divisions";
+import { useDivisions } from "@/hooks/useReferenceData";
+import { useEditModal } from "@/hooks/useEditModal";
+import { useSaveEntity } from "@/hooks/useSaveEntity";
+import { EntityTable } from "@/components/EntityTable";
 import type { Division } from "@/types/divisions";
+import DivisionFormModal from "./DivisionFormModal";
 import { getColumns } from "./columns";
 
-import { useAccess } from "@umijs/max";
-import { Button, message } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
-import DivisionFormModal from "./DivisionFormModal";
-import { useEditModal } from "@/hooks/useEditModal";
-import { useDivisions } from "@/hooks/useReferenceData";
-import { EntityTable } from "@/components/EntityTable";
-
 export default function DivisionsPage() {
-  const modal = useEditModal<Division>();
-  const { data: divisions = [] } = useDivisions();
-
   const access = useAccess();
+  const modal = useEditModal<Division>();
+  const { data: divisions = [], loading, hardRefresh } = useDivisions();
 
-  const actionRef = useRef<ActionType>();
+  const { run: removeDivision } = useDeleteEntity<Division>({
+    remove: deleteDivision,
+    entityName: "Division",
+    label: (d) => d.name,
+    onDone: hardRefresh,
+  });
 
-  const handleDelete = async (division: Division) => {
-    try {
-      await deleteDivision(division.id); // Your API function
-
-      message.success(`Division "${division.name}" deleted successfully`);
-
-      actionRef.current?.reload();
-    } catch {
-      message.error(`Failed to delete division "${division.name}"`);
-    }
-  };
+  const { runAsync: saveDivision, loading: saving } = useSaveEntity({
+    record: modal.record,
+    create: createDivision,
+    update: updateDivision,
+    entityName: "Division",
+    onDone: () => {
+      modal.close();
+      hardRefresh();
+    },
+  });
 
   const columns = useMemo(
-    () => getColumns(handleDelete, modal.openEdit, access),
-    [access, modal.openEdit],
+    () => getColumns(removeDivision, modal.openEdit, access),
+    [removeDivision, modal.openEdit, access],
   );
+
   return (
     <PageContainer>
       <EntityTable<Division>
         columns={columns}
         data={divisions}
-        loading={false}
-        createLabel="New Division"
+        loading={loading}
+        createLabel="New division"
         onCreate={modal.openCreate}
       />
       <DivisionFormModal
         open={modal.open}
-        division={modal.record ?? null}
+        initialValues={modal.record}
+        saving={saving}
         onCancel={modal.close}
-        onSuccess={() => {
-          modal.close();
-          actionRef.current?.reload();
-        }}
+        onSubmit={saveDivision}
       />
     </PageContainer>
   );

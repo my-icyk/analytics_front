@@ -25,7 +25,7 @@ export function updateDivision(id: number, data: { name: string }) {
 }
 
 export function deleteDivision(id: number) {
-  return request<Division>(`${BASE}/${id}`, {
+  return request<Division>(`${BASE}/abvc/${id}`, {
     method: "DELETE",
   });
 }
