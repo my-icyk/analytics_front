@@ -5,66 +5,73 @@ import { PERMISSIONS } from "../../../config/permissions";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
 import { PermissionLink } from "@/components/PermissionLink";
 import { EditActionButton } from "@/components/EditActionButton";
+import { numberSorter, stringSorter } from "@/utils/sorters";
 
 export const getColumns = (
   onDelete: (record: Division) => void,
   onEdit: (record: Division) => void,
   access: ReturnType<typeof useAccess>,
-): ProColumns<Division>[] => [
-  {
-    title: "ID",
-    dataIndex: "id",
-    key: "id",
-    search: true,
-    valueType: "digit",
-    sorter: (a, b) => a.id - b.id,
-  },
-  {
-    title: "Division Name",
-    dataIndex: "name",
-    key: "name",
-    valueType: "text",
-    sorter: (a, b) => a.name.localeCompare(b.name),
-  },
-  {
-    title: "Groups Nr:",
-    dataIndex: "group_count",
-    key: "group_count",
-    valueType: "digit",
-    sorter: (a, b) => a.group_count - b.group_count,
-    render: (_, record) => (
-      <PermissionLink
-        canAccess={access[PERMISSIONS.FINANCE.GROUP.READ]}
-        to={`/finance/groups?group_id=${record.id}`}
-      >
-        {record.group_count}
-      </PermissionLink>
-    ),
-  },
-  {
-    title: "Actions",
-    dataIndex: "actions",
-    key: "actions",
-    search: false,
-    width: 120,
-    align: "right",
-    fixed: "right",
-    render: (_, record) => [
-      access[PERMISSIONS.FINANCE.DIVISION.DELETE] && (
-        <DeleteActionButton
-          key="delete-button"
-          entityName="division"
-          itemLabel={record.name}
-          onConfirm={() => onDelete(record)}
-        />
+): ProColumns<Division>[] => {
+  const canDelete = access[PERMISSIONS.FINANCE.DIVISION.DELETE];
+  const canEdit = access[PERMISSIONS.FINANCE.DIVISION.UPDATE];
+
+  return [
+    {
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
+      search: false,
+      valueType: "digit",
+      sorter: numberSorter<Division>("id"),
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      valueType: "text",
+      sorter: stringSorter<Division>("name"),
+    },
+    {
+      title: "Groups Nr:",
+      dataIndex: "group_count",
+      key: "group_count",
+      search: false,
+      valueType: "digit",
+      sorter: numberSorter<Division>("group_count"),
+      render: (_, record) => (
+        <PermissionLink
+          canAccess={access[PERMISSIONS.FINANCE.GROUP.READ]}
+          to={`/finance/groups?division_ids=${record.id}`}
+        >
+          {record.group_count}
+        </PermissionLink>
       ),
-      access[PERMISSIONS.FINANCE.DIVISION.UPDATE] && (
-        <EditActionButton
-          key="edit-button"
-          itemLabel={record.name}
-          onClick={() => onEdit(record)}
-        />
-      ),
-    ],
-  },
-];
+    },
+    {
+      title: "Actions",
+      dataIndex: "actions",
+      key: "actions",
+      search: false,
+      width: 120,
+      align: "right",
+      fixed: "right",
+      render: (_, record) => [
+        canEdit && (
+          <EditActionButton
+            key="edit-button"
+            itemLabel={record.name}
+            onClick={() => onEdit(record)}
+          />
+        ),
+        canDelete && (
+          <DeleteActionButton
+            key="delete-button"
+            entityName="division"
+            itemLabel={record.name}
+            onConfirm={() => onDelete(record)}
+          />
+        ),
+      ],
+    },
+  ];
+};

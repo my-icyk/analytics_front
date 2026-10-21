@@ -11,9 +11,12 @@ import { Button, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import DivisionFormModal from "./DivisionFormModal";
 import { useEditModal } from "@/hooks/useEditModal";
+import { useDivisions } from "@/hooks/useReferenceData";
+import { EntityTable } from "@/components/EntityTable";
 
 export default function DivisionsPage() {
   const modal = useEditModal<Division>();
+  const { data: divisions = [] } = useDivisions();
 
   const access = useAccess();
 
@@ -37,56 +40,12 @@ export default function DivisionsPage() {
   );
   return (
     <PageContainer>
-      <ProTable<Division>
-        actionRef={actionRef}
-        rowKey="id"
+      <EntityTable<Division>
         columns={columns}
-        form={{ syncToUrl: true }}
-        search={{
-          labelWidth: "auto",
-          searchText: "Filter",
-          resetText: "Reset",
-        }}
-
-        tableLayout="auto"
-        pagination={{
-          pageSizeOptions: PAGE_SIZE_OPTIONS,
-          defaultPageSize: DEFAULT_PAGE_SIZE,
-          showTotal: (total) => `Total ${total} items`,
-          showSizeChanger: true,
-        }}
-        request={async (params) => {
-          // 1. load everything (no pagination params sent to the backend)
-          const all = await getDivisions(); // returns Division[]
-
-          // 2. front-side filters (skip pageSize/current, they are for pagination)
-          const { current, pageSize, ...filters } = params;
-
-          const data = all.filter((row) =>
-            Object.entries(filters).every(([key, value]) => {
-              if (value === undefined || value === null || value === "")
-                return true;
-              const cell = (row as Record<string, unknown>)[key];
-              if (typeof cell === "string") {
-                return cell.toLowerCase().includes(String(value).toLowerCase());
-              }
-              return cell === value;
-            }),
-          );
-
-          // 3. no `total` -> ProTable paginates the array itself
-          return { data, success: true };
-        }}
-        toolBarRender={() => [
-          <Button
-            key="create"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => modal.openCreate()}
-          >
-            Create Division
-          </Button>,
-        ]}
+        data={divisions}
+        loading={false}
+        createLabel="New Division"
+        onCreate={modal.openCreate}
       />
       <DivisionFormModal
         open={modal.open}
