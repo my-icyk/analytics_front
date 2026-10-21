@@ -10,9 +10,10 @@ import { useAccess } from "@umijs/max";
 import { Button, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import DivisionFormModal from "./DivisionFormModal";
+import { useEditModal } from "@/hooks/useEditModal";
 
 export default function DivisionsPage() {
-  const [modalOpen, setModalOpen] = useState(false);
+  const modal = useEditModal<Division>();
 
   const access = useAccess();
 
@@ -30,7 +31,10 @@ export default function DivisionsPage() {
     }
   };
 
-  const columns = useMemo(() => getColumns(handleDelete, access), [access]);
+  const columns = useMemo(
+    () => getColumns(handleDelete, modal.openEdit, access),
+    [access, modal.openEdit],
+  );
   return (
     <PageContainer>
       <ProTable<Division>
@@ -78,17 +82,18 @@ export default function DivisionsPage() {
             key="create"
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => setModalOpen(true)}
+            onClick={() => modal.openCreate()}
           >
             Create Division
           </Button>,
         ]}
       />
       <DivisionFormModal
-        open={modalOpen}
-        onCancel={() => setModalOpen(false)}
+        open={modal.open}
+        division={modal.record ?? null}
+        onCancel={modal.close}
         onSuccess={() => {
-          setModalOpen(false);
+          modal.close();
           actionRef.current?.reload();
         }}
       />

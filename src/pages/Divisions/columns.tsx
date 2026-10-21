@@ -4,9 +4,11 @@ import { useAccess } from "@umijs/max";
 import { PERMISSIONS } from "../../../config/permissions";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
 import { PermissionLink } from "@/components/PermissionLink";
+import { EditActionButton } from "@/components/EditActionButton";
 
 export const getColumns = (
-  handleDelete: (record: Division) => void,
+  onDelete: (record: Division) => void,
+  onEdit: (record: Division) => void,
   access: ReturnType<typeof useAccess>,
 ): ProColumns<Division>[] => [
   {
@@ -53,7 +55,14 @@ export const getColumns = (
           key="delete-button"
           entityName="division"
           itemLabel={record.name}
-          onConfirm={() => handleDelete(record)}
+          onConfirm={() => onDelete(record)}
+        />
+      ),
+      access[PERMISSIONS.FINANCE.DIVISION.UPDATE] && (
+        <EditActionButton
+          key="edit-button"
+          itemLabel={record.name}
+          onClick={() => onEdit(record)}
         />
       ),
     ],
