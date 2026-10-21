@@ -6,6 +6,7 @@ import { GroupTabKey } from "@/constants/groups";
 import { EditActionButton } from "@/components/EditActionButton";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
 import { Tag } from "antd";
+import { numericIdsValueProps } from "@/utils/formProps";
 
 /** Table columns of the Users page, kept apart so index.tsx stays short. */
 export const getColumns = (
@@ -30,9 +31,10 @@ export const getColumns = (
       options: divisions,
       fieldNames: { label: "name", value: "id" },
       allowClear: true,
-      mode: "multiple",
+      mode: "single",
       placeholder: "Select Divisions",
     },
+    formItemProps: numericIdsValueProps,
     render: (_, group) => <Tag color="blue">{group.division_name}</Tag>,
   },
   {
@@ -48,6 +50,7 @@ export const getColumns = (
       mode: "multiple",
       placeholder: "Select Group Types",
     },
+    formItemProps: numericIdsValueProps,
     render: (_, group) => <Tag color="green">{group.group_type_name}</Tag>,
   },
   {
