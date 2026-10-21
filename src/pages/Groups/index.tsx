@@ -97,7 +97,6 @@ export default function GroupsPage() {
           setCreateOpen(false);
           actionRef.current?.reload();
         }}
-        types={types}
       />
     </PageContainer>
   );
