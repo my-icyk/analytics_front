@@ -31,7 +31,7 @@ export const getColumns = (
       options: divisions,
       fieldNames: { label: "name", value: "id" },
       allowClear: true,
-      mode: "single",
+      mode: "multiple",
       placeholder: "Select Divisions",
     },
     formItemProps: numericIdsValueProps,
@@ -56,6 +56,7 @@ export const getColumns = (
   {
     title: "Repartition",
     key: "repartition_count",
+    search: false,
     render: (_, group) => (
       <Link to={`${group.id}?tab=${GroupTabKey.Departments}`}>
         {group.repartitions_count}
@@ -65,6 +66,7 @@ export const getColumns = (
   {
     title: "Rules",
     key: "rules_count",
+    search: false,
     render: (_, group) => (
       <Link to={`${group.id}?tab=${GroupTabKey.Rules}`}>
         {group.rules_count}
