@@ -1,28 +1,42 @@
 // hooks/useReferenceData.ts
 import { getDivisions } from "@/services/divisions";
 import { getGroupTypes, getRules } from "@/services/groups";
-import { useRequest } from "ahooks";
+import { useRequest, clearCache } from "ahooks";
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 const ONE_HOUR = 60 * 60 * 1000;
 
+const CACHE_KEYS = {
+  divisions: "finance-divisions",
+  groupTypes: "finance-group-types",
+  rules: "finance-rules",
+};
+
 export function useDivisions() {
-  return useRequest(getDivisions, {
-    cacheKey: "finance-divisions",
+  const { refresh, ...rest } = useRequest(getDivisions, {
+    cacheKey: CACHE_KEYS.divisions,
     staleTime: ONE_HOUR,
   });
+
+  // forces a real refetch even while the cache is still fresh
+  const hardRefresh = () => {
+    clearCache(CACHE_KEYS.divisions);
+    return refresh();
+  };
+
+  return { ...rest, hardRefresh };
 }
 
 export function useGroupTypes() {
   return useRequest(getGroupTypes, {
-    cacheKey: "finance-group-types",
+    cacheKey: CACHE_KEYS.groupTypes,
     staleTime: Infinity,
   });
 }
 
 export function useRules() {
   return useRequest(getRules, {
-    cacheKey: "finance-rules",
+    cacheKey: CACHE_KEYS.rules,
     staleTime: ONE_HOUR,
   });
 }
