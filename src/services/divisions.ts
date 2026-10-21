@@ -29,9 +29,3 @@ export function deleteDivision(id: number) {
     method: "DELETE",
   });
 }
-
-export function lookupDivisions(search?: string) {
-  return request<LookupOption[]>(`${BASE}/lookup`, {
-    params: { search },
-  });
-}

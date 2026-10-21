@@ -1,15 +1,14 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRequest } from "ahooks";
 import { PageContainer } from "@ant-design/pro-components";
 import { useParams } from "@umijs/max";
 import { Button } from "antd";
-import { getGroup, getGroupTypes } from "@/services/groups";
+import { getGroup } from "@/services/groups";
 import GroupOverview from "./components/overview-tab";
 import RulesTab from "./components/rules-tab";
 import DepartmentTab from "./components/department-tab";
 import GroupFormModal from "../GroupFormModal";
 import { useTabParam } from "@/hooks/useTabParam";
-import { useGroupTypes } from "@/hooks/useReferenceData";
 
 import { GroupTABS, GroupTabKey } from "@/constants/groups";
 export default function GroupDetails() {
@@ -19,8 +18,6 @@ export default function GroupDetails() {
     GroupTabKey.Overview,
   );
   const [editOpen, setEditOpen] = useState(false);
-
-  const { data: types = [] } = useGroupTypes();
 
   const {
     data: group,
@@ -64,7 +61,6 @@ export default function GroupDetails() {
             key={group.id}
             group={group}
             open={editOpen}
-            types={types}
             onCancel={() => setEditOpen(false)}
             onSuccess={handleEditSuccess}
           />

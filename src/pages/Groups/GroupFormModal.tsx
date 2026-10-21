@@ -1,6 +1,6 @@
-import { lookupDivisions } from "@/services/divisions";
+import { useDivisions, useGroupTypes } from "@/hooks/useReferenceData";
 import { createGroup, updateGroup } from "@/services/groups";
-import { Group, GroupCreate, GroupType } from "@/types/groups";
+import { Group, GroupCreate } from "@/types/groups";
 
 import {
   ModalForm,
@@ -9,7 +9,6 @@ import {
 } from "@ant-design/pro-components";
 
 type Props = {
-  types: GroupType[];
   open: boolean;
   group?: Group;
   onCancel: () => void;
@@ -19,10 +18,11 @@ type Props = {
 export default function GroupFormModal({
   open,
   group,
-  types,
   onCancel,
   onSuccess,
 }: Props) {
+  const { data: divisions = [] } = useDivisions();
+  const { data: types = [] } = useGroupTypes();
   return (
     <ModalForm<GroupCreate>
       title={group ? "Edit Group" : "Create Group"}
@@ -46,7 +46,8 @@ export default function GroupFormModal({
         label="Division"
         showSearch
         debounceTime={300}
-        request={({ keyWords }) => lookupDivisions(keyWords ?? "")}
+        options={divisions}
+        fieldProps={{ fieldNames: { label: "name", value: "id" } }}
         rules={[{ required: true }]}
       />
 
