@@ -28,7 +28,7 @@ export const getColumns = (
     valueType: "select",
     fieldProps: {
       options: divisions,
-      fieldProps: { fieldNames: { label: "name", value: "id" } },
+      fieldNames: { label: "name", value: "id" },
       allowClear: true,
       mode: "multiple",
       placeholder: "Select Divisions",
