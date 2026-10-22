@@ -1,5 +1,5 @@
 import { ProCard, ProDescriptions } from "@ant-design/pro-components";
-import { Space, Statistic, Tag, Typography } from "antd";
+import { Statistic, Tag } from "antd";
 import type { Group } from "@/types/groups";
 
 export default function GroupOverview(group: Group) {
@@ -15,9 +15,8 @@ export default function GroupOverview(group: Group) {
   ];
 
   return (
-    <ProCard ghost direction="column" gutter={[16, 16]}>
+    <ProCard ghost direction="column">
       <ProCard
-        bordered
         headerBordered
         title={group.name}
         extra={<Tag color="blue">ID: {group.id}</Tag>}
