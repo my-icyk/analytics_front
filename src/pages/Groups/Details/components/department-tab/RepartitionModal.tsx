@@ -4,9 +4,9 @@ import {
   ProFormDependency,
   ProFormSelect,
 } from "@ant-design/pro-components";
+import { useDepartments } from "@/hooks/useReferenceData";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
-import { lookupDepartments } from "@/services/groups";
 import type { Repartition, RepartitionCreate } from "@/types/departments";
 
 type Props = {
@@ -24,6 +24,7 @@ export function RepartitionModal({
   onCancel,
   onSubmit,
 }: Props) {
+  const { data: departments = [] } = useDepartments();
   return (
     <ModalForm<RepartitionCreate>
       title={initialValues ? "Edit repartition" : "Create repartition"}
@@ -39,7 +40,7 @@ export function RepartitionModal({
               // labelInValue: the select shows a name instead of an id
               department: {
                 value: initialValues.department_id,
-                label: initialValues.department_name,
+                label: `${initialValues.department_name} (${initialValues.department_id})`,
               },
               valid_from: dayjs(initialValues.valid_from),
               valid_to: initialValues.valid_to
@@ -63,11 +64,14 @@ export function RepartitionModal({
         placeholder="Search department"
         showSearch
         allowClear
-        debounceTime={300}
-        request={({ keyWords }) => lookupDepartments(keyWords ?? "")}
-        fieldProps={{ labelInValue: true }}
-        // form holds { value, label }, the API gets department_id
-        transform={(v) => ({ department_id: Number(v.value) })}
+        fieldProps={{
+          options: departments.map((d) => ({
+            value: d.id,
+            label: `${d.name} (${d.id})`,
+          })),
+          optionFilterProp: "label", // search matches code, name and brand
+        }}
+        transform={(value) => ({ department_id: Number(value) })}
         rules={[{ required: true, message: "Select a department" }]}
       />
 
