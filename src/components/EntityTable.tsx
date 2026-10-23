@@ -8,8 +8,8 @@ type Props<T> = {
   columns: ProColumns<T>[];
   data: T[];
   loading: boolean;
-  createLabel: string;
-  onCreate: () => void;
+  createLabel?: string;
+  onCreate?: () => void;
 };
 
 export function EntityTable<T extends { id: number }>(p: Props<T>) {
@@ -24,16 +24,20 @@ export function EntityTable<T extends { id: number }>(p: Props<T>) {
       search={{ labelWidth: "auto", searchText: "Filter", resetText: "Reset" }}
       onSubmit={(params) => setFilters(params as Partial<T>)}
       onReset={resetFilters}
-      toolBarRender={() => [
-        <Button
-          key="create"
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={p.onCreate}
-        >
-          {p.createLabel}
-        </Button>,
-      ]}
+      toolBarRender={
+        p.onCreate
+          ? () => [
+              <Button
+                key="create"
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={p.onCreate}
+              >
+                {p.createLabel}
+              </Button>,
+            ]
+          : false
+      }
       pagination={{
         defaultPageSize: 10,
         showSizeChanger: true,

@@ -64,6 +64,14 @@ export const PERMISSIONS = {
       UPDATE: "finance:department_repartition:update",
       DELETE: "finance:department_repartition:delete",
     },
+    SNAPSHOT: {
+      READ: "finance:snapshot:read",
+      SAVE: "finance:snapshot:save",
+      LOCK: "finance:snapshot:lock",
+      UNLOCK: "finance:snapshot:unlock",
+      UPDATE: "finance:snapshot:update",
+      POST: "finance:snapshot:post",
+    },
   },
 } as const;
 
