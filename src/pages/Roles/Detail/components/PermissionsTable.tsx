@@ -17,6 +17,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { assignRolePermissions, getRolePermissions } from "@/services/roles";
 import { usePermissions } from "@/hooks/useReferenceData";
 import type { Permission } from "@/types/auth";
+import { useRequest } from "ahooks";
 
 type PermissionLeaf = {
   permission: Permission;
@@ -246,65 +247,43 @@ export default function PermissionsTable({ roleId }: { roleId: number }) {
 
   const [initial, setInitial] = useState<Set<number>>(new Set());
   const [selected, setSelected] = useState<Set<number>>(new Set());
-
   const [search, setSearch] = useState("");
-  const [loadingRole, setLoadingRole] = useState(true);
-  const [loadError, setLoadError] = useState(false);
-  const [saving, setSaving] = useState(false);
 
-  // Invalidates old requests when the role changes.
-  const requestVersion = useRef(0);
-
-  // Keep a ref to the currently displayed role for async safety.
-  const currentRoleId = useRef(roleId);
-  currentRoleId.current = roleId;
-
-  useEffect(() => {
-    const version = ++requestVersion.current;
-    let cancelled = false;
-
-    setLoadingRole(true);
-    setLoadError(false);
-    setInitial(new Set());
-    setSelected(new Set());
-
-    const load = async () => {
-      try {
-        const permissions = await getRolePermissions(roleId);
-
-        if (cancelled || version !== requestVersion.current) {
-          return;
-        }
-
+  const { loading: loadingRole, error: loadError } = useRequest(
+    () => getRolePermissions(roleId),
+    {
+      refreshDeps: [roleId],
+      onBefore: () => {
+        setInitial(new Set());
+        setSelected(new Set());
+      },
+      onSuccess: (permissions) => {
         const ids = new Set<number>(permissions.map((p) => p.id));
 
         setInitial(ids);
         setSelected(new Set(ids));
-      } catch {
-        if (!cancelled && version === requestVersion.current) {
-          setLoadError(true);
-          message.error("Failed to load role permissions");
-        }
-      } finally {
-        if (!cancelled && version === requestVersion.current) {
-          setLoadingRole(false);
-        }
-      }
-    };
+      },
+      onError: () => {
+        message.error("Failed to load role permissions");
+      },
+    },
+  );
 
-    void load();
-
-    return () => {
-      cancelled = true;
-      requestVersion.current++;
-    };
-  }, [roleId]);
+  const { loading: saving, runAsync: savePermissions } = useRequest(
+    assignRolePermissions,
+    {
+      manual: true,
+    },
+  );
 
   const tree = useMemo(() => buildPermissionTree(all, search), [all, search]);
 
-  const dirty = !areSetsEqual(initial, selected);
+  const dirty =
+    selected.size !== initial.size ||
+    [...selected].some((id) => !initial.has(id));
+
   const loading = loadingAll || loadingRole;
-  const disabled = loading || saving || loadError;
+  const disabled = loading || saving || !!loadError;
 
   const toggle = (ids: number[], checked: boolean) => {
     if (disabled) return;
@@ -325,7 +304,6 @@ export default function PermissionsTable({ roleId }: { roleId: number }) {
   };
 
   const reset = () => {
-    if (disabled) return;
     setSelected(new Set(initial));
   };
 
@@ -333,33 +311,14 @@ export default function PermissionsTable({ roleId }: { roleId: number }) {
     if (disabled || !dirty) return;
 
     const ids = [...selected];
-    const savedRoleId = roleId;
-    const version = requestVersion.current;
-
-    setSaving(true);
 
     try {
-      await assignRolePermissions(savedRoleId, ids);
-
-      // Do not update another role's state.
-      if (
-        version !== requestVersion.current ||
-        currentRoleId.current !== savedRoleId
-      ) {
-        return;
-      }
+      await savePermissions(roleId, ids);
 
       setInitial(new Set(ids));
       message.success("Permissions saved");
     } catch {
-      if (
-        version === requestVersion.current &&
-        currentRoleId.current === savedRoleId
-      ) {
-        message.error("Failed to save permissions");
-      }
-    } finally {
-      setSaving(false);
+      message.error("Failed to save permissions");
     }
   };
 
