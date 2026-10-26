@@ -2,7 +2,7 @@ import { request } from "@umijs/max";
 import type { PageParams, PageResult } from "@/types/api";
 import type { User, UserCreate, UserUpdate } from "@/types/user";
 import type { LookupOption } from "@/types/common";
-import { Role } from "@/types/auth";
+import { RoleListItem } from "@/types/auth";
 
 const BASE = "/api/v1/users";
 
@@ -35,7 +35,7 @@ export function updateUser(user_id: number, payload: UserUpdate) {
 }
 
 export function getUserRoles(user_id: number) {
-  return request<Role[]>(`/api/v1/users/${user_id}/roles`);
+  return request<RoleListItem[]>(`/api/v1/users/${user_id}/roles`);
 }
 
 export const assignUserRoles = (userId: number, role_ids: number[]) =>

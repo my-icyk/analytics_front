@@ -27,7 +27,10 @@ export type Role = {
   id: number;
   name: string;
   description: string | null;
-  created_at: string;
+  created_at: string; // ISO string, JSON has no Date type
+};
+
+export type RoleListItem = Role & {
   users_count: number;
   permissions_count: number;
 };

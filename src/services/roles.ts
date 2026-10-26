@@ -3,17 +3,17 @@ import type { PageResult } from "@/types/api";
 import {
   FetchRolesParams,
   Permission,
-  Role,
+  RoleListItem,
   RoleCreate,
   RoleUpdate,
 } from "@/types/auth";
 
 export function getRoles(params: FetchRolesParams) {
-  return request<Role[]>("/api/v1/roles", { params });
+  return request<RoleListItem[]>("/api/v1/roles", { params });
 }
 
 export function getRole(id: number) {
-  return request<Role>(`/api/v1/roles/${id}`);
+  return request<RoleListItem>(`/api/v1/roles/${id}`);
 }
 
 export function createRole(data: RoleCreate) {

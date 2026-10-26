@@ -7,7 +7,7 @@ import { clearCache } from "ahooks";
 import { EntityTable } from "@/components/EntityTable";
 import { useRoles } from "@/hooks/useReferenceData";
 import { deleteRole } from "@/services/roles";
-import type { Role } from "@/types/auth";
+import type { RoleListItem } from "@/types/auth";
 
 import { getColumns } from "./columns";
 import RoleFormModal from "./RoleFormModal";
@@ -17,9 +17,9 @@ export default function RolesPage() {
   const { data: roles = [], loading, hardRefresh } = useRoles();
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [selectedRole, setSelectedRole] = useState<RoleListItem | null>(null);
 
-  const handleView = (role: Role) => {
+  const handleView = (role: RoleListItem) => {
     history.push(`/auth/roles/${role.id}`);
   };
 
@@ -28,7 +28,7 @@ export default function RolesPage() {
     setModalOpen(true);
   };
 
-  const handleEdit = (role: Role) => {
+  const handleEdit = (role: RoleListItem) => {
     setSelectedRole(role);
     setModalOpen(true);
   };
@@ -50,7 +50,7 @@ export default function RolesPage() {
 
   return (
     <PageContainer>
-      <EntityTable<Role>
+      <EntityTable<RoleListItem>
         columns={columns}
         data={roles}
         loading={loading}

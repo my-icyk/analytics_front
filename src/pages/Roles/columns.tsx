@@ -1,4 +1,4 @@
-import { Role } from "@/types/auth";
+import { RoleListItem } from "@/types/auth";
 import DeleteOutlined from "@ant-design/icons/lib/icons/DeleteOutlined";
 import type { ProColumns } from "@ant-design/pro-components";
 import { useAccess } from "@umijs/max";
@@ -8,34 +8,34 @@ import { numberSorter, stringSorter } from "@/utils/sorters";
 
 export const getColumns = (
   handleDelete: (id: number) => void,
-  handleEdit: (role: Role) => void,
-  handleView: (role: Role) => void,
+  handleEdit: (role: RoleListItem) => void,
+  handleView: (role: RoleListItem) => void,
   access: ReturnType<typeof useAccess>,
-): ProColumns<Role>[] => [
+): ProColumns<RoleListItem>[] => [
   {
     title: "ID",
     dataIndex: "id",
     search: false,
     width: 50,
-    sorter: numberSorter<Role>("id"),
+    sorter: numberSorter<RoleListItem>("id"),
   },
   {
     title: "Name",
     dataIndex: "name",
     search: true,
-    sorter: stringSorter<Role>("name"),
+    sorter: stringSorter<RoleListItem>("name"),
   },
   {
     title: "Users",
     dataIndex: "users_count",
     search: false,
-    sorter: numberSorter<Role>("users_count"),
+    sorter: numberSorter<RoleListItem>("users_count"),
   },
   {
     title: "Permissions",
     dataIndex: "permissions_count",
     search: false,
-    sorter: numberSorter<Role>("permissions_count"),
+    sorter: numberSorter<RoleListItem>("permissions_count"),
   },
 
   {

@@ -1,12 +1,12 @@
 import { Form, Input, Modal } from "antd";
 import { useEffect } from "react";
 
-import type { Role, RoleCreate } from "@/types/auth";
+import type { RoleListItem, RoleCreate } from "@/types/auth";
 import { createRole, updateRole } from "@/services/roles";
 
 type Props = {
   open: boolean;
-  role?: Role | null; // set = edit, empty = create
+  role?: RoleListItem | null; // set = edit, empty = create
   onCancel: () => void;
   onSuccess: () => void;
 };
