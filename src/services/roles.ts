@@ -56,6 +56,16 @@ export function removeRolePermission(role_id: number, permission_id: number) {
   });
 }
 
+export function assignRolePermissions(
+  role_id: number,
+  permission_ids: number[],
+) {
+  return request(`/api/v1/roles/${role_id}/permissions`, {
+    method: "PUT",
+    data: { permission_ids },
+  });
+}
+
 export function rolesLookup(search: string) {
   return request(`/api/v1/roles/lookup?search=${search}`);
 }

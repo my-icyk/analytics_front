@@ -1,121 +1,244 @@
-import { DeleteOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
-import { Button, Card, Empty, List, Popconfirm, Space, message } from "antd";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { SaveOutlined, UndoOutlined } from "@ant-design/icons";
 import {
-  addRolePermission,
-  getRolePermissions,
-  removeRolePermission,
-  permissionsLookup,
-} from "@/services/roles";
-import { DebounceSelect } from "@/components/DebounceSelect";
+  Button,
+  Card,
+  Checkbox,
+  Collapse,
+  Empty,
+  Flex,
+  Input,
+  Space,
+  Spin,
+  Tag,
+  message,
+} from "antd";
+import { useEffect, useMemo, useState } from "react";
+
+import { assignRolePermissions, getRolePermissions } from "@/services/roles";
 import { Permission } from "@/types/auth";
+import { usePermissions } from "@/hooks/useReferenceData";
+
+type Leaf = { permission: Permission; action: string };
+type Tree = Map<string, Map<string, Leaf[]>>; // domain -> resource -> actions
+
+function parse(name: string) {
+  const parts = name.split(":");
+  if (parts.length === 1)
+    return { domain: "other", resource: "general", action: name };
+  return {
+    domain: parts[0],
+    resource: parts.slice(1, -1).join(":") || "general",
+    action: parts[parts.length - 1],
+  };
+}
+
+function buildTree(all: Permission[], search: string): Tree {
+  const q = search.trim().toLowerCase();
+  const tree: Tree = new Map();
+  for (const p of all) {
+    if (q && !p.name.toLowerCase().includes(q)) continue;
+    const { domain, resource, action } = parse(p.name);
+    const resources = tree.get(domain) ?? new Map<string, Leaf[]>();
+    resources.set(resource, [
+      ...(resources.get(resource) ?? []),
+      { permission: p, action },
+    ]);
+    tree.set(domain, resources);
+  }
+  return tree;
+}
+
+// Checkbox for a group of ids: checked / indeterminate / unchecked
+function GroupCheckbox({
+  label,
+  ids,
+  checked,
+  onToggle,
+}: {
+  label: string;
+  ids: number[];
+  checked: Set<number>;
+  onToggle: (ids: number[], on: boolean) => void;
+}) {
+  const count = ids.filter((id) => checked.has(id)).length;
+  return (
+    <>
+      {/* stopPropagation: clicking the checkbox must not open/close the panel */}
+      <span onClick={(e) => e.stopPropagation()}>
+        <Checkbox
+          checked={count === ids.length}
+          indeterminate={count > 0 && count < ids.length}
+          onChange={(e) => onToggle(ids, e.target.checked)}
+        >
+          <strong>{label}</strong>
+        </Checkbox>
+      </span>
+      <Tag>
+        {count}/{ids.length}
+      </Tag>
+    </>
+  );
+}
 
 export default function PermissionsTable({ roleId }: { roleId: number }) {
-  const [assigned, setAssigned] = useState<Permission[]>([]);
-  const [selected, setSelected] = useState<
-    { label: string; value: number } | undefined
-  >();
-  const [loading, setLoading] = useState(false);
-  const [assigning, setAssigning] = useState(false);
-  const loadPermissions = useCallback(
-    (search: string) => permissionsLookup(search),
-    [],
-  );
+  const { data: all = [], loading: loadingAll } = usePermissions();
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      setAssigned(await getRolePermissions(roleId));
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [initial, setInitial] = useState<Set<number>>(new Set());
+  const [checked, setChecked] = useState<Set<number>>(new Set());
+  const [search, setSearch] = useState("");
+  const [loadingRole, setLoadingRole] = useState(false);
+  const [saving, setSaving] = useState(false);
 
+  // only the role's permissions are fetched here (they change at runtime)
   useEffect(() => {
-    load();
+    let cancelled = false;
+    (async () => {
+      setLoadingRole(true);
+      try {
+        const assigned = await getRolePermissions(roleId);
+        if (cancelled) return;
+        const ids = new Set(assigned.map((p) => p.id));
+        setInitial(ids);
+        setChecked(new Set(ids));
+      } finally {
+        if (!cancelled) setLoadingRole(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [roleId]);
 
-  const handleAssign = async () => {
-    if (selected === undefined) return;
-    setAssigning(true);
+  const tree = useMemo(
+    () =>
+      [...buildTree(all, search).entries()].sort(([a], [b]) =>
+        a.localeCompare(b),
+      ),
+    [all, search],
+  );
+
+  const dirty =
+    checked.size !== initial.size ||
+    [...checked].some((id) => !initial.has(id));
+
+  const toggle = (ids: number[], on: boolean) =>
+    setChecked((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => (on ? next.add(id) : next.delete(id)));
+      return next;
+    });
+
+  const save = async () => {
+    setSaving(true);
     try {
-      await addRolePermission(roleId, selected.value);
-      message.success("Permissions assigned");
-      setSelected(undefined);
-      await load();
+      await assignRolePermissions(roleId, [...checked]);
+      setInitial(new Set(checked));
+      message.success("Permissions saved");
     } finally {
-      setAssigning(false);
+      setSaving(false);
     }
   };
 
-  const handleRevoke = async (permissionId: number) => {
-    await removeRolePermission(roleId, permissionId);
-    message.success("Permission revoked");
-    load();
-  };
-
-  return (
-    <Card>
-      <Space.Compact style={{ width: "100%", marginBottom: 16 }}>
-        <DebounceSelect
-          value={selected}
-          allowClear
-          placeholder="Select permissions to assign"
-          fetchOptions={loadPermissions}
-          onChange={(value) => setSelected(value)}
-        />
-        <Button
-          type="primary"
-          disabled={selected === undefined}
-          loading={assigning}
-          onClick={handleAssign}
-        >
-          Assign
-        </Button>
-      </Space.Compact>
-
-      <List
-        loading={loading}
-        dataSource={assigned}
-        locale={{
-          emptyText: (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="No permissions assigned to this role"
+  const renderResources = (resources: Map<string, Leaf[]>) => (
+    <Collapse
+      size="small"
+      key={search ? "search" : "idle"}
+      defaultActiveKey={search ? [...resources.keys()] : []}
+      items={[...resources.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([resource, leaves]) => ({
+          key: resource,
+          label: (
+            <GroupCheckbox
+              label={resource}
+              ids={leaves.map((l) => l.permission.id)}
+              checked={checked}
+              onToggle={toggle}
             />
           ),
-        }}
-        renderItem={(p) => (
-          <List.Item
-            actions={[
-              <Popconfirm
-                key="revoke"
-                title="Revoke this permission?"
-                okText="Revoke"
-                okButtonProps={{ danger: true }}
-                onConfirm={() => handleRevoke(p.id)}
-              >
-                <Button
-                  type="text"
-                  danger
-                  icon={<DeleteOutlined />}
-                  size="large"
-                />
-              </Popconfirm>,
-            ]}
+          children: (
+            <Flex wrap gap={16}>
+              {leaves.map(({ permission, action }) => (
+                <Checkbox
+                  key={permission.id}
+                  title={permission.name}
+                  checked={checked.has(permission.id)}
+                  onChange={(e) => toggle([permission.id], e.target.checked)}
+                >
+                  {action}
+                </Checkbox>
+              ))}
+            </Flex>
+          ),
+        }))}
+    />
+  );
+
+  return (
+    <Card
+      title={
+        <Space>
+          Permissions
+          <Tag color={dirty ? "orange" : "blue"}>
+            {checked.size} of {all.length} selected
+          </Tag>
+        </Space>
+      }
+      extra={
+        <Space>
+          <Button
+            icon={<UndoOutlined />}
+            disabled={!dirty}
+            onClick={() => setChecked(new Set(initial))}
           >
-            <List.Item.Meta
-              avatar={
-                <SafetyCertificateOutlined
-                  style={{ fontSize: 20, marginTop: 4 }}
-                />
-              }
-              title={p.name}
-              description={`id: ${p.id}`}
-            />
-          </List.Item>
-        )}
+            Reset
+          </Button>
+          <Button
+            type="primary"
+            icon={<SaveOutlined />}
+            disabled={!dirty}
+            loading={saving}
+            onClick={save}
+          >
+            Save
+          </Button>
+        </Space>
+      }
+    >
+      <Input.Search
+        allowClear
+        placeholder="Search permissions"
+        style={{ marginBottom: 16 }}
+        onChange={(e) => setSearch(e.target.value)}
       />
+
+      <Spin spinning={loadingAll || loadingRole}>
+        {tree.length === 0 ? (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="No permissions found"
+          />
+        ) : (
+          <Collapse
+            key={search ? "search" : "idle"}
+            defaultActiveKey={search ? tree.map(([domain]) => domain) : []}
+            items={tree.map(([domain, resources]) => ({
+              key: domain,
+              label: (
+                <GroupCheckbox
+                  label={domain}
+                  ids={[...resources.values()]
+                    .flat()
+                    .map((l) => l.permission.id)}
+                  checked={checked}
+                  onToggle={toggle}
+                />
+              ),
+              children: renderResources(resources),
+            }))}
+          />
+        )}
+      </Spin>
     </Card>
   );
 }

@@ -1,6 +1,7 @@
 // hooks/useReferenceData.ts
 import { getDivisions } from "@/services/divisions";
 import { getGroupTypes, getRules, getDepartments } from "@/services/groups";
+import { getPermissions } from "@/services/roles";
 import { useRequest, clearCache } from "ahooks";
 
 const FIVE_MINUTES = 5 * 60 * 1000;
@@ -11,6 +12,7 @@ const CACHE_KEYS = {
   groupTypes: "finance-group-types",
   rules: "finance-rules",
   departments: "finance-departments",
+  permissions: "auth-permissions",
 };
 
 export function useDivisions() {
@@ -45,6 +47,13 @@ export function useRules() {
 export function useDepartments() {
   return useRequest(getDepartments, {
     cacheKey: CACHE_KEYS.departments,
+    staleTime: Infinity,
+  });
+}
+
+export function usePermissions() {
+  return useRequest(getPermissions, {
+    cacheKey: CACHE_KEYS.permissions,
     staleTime: Infinity,
   });
 }
