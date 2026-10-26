@@ -2,8 +2,9 @@ import { Role } from "@/types/auth";
 import DeleteOutlined from "@ant-design/icons/lib/icons/DeleteOutlined";
 import type { ProColumns } from "@ant-design/pro-components";
 import { useAccess } from "@umijs/max";
-import { Popconfirm, Tag, Button } from "antd";
+import { Popconfirm, Button } from "antd";
 import { PERMISSIONS } from "../../../config/permissions";
+import { numberSorter, stringSorter } from "@/utils/sorters";
 
 export const getColumns = (
   handleDelete: (id: number) => void,
@@ -11,8 +12,31 @@ export const getColumns = (
   handleView: (role: Role) => void,
   access: ReturnType<typeof useAccess>,
 ): ProColumns<Role>[] => [
-  { title: "ID", dataIndex: "id", search: false, width: 50 },
-  { title: "Name", dataIndex: "name", search: true },
+  {
+    title: "ID",
+    dataIndex: "id",
+    search: false,
+    width: 50,
+    sorter: numberSorter<Role>("id"),
+  },
+  {
+    title: "Name",
+    dataIndex: "name",
+    search: true,
+    sorter: stringSorter<Role>("name"),
+  },
+  {
+    title: "Users",
+    dataIndex: "users_count",
+    search: false,
+    sorter: numberSorter<Role>("users_count"),
+  },
+  {
+    title: "Permissions",
+    dataIndex: "permissions_count",
+    search: false,
+    sorter: numberSorter<Role>("permissions_count"),
+  },
 
   {
     title: "Actions",

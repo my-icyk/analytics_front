@@ -27,7 +27,9 @@ export type Role = {
   id: number;
   name: string;
   description: string | null;
-  // created_at: string;
+  created_at: string;
+  users_count: number;
+  permissions_count: number;
 };
 export type FetchRolesParams = {
   page?: number;
