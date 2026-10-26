@@ -12,7 +12,7 @@ export const getColumns = (
   access: ReturnType<typeof useAccess>,
 ): ProColumns<Role>[] => [
   { title: "ID", dataIndex: "id", search: false, width: 50 },
-  { title: "Name", dataIndex: "name" },
+  { title: "Name", dataIndex: "name", search: true },
 
   {
     title: "Actions",
