@@ -4,101 +4,51 @@ import {
   Card,
   Checkbox,
   Empty,
+  Flex,
   Input,
-  List,
   Space,
   Spin,
   Tag,
-  message,
+  Typography,
 } from "antd";
-import { useRequest } from "ahooks";
-import { useCallback, useMemo, useState } from "react";
 
-import { useRoles } from "@/hooks/useReferenceData";
-import { assignUserRoles, getUserRoles } from "@/services/users";
-
-// roles that "Select all" must never tick (the admin can still tick them one by one)
-const PROTECTED_ROLES = new Set(["admin"]);
-
-const areSetsEqual = (a: Set<number>, b: Set<number>) =>
-  a.size === b.size && [...a].every((id) => b.has(id));
+import RoleList from "./RoleList";
+import { useUserRoles } from "./useUserRoles";
 
 export default function UserRolesTab({ userId }: { userId: number }) {
-  const { data: allRoles = [], loading: loadingRoles } = useRoles();
-
-  const [initial, setInitial] = useState<Set<number>>(new Set());
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-  const [search, setSearch] = useState("");
-
   const {
-    loading: loadingUser,
-    error: loadError,
-    refresh,
-  } = useRequest(() => getUserRoles(userId), {
-    refreshDeps: [userId],
-    onSuccess: (roles) => {
-      const ids = new Set(roles.map((r) => r.id));
-      setInitial(ids);
-      setSelected(new Set(ids));
-    },
-  });
+    allRoles,
+    filtered,
+    selected,
+    search,
+    setSearch,
+    selectableIds,
+    selectedCount,
+    dirty,
+    loading,
+    saving,
+    disabled,
+    loadError,
+    toggle,
+    reset,
+    save,
+  } = useUserRoles(userId);
 
-  const { loading: saving, runAsync: save } = useRequest(assignUserRoles, {
-    manual: true,
-  });
+  const allSelected =
+    selectableIds.length > 0 && selectedCount === selectableIds.length;
 
-  const loading = loadingRoles || loadingUser;
-  const disabled = loading || saving || !!loadError;
-  const dirty = !areSetsEqual(selected, initial);
-
-  // filtered list (search by name or description)
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return allRoles;
-    return allRoles.filter(
-      (r) =>
-        r.name.toLowerCase().includes(q) ||
-        r.description?.toLowerCase().includes(q),
-    );
-  }, [allRoles, search]);
-
-  // ids that "Select all" controls: visible and not protected
-  const selectableIds = useMemo(
-    () =>
-      filtered
-        .filter((r) => !PROTECTED_ROLES.has(r.name.toLowerCase()))
-        .map((r) => r.id),
-    [filtered],
-  );
-  const selectedCount = selectableIds.filter((id) => selected.has(id)).length;
-
-  const toggleMany = useCallback((ids: number[], checked: boolean) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      ids.forEach((id) => (checked ? next.add(id) : next.delete(id)));
-      return next;
-    });
-  }, []);
-
-  const handleSave = async () => {
-    if (disabled || !dirty) return;
-    try {
-      await save(userId, [...selected]);
-      message.success("Roles saved");
-      refresh(); // onSuccess resets initial + selected from the server
-    } catch {
-      message.error("Failed to save roles");
-    }
-  };
+  const partiallySelected =
+    selectedCount > 0 && selectedCount < selectableIds.length;
 
   return (
     <Card
       title={
         <Space>
-          Roles
+          <Typography.Text strong>Assigned Roles</Typography.Text>
           <Tag color={dirty ? "orange" : "blue"}>
-            {selected.size} of {allRoles.length} selected
+            {selected.size} / {allRoles.length}
           </Tag>
+          {dirty && <Tag color="warning">Unsaved changes</Tag>}
         </Space>
       }
       extra={
@@ -106,75 +56,59 @@ export default function UserRolesTab({ userId }: { userId: number }) {
           <Button
             icon={<UndoOutlined />}
             disabled={!dirty || disabled}
-            onClick={() => setSelected(new Set(initial))}
+            onClick={reset}
           >
             Reset
           </Button>
+
           <Button
             type="primary"
             icon={<SaveOutlined />}
-            disabled={!dirty || disabled}
             loading={saving}
-            onClick={handleSave}
+            disabled={!dirty || disabled}
+            onClick={save}
           >
-            Save
+            Save Changes
           </Button>
         </Space>
       }
     >
-      <Space direction="vertical" style={{ width: "100%" }}>
+      <Flex
+        align="center"
+        justify="space-between"
+        gap={16}
+        wrap="wrap"
+        style={{ marginBottom: 16 }}
+      >
         <Input.Search
           allowClear
-          placeholder="Search roles"
+          placeholder="Search roles..."
           value={search}
           disabled={loading}
-          onChange={(e) => setSearch(e.target.value)}
+          style={{ maxWidth: 320 }}
+          onChange={(event) => setSearch(event.target.value)}
         />
 
         <Checkbox
-          checked={
-            selectableIds.length > 0 && selectedCount === selectableIds.length
-          }
-          indeterminate={
-            selectedCount > 0 && selectedCount < selectableIds.length
-          }
+          checked={allSelected}
+          indeterminate={partiallySelected}
           disabled={disabled || selectableIds.length === 0}
-          onChange={(e) => toggleMany(selectableIds, e.target.checked)}
+          onChange={(event) => toggle(selectableIds, event.target.checked)}
         >
           Select all{search.trim() ? " results" : ""}
         </Checkbox>
-      </Space>
+      </Flex>
 
       <Spin spinning={loading}>
         {loadError ? (
           <Empty description="Unable to load user roles" />
         ) : (
-          <List
-            dataSource={filtered}
-            locale={{
-              emptyText: (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description={
-                    search ? "No roles match your search" : "No roles available"
-                  }
-                />
-              ),
-            }}
-            renderItem={(role) => (
-              <List.Item>
-                <Checkbox
-                  checked={selected.has(role.id)}
-                  disabled={disabled}
-                  onChange={(e) => toggleMany([role.id], e.target.checked)}
-                >
-                  <strong>{role.name}</strong>
-                  {role.description && (
-                    <div style={{ opacity: 0.65 }}>{role.description}</div>
-                  )}
-                </Checkbox>
-              </List.Item>
-            )}
+          <RoleList
+            roles={filtered}
+            selected={selected}
+            disabled={disabled}
+            search={search}
+            onToggle={toggle}
           />
         )}
       </Spin>
