@@ -1,6 +1,12 @@
 import { request } from "@umijs/max";
 import type { PageResult } from "@/types/api";
-import { FetchRolesParams, Role, RoleCreate, RoleUpdate } from "@/types/auth";
+import {
+  FetchRolesParams,
+  Permission,
+  Role,
+  RoleCreate,
+  RoleUpdate,
+} from "@/types/auth";
 
 export function getRoles(params: FetchRolesParams) {
   return request<PageResult<Role>>("/api/v1/roles", { params });
@@ -37,23 +43,8 @@ export function permissionsLookup(search: string) {
   return request(`/api/v1/permissions/lookup?search=${search}`);
 }
 
-export function getRolePermissions(role_id: number) {
-  return request(`/api/v1/roles/${role_id}/permissions`);
-}
-
-export function addRolePermission(role_id: number, permission_id: number) {
-  return request(
-    `/api/v1/roles/${role_id}/permissions?permission_id=${permission_id}`,
-    {
-      method: "POST",
-    },
-  );
-}
-
-export function removeRolePermission(role_id: number, permission_id: number) {
-  return request(`/api/v1/roles/${role_id}/permissions/${permission_id}`, {
-    method: "DELETE",
-  });
+export function getRolePermissions(roleId: number) {
+  return request<Permission[]>(`/api/v1/roles/${roleId}/permissions`);
 }
 
 export function assignRolePermissions(

@@ -12,19 +12,38 @@ import {
   Tag,
   message,
 } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { assignRolePermissions, getRolePermissions } from "@/services/roles";
-import { Permission } from "@/types/auth";
 import { usePermissions } from "@/hooks/useReferenceData";
+import type { Permission } from "@/types/auth";
 
-type Leaf = { permission: Permission; action: string };
-type Tree = Map<string, Map<string, Leaf[]>>; // domain -> resource -> actions
+type PermissionLeaf = {
+  permission: Permission;
+  action: string;
+};
 
-function parse(name: string) {
+type PermissionTree = Map<string, Map<string, PermissionLeaf[]>>;
+
+type GroupCheckboxProps = {
+  label: string;
+  ids: number[];
+  selected: Set<number>;
+  disabled?: boolean;
+  onToggle: (ids: number[], checked: boolean) => void;
+};
+
+function parsePermission(name: string) {
   const parts = name.split(":");
-  if (parts.length === 1)
-    return { domain: "other", resource: "general", action: name };
+
+  if (parts.length === 1) {
+    return {
+      domain: "other",
+      resource: "general",
+      action: name,
+    };
+  }
+
   return {
     domain: parts[0],
     resource: parts.slice(1, -1).join(":") || "general",
@@ -32,51 +51,193 @@ function parse(name: string) {
   };
 }
 
-function buildTree(all: Permission[], search: string): Tree {
-  const q = search.trim().toLowerCase();
-  const tree: Tree = new Map();
-  for (const p of all) {
-    if (q && !p.name.toLowerCase().includes(q)) continue;
-    const { domain, resource, action } = parse(p.name);
-    const resources = tree.get(domain) ?? new Map<string, Leaf[]>();
-    resources.set(resource, [
-      ...(resources.get(resource) ?? []),
-      { permission: p, action },
-    ]);
-    tree.set(domain, resources);
+function buildPermissionTree(
+  permissions: Permission[],
+  search: string,
+): PermissionTree {
+  const query = search.trim().toLowerCase();
+  const tree: PermissionTree = new Map();
+
+  for (const permission of permissions) {
+    if (query && !permission.name.toLowerCase().includes(query)) {
+      continue;
+    }
+
+    const { domain, resource, action } = parsePermission(permission.name);
+
+    if (!tree.has(domain)) {
+      tree.set(domain, new Map());
+    }
+
+    const resources = tree.get(domain)!;
+
+    if (!resources.has(resource)) {
+      resources.set(resource, []);
+    }
+
+    resources.get(resource)!.push({ permission, action });
   }
-  return tree;
+
+  return new Map(
+    [...tree.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([domain, resources]) => [
+        domain,
+        new Map(
+          [...resources.entries()]
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([resource, leaves]) => [
+              resource,
+              leaves.sort((a, b) => a.action.localeCompare(b.action)),
+            ]),
+        ),
+      ]),
+  );
 }
 
-// Checkbox for a group of ids: checked / indeterminate / unchecked
+function areSetsEqual(a: Set<number>, b: Set<number>): boolean {
+  return a.size === b.size && [...a].every((id) => b.has(id));
+}
+
 function GroupCheckbox({
   label,
   ids,
-  checked,
+  selected,
+  disabled = false,
   onToggle,
-}: {
-  label: string;
-  ids: number[];
-  checked: Set<number>;
-  onToggle: (ids: number[], on: boolean) => void;
-}) {
-  const count = ids.filter((id) => checked.has(id)).length;
+}: GroupCheckboxProps) {
+  const count = ids.filter((id) => selected.has(id)).length;
+
   return (
-    <>
-      {/* stopPropagation: clicking the checkbox must not open/close the panel */}
-      <span onClick={(e) => e.stopPropagation()}>
+    <Space>
+      <span onClick={(event) => event.stopPropagation()}>
         <Checkbox
-          checked={count === ids.length}
+          checked={ids.length > 0 && count === ids.length}
           indeterminate={count > 0 && count < ids.length}
-          onChange={(e) => onToggle(ids, e.target.checked)}
+          disabled={disabled || ids.length === 0}
+          onChange={(event) => onToggle(ids, event.target.checked)}
         >
           <strong>{label}</strong>
         </Checkbox>
       </span>
+
       <Tag>
         {count}/{ids.length}
       </Tag>
-    </>
+    </Space>
+  );
+}
+
+type PermissionsTreeProps = {
+  tree: PermissionTree;
+  selected: Set<number>;
+  search: string;
+  disabled: boolean;
+  onToggle: (ids: number[], checked: boolean) => void;
+};
+
+function PermissionsTree({
+  tree,
+  selected,
+  search,
+  disabled,
+  onToggle,
+}: PermissionsTreeProps) {
+  const [openDomains, setOpenDomains] = useState<string[]>([]);
+  const [openResources, setOpenResources] = useState<Record<string, string[]>>(
+    {},
+  );
+
+  const searching = search.trim().length > 0;
+
+  const domainKeys = [...tree.keys()];
+
+  const renderResources = (
+    domain: string,
+    resources: Map<string, PermissionLeaf[]>,
+  ) => {
+    const resourceKeys = [...resources.keys()];
+
+    return (
+      <Collapse
+        size="small"
+        activeKey={searching ? resourceKeys : (openResources[domain] ?? [])}
+        onChange={(keys) =>
+          setOpenResources((prev) => ({
+            ...prev,
+            [domain]: keys,
+          }))
+        }
+        items={[...resources.entries()].map(([resource, leaves]) => {
+          const ids = leaves.map(({ permission }) => permission.id);
+
+          return {
+            key: resource,
+            label: (
+              <GroupCheckbox
+                label={resource}
+                ids={ids}
+                selected={selected}
+                disabled={disabled}
+                onToggle={onToggle}
+              />
+            ),
+            children: (
+              <Flex wrap gap={16}>
+                {leaves.map(({ permission, action }) => (
+                  <Checkbox
+                    key={permission.id}
+                    title={permission.name}
+                    checked={selected.has(permission.id)}
+                    disabled={disabled}
+                    onChange={(event) =>
+                      onToggle([permission.id], event.target.checked)
+                    }
+                  >
+                    {action}
+                  </Checkbox>
+                ))}
+              </Flex>
+            ),
+          };
+        })}
+      />
+    );
+  };
+
+  if (tree.size === 0) {
+    return (
+      <Empty
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+        description="No permissions found"
+      />
+    );
+  }
+
+  return (
+    <Collapse
+      activeKey={searching ? domainKeys : openDomains}
+      onChange={setOpenDomains}
+      items={[...tree.entries()].map(([domain, resources]) => {
+        const ids = [...resources.values()]
+          .flat()
+          .map(({ permission }) => permission.id);
+
+        return {
+          key: domain,
+          label: (
+            <GroupCheckbox
+              label={domain}
+              ids={ids}
+              selected={selected}
+              disabled={disabled}
+              onToggle={onToggle}
+            />
+          ),
+          children: renderResources(domain, resources),
+        };
+      })}
+    />
   );
 }
 
@@ -84,95 +245,123 @@ export default function PermissionsTable({ roleId }: { roleId: number }) {
   const { data: all = [], loading: loadingAll } = usePermissions();
 
   const [initial, setInitial] = useState<Set<number>>(new Set());
-  const [checked, setChecked] = useState<Set<number>>(new Set());
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+
   const [search, setSearch] = useState("");
-  const [loadingRole, setLoadingRole] = useState(false);
+  const [loadingRole, setLoadingRole] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // only the role's permissions are fetched here (they change at runtime)
+  // Invalidates old requests when the role changes.
+  const requestVersion = useRef(0);
+
+  // Keep a ref to the currently displayed role for async safety.
+  const currentRoleId = useRef(roleId);
+  currentRoleId.current = roleId;
+
   useEffect(() => {
+    const version = ++requestVersion.current;
     let cancelled = false;
-    (async () => {
-      setLoadingRole(true);
+
+    setLoadingRole(true);
+    setLoadError(false);
+    setInitial(new Set());
+    setSelected(new Set());
+
+    const load = async () => {
       try {
-        const assigned = await getRolePermissions(roleId);
-        if (cancelled) return;
-        const ids = new Set(assigned.map((p) => p.id));
+        const permissions = await getRolePermissions(roleId);
+
+        if (cancelled || version !== requestVersion.current) {
+          return;
+        }
+
+        const ids = new Set<number>(permissions.map((p) => p.id));
+
         setInitial(ids);
-        setChecked(new Set(ids));
+        setSelected(new Set(ids));
+      } catch {
+        if (!cancelled && version === requestVersion.current) {
+          setLoadError(true);
+          message.error("Failed to load role permissions");
+        }
       } finally {
-        if (!cancelled) setLoadingRole(false);
+        if (!cancelled && version === requestVersion.current) {
+          setLoadingRole(false);
+        }
       }
-    })();
+    };
+
+    void load();
+
     return () => {
       cancelled = true;
+      requestVersion.current++;
     };
   }, [roleId]);
 
-  const tree = useMemo(
-    () =>
-      [...buildTree(all, search).entries()].sort(([a], [b]) =>
-        a.localeCompare(b),
-      ),
-    [all, search],
-  );
+  const tree = useMemo(() => buildPermissionTree(all, search), [all, search]);
 
-  const dirty =
-    checked.size !== initial.size ||
-    [...checked].some((id) => !initial.has(id));
+  const dirty = !areSetsEqual(initial, selected);
+  const loading = loadingAll || loadingRole;
+  const disabled = loading || saving || loadError;
 
-  const toggle = (ids: number[], on: boolean) =>
-    setChecked((prev) => {
+  const toggle = (ids: number[], checked: boolean) => {
+    if (disabled) return;
+
+    setSelected((prev) => {
       const next = new Set(prev);
-      ids.forEach((id) => (on ? next.add(id) : next.delete(id)));
+
+      for (const id of ids) {
+        if (checked) {
+          next.add(id);
+        } else {
+          next.delete(id);
+        }
+      }
+
       return next;
     });
+  };
+
+  const reset = () => {
+    if (disabled) return;
+    setSelected(new Set(initial));
+  };
 
   const save = async () => {
+    if (disabled || !dirty) return;
+
+    const ids = [...selected];
+    const savedRoleId = roleId;
+    const version = requestVersion.current;
+
     setSaving(true);
+
     try {
-      await assignRolePermissions(roleId, [...checked]);
-      setInitial(new Set(checked));
+      await assignRolePermissions(savedRoleId, ids);
+
+      // Do not update another role's state.
+      if (
+        version !== requestVersion.current ||
+        currentRoleId.current !== savedRoleId
+      ) {
+        return;
+      }
+
+      setInitial(new Set(ids));
       message.success("Permissions saved");
+    } catch {
+      if (
+        version === requestVersion.current &&
+        currentRoleId.current === savedRoleId
+      ) {
+        message.error("Failed to save permissions");
+      }
     } finally {
       setSaving(false);
     }
   };
-
-  const renderResources = (resources: Map<string, Leaf[]>) => (
-    <Collapse
-      size="small"
-      key={search ? "search" : "idle"}
-      defaultActiveKey={search ? [...resources.keys()] : []}
-      items={[...resources.entries()]
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([resource, leaves]) => ({
-          key: resource,
-          label: (
-            <GroupCheckbox
-              label={resource}
-              ids={leaves.map((l) => l.permission.id)}
-              checked={checked}
-              onToggle={toggle}
-            />
-          ),
-          children: (
-            <Flex wrap gap={16}>
-              {leaves.map(({ permission, action }) => (
-                <Checkbox
-                  key={permission.id}
-                  title={permission.name}
-                  checked={checked.has(permission.id)}
-                  onChange={(e) => toggle([permission.id], e.target.checked)}
-                >
-                  {action}
-                </Checkbox>
-              ))}
-            </Flex>
-          ),
-        }))}
-    />
-  );
 
   return (
     <Card
@@ -180,7 +369,7 @@ export default function PermissionsTable({ roleId }: { roleId: number }) {
         <Space>
           Permissions
           <Tag color={dirty ? "orange" : "blue"}>
-            {checked.size} of {all.length} selected
+            {selected.size} of {all.length} selected
           </Tag>
         </Space>
       }
@@ -188,15 +377,16 @@ export default function PermissionsTable({ roleId }: { roleId: number }) {
         <Space>
           <Button
             icon={<UndoOutlined />}
-            disabled={!dirty}
-            onClick={() => setChecked(new Set(initial))}
+            disabled={!dirty || disabled}
+            onClick={reset}
           >
             Reset
           </Button>
+
           <Button
             type="primary"
             icon={<SaveOutlined />}
-            disabled={!dirty}
+            disabled={!dirty || disabled}
             loading={saving}
             onClick={save}
           >
@@ -208,34 +398,22 @@ export default function PermissionsTable({ roleId }: { roleId: number }) {
       <Input.Search
         allowClear
         placeholder="Search permissions"
+        value={search}
+        disabled={loading}
         style={{ marginBottom: 16 }}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(event) => setSearch(event.target.value)}
       />
 
-      <Spin spinning={loadingAll || loadingRole}>
-        {tree.length === 0 ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="No permissions found"
-          />
+      <Spin spinning={loading}>
+        {loadError ? (
+          <Empty description="Unable to load role permissions" />
         ) : (
-          <Collapse
-            key={search ? "search" : "idle"}
-            defaultActiveKey={search ? tree.map(([domain]) => domain) : []}
-            items={tree.map(([domain, resources]) => ({
-              key: domain,
-              label: (
-                <GroupCheckbox
-                  label={domain}
-                  ids={[...resources.values()]
-                    .flat()
-                    .map((l) => l.permission.id)}
-                  checked={checked}
-                  onToggle={toggle}
-                />
-              ),
-              children: renderResources(resources),
-            }))}
+          <PermissionsTree
+            tree={tree}
+            selected={selected}
+            search={search}
+            disabled={disabled}
+            onToggle={toggle}
           />
         )}
       </Spin>
