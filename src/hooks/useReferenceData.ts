@@ -60,8 +60,16 @@ export function usePermissions() {
 }
 
 export function useRoles() {
-  return useRequest(getRoles, {
+  const { refresh, ...rest } = useRequest(getRoles, {
     cacheKey: CACHE_KEYS.roles,
-    staleTime: FIVE_MINUTES,
+    staleTime: ONE_HOUR,
   });
+
+  // forces a real refetch even while the cache is still fresh
+  const hardRefresh = () => {
+    clearCache(CACHE_KEYS.roles);
+    return refresh();
+  };
+
+  return { ...rest, hardRefresh };
 }
