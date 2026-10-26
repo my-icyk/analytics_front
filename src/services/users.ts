@@ -38,17 +38,12 @@ export function getUserRoles(user_id: number) {
   return request<Role[]>(`/api/v1/users/${user_id}/roles`);
 }
 
-export function addUserRole(user_id: number, role_id: number) {
-  return request(`/api/v1/users/${user_id}/roles/${role_id}`, {
-    method: "POST",
+export const assignUserRoles = (userId: number, role_ids: number[]) =>
+  request(`/api/v1/users/${userId}/roles`, {
+    method: "PUT",
+    data: { role_ids }, // use the same body style that fixed your permissions PUT
   });
-}
 
-export function removeUserRole(user_id: number, role_id: number) {
-  return request(`/api/v1/users/${user_id}/roles/${role_id}`, {
-    method: "DELETE",
-  });
-}
 export function lookupUsers(search?: string) {
   return request<LookupOption[]>("/api/v1/users/lookup", {
     params: { search },

@@ -1,117 +1,183 @@
-import { DeleteOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
-import { Button, Card, Empty, List, Popconfirm, Space, message } from "antd";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { addUserRole, removeUserRole, getUserRoles } from "@/services/users";
-import { DebounceSelect } from "@/components/DebounceSelect";
-import type { Role } from "@/types/auth";
-import { rolesLookup } from "@/services/roles";
+import { SaveOutlined, UndoOutlined } from "@ant-design/icons";
+import {
+  Button,
+  Card,
+  Checkbox,
+  Empty,
+  Input,
+  List,
+  Space,
+  Spin,
+  Tag,
+  message,
+} from "antd";
+import { useRequest } from "ahooks";
+import { useCallback, useMemo, useState } from "react";
 
-export default function RoleAssignment({ userId }: { userId: number }) {
-  const [assigned, setAssigned] = useState<Role[]>([]);
-  const [selected, setSelected] = useState<
-    { label: string; value: number } | undefined
-  >();
-  const [loading, setLoading] = useState(false);
-  const [assigning, setAssigning] = useState(false);
-  const loadPermissions = useCallback(
-    (search: string) => rolesLookup(search),
-    [],
+import { useRoles } from "@/hooks/useReferenceData";
+import { assignUserRoles, getUserRoles } from "@/services/users";
+
+// roles that "Select all" must never tick (the admin can still tick them one by one)
+const PROTECTED_ROLES = new Set(["admin"]);
+
+const areSetsEqual = (a: Set<number>, b: Set<number>) =>
+  a.size === b.size && [...a].every((id) => b.has(id));
+
+export default function UserRolesTab({ userId }: { userId: number }) {
+  const { data: allRoles = [], loading: loadingRoles } = useRoles();
+
+  const [initial, setInitial] = useState<Set<number>>(new Set());
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [search, setSearch] = useState("");
+
+  const {
+    loading: loadingUser,
+    error: loadError,
+    refresh,
+  } = useRequest(() => getUserRoles(userId), {
+    refreshDeps: [userId],
+    onSuccess: (roles) => {
+      const ids = new Set(roles.map((r) => r.id));
+      setInitial(ids);
+      setSelected(new Set(ids));
+    },
+  });
+
+  const { loading: saving, runAsync: save } = useRequest(assignUserRoles, {
+    manual: true,
+  });
+
+  const loading = loadingRoles || loadingUser;
+  const disabled = loading || saving || !!loadError;
+  const dirty = !areSetsEqual(selected, initial);
+
+  // filtered list (search by name or description)
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return allRoles;
+    return allRoles.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        r.description?.toLowerCase().includes(q),
+    );
+  }, [allRoles, search]);
+
+  // ids that "Select all" controls: visible and not protected
+  const selectableIds = useMemo(
+    () =>
+      filtered
+        .filter((r) => !PROTECTED_ROLES.has(r.name.toLowerCase()))
+        .map((r) => r.id),
+    [filtered],
   );
+  const selectedCount = selectableIds.filter((id) => selected.has(id)).length;
 
-  const load = async () => {
-    setLoading(true);
+  const toggleMany = useCallback((ids: number[], checked: boolean) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => (checked ? next.add(id) : next.delete(id)));
+      return next;
+    });
+  }, []);
+
+  const handleSave = async () => {
+    if (disabled || !dirty) return;
     try {
-      setAssigned(await getUserRoles(userId));
-    } finally {
-      setLoading(false);
+      await save(userId, [...selected]);
+      message.success("Roles saved");
+      refresh(); // onSuccess resets initial + selected from the server
+    } catch {
+      message.error("Failed to save roles");
     }
-  };
-
-  useEffect(() => {
-    load();
-  }, [userId]);
-
-  const handleAssign = async () => {
-    if (selected === undefined) return;
-    setAssigning(true);
-    try {
-      await addUserRole(userId, selected.value);
-      message.success("Role assigned");
-      setSelected(undefined);
-      await load();
-    } finally {
-      setAssigning(false);
-    }
-  };
-
-  const handleRevoke = async (roleId: number) => {
-    await removeUserRole(userId, roleId);
-    message.success("Role revoked");
-    load();
   };
 
   return (
-    <Card>
-      <Space.Compact style={{ width: "100%", marginBottom: 16 }}>
-        <DebounceSelect
-          value={selected}
-          allowClear
-          placeholder="Select roles to assign"
-          fetchOptions={loadPermissions}
-          onChange={(value) => setSelected(value)}
-        />
-        <Button
-          type="primary"
-          disabled={selected === undefined}
-          loading={assigning}
-          onClick={handleAssign}
-        >
-          Assign
-        </Button>
-      </Space.Compact>
-
-      <List
-        loading={loading}
-        dataSource={assigned}
-        locale={{
-          emptyText: (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="No roles assigned to this user"
-            />
-          ),
-        }}
-        renderItem={(p) => (
-          <List.Item
-            actions={[
-              <Popconfirm
-                key="revoke"
-                title="Revoke this role?"
-                okText="Revoke"
-                okButtonProps={{ danger: true }}
-                onConfirm={() => handleRevoke(p.id)}
-              >
-                <Button
-                  type="text"
-                  danger
-                  icon={<DeleteOutlined />}
-                  size="large"
-                />
-              </Popconfirm>,
-            ]}
+    <Card
+      title={
+        <Space>
+          Roles
+          <Tag color={dirty ? "orange" : "blue"}>
+            {selected.size} of {allRoles.length} selected
+          </Tag>
+        </Space>
+      }
+      extra={
+        <Space>
+          <Button
+            icon={<UndoOutlined />}
+            disabled={!dirty || disabled}
+            onClick={() => setSelected(new Set(initial))}
           >
-            <List.Item.Meta
-              avatar={
-                <SafetyCertificateOutlined
-                  style={{ fontSize: 20, marginTop: 4 }}
+            Reset
+          </Button>
+          <Button
+            type="primary"
+            icon={<SaveOutlined />}
+            disabled={!dirty || disabled}
+            loading={saving}
+            onClick={handleSave}
+          >
+            Save
+          </Button>
+        </Space>
+      }
+    >
+      <Space direction="vertical" style={{ width: "100%" }}>
+        <Input.Search
+          allowClear
+          placeholder="Search roles"
+          value={search}
+          disabled={loading}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <Checkbox
+          checked={
+            selectableIds.length > 0 && selectedCount === selectableIds.length
+          }
+          indeterminate={
+            selectedCount > 0 && selectedCount < selectableIds.length
+          }
+          disabled={disabled || selectableIds.length === 0}
+          onChange={(e) => toggleMany(selectableIds, e.target.checked)}
+        >
+          Select all{search.trim() ? " results" : ""}
+        </Checkbox>
+      </Space>
+
+      <Spin spinning={loading}>
+        {loadError ? (
+          <Empty description="Unable to load user roles" />
+        ) : (
+          <List
+            dataSource={filtered}
+            locale={{
+              emptyText: (
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description={
+                    search ? "No roles match your search" : "No roles available"
+                  }
                 />
-              }
-              title={p.name}
-              description={`id: ${p.id}`}
-            />
-          </List.Item>
+              ),
+            }}
+            renderItem={(role) => (
+              <List.Item>
+                <Checkbox
+                  checked={selected.has(role.id)}
+                  disabled={disabled}
+                  onChange={(e) => toggleMany([role.id], e.target.checked)}
+                >
+                  <strong>{role.name}</strong>
+                  {role.description && (
+                    <div style={{ opacity: 0.65 }}>{role.description}</div>
+                  )}
+                </Checkbox>
+              </List.Item>
+            )}
+          />
         )}
-      />
+      </Spin>
     </Card>
   );
 }

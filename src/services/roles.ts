@@ -9,7 +9,7 @@ import {
 } from "@/types/auth";
 
 export function getRoles(params: FetchRolesParams) {
-  return request<PageResult<Role>>("/api/v1/roles", { params });
+  return request<Role[]>("/api/v1/roles", { params });
 }
 
 export function getRole(id: number) {
