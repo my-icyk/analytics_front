@@ -2,7 +2,7 @@ import type { ProColumns } from "@ant-design/pro-components";
 import { Tag } from "antd";
 import { ViewActionButton } from "@/components/TableActions/ViewActionButton";
 import type { User } from "@/types/user";
-import { useAccess } from "@@/plugin-access";
+import { useAccess } from "@umijs/max";
 
 import { PERMISSIONS } from "../../../config/permissions";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
