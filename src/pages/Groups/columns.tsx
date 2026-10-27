@@ -7,94 +7,113 @@ import { EditActionButton } from "@/components/EditActionButton";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
 import { Tag } from "antd";
 import { numericIdsValueProps } from "@/utils/formProps";
-
+import { ViewActionButton } from "@/components/TableActions/ViewActionButton";
+import { useAccess } from "@umijs/max";
+import { PERMISSIONS } from "../../../config/permissions";
 /** Table columns of the Users page, kept apart so index.tsx stays short. */
 export const getColumns = (
+  access: ReturnType<typeof useAccess>,
   groupTypes: GroupType[],
   divisions: Division[],
   onEdit: (record: Group) => void,
   onDelete: (record: Group) => void,
-): ProColumns<Group>[] => [
-  { title: "ID", dataIndex: "id", search: false },
-  {
-    title: "Name",
-    dataIndex: "name",
-    key: "search",
-    render: (_, group) => <Link to={`${group.id}`}>{group.name}</Link>,
-  },
-  {
-    title: "Division",
-    dataIndex: "division_name",
-    key: "division_ids",
-    valueType: "select",
-    fieldProps: {
-      options: divisions,
-      fieldNames: { label: "name", value: "id" },
-      allowClear: true,
-      mode: "multiple",
-      placeholder: "Select Divisions",
+): ProColumns<Group>[] => {
+  const canOpen = access[PERMISSIONS.FINANCE.GROUP.READ];
+  const canEdit = access[PERMISSIONS.FINANCE.GROUP.UPDATE];
+  const canDelete = access[PERMISSIONS.FINANCE.GROUP.DELETE];
+  return [
+    { title: "ID", dataIndex: "id", search: false },
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "search",
+      render: (_, group) => <Link to={`${group.id}`}>{group.name}</Link>,
     },
-    formItemProps: numericIdsValueProps,
-    render: (_, group) => <Tag color="blue">{group.division_name}</Tag>,
-  },
-  {
-    title: "Group Type",
-    dataIndex: "group_type_name",
-    key: "group_type_ids",
-    valueType: "select",
-
-    fieldProps: {
-      options: groupTypes,
-      fieldNames: { label: "name", value: "id" },
-      allowClear: true,
-      mode: "multiple",
-      placeholder: "Select Group Types",
+    {
+      title: "Division",
+      dataIndex: "division_name",
+      key: "division_ids",
+      valueType: "select",
+      fieldProps: {
+        options: divisions,
+        fieldNames: { label: "name", value: "id" },
+        allowClear: true,
+        mode: "multiple",
+        placeholder: "Select Divisions",
+      },
+      formItemProps: numericIdsValueProps,
+      render: (_, group) => <Tag color="blue">{group.division_name}</Tag>,
     },
-    formItemProps: numericIdsValueProps,
-    render: (_, group) => <Tag color="green">{group.group_type_name}</Tag>,
-  },
-  {
-    title: "Repartition",
-    key: "repartition_count",
-    search: false,
-    render: (_, group) => (
-      <Link to={`${group.id}?tab=${GroupTabKey.Departments}`}>
-        {group.repartitions_count}
-      </Link>
-    ),
-  },
-  {
-    title: "Rules",
-    key: "rules_count",
-    search: false,
-    render: (_, group) => (
-      <Link to={`${group.id}?tab=${GroupTabKey.Rules}`}>
-        {group.rules_count}
-      </Link>
-    ),
-  },
+    {
+      title: "Group Type",
+      dataIndex: "group_type_name",
+      key: "group_type_ids",
+      valueType: "select",
 
-  {
-    title: "Actions",
-    dataIndex: "actions",
-    key: "actions",
-    search: false,
-    width: 120,
-    align: "right",
-    fixed: "right",
-    render: (_, record) => [
-      <EditActionButton
-        key="edit"
-        itemLabel={record.name}
-        onClick={() => onEdit(record)}
-      />,
+      fieldProps: {
+        options: groupTypes,
+        fieldNames: { label: "name", value: "id" },
+        allowClear: true,
+        mode: "multiple",
+        placeholder: "Select Group Types",
+      },
+      formItemProps: numericIdsValueProps,
+      render: (_, group) => <Tag color="green">{group.group_type_name}</Tag>,
+    },
+    {
+      title: "Repartition",
+      key: "repartition_count",
+      search: false,
+      render: (_, group) => (
+        <Link to={`${group.id}?tab=${GroupTabKey.Departments}`}>
+          {group.repartitions_count}
+        </Link>
+      ),
+    },
+    {
+      title: "Rules",
+      key: "rules_count",
+      search: false,
+      render: (_, group) => (
+        <Link to={`${group.id}?tab=${GroupTabKey.Rules}`}>
+          {group.rules_count}
+        </Link>
+      ),
+    },
 
-      <DeleteActionButton
-        key="delete"
-        entityName="group"
-        itemLabel={record.name}
-        onConfirm={() => onDelete(record)}
-      />,
-    ],
-  },
-];
+    {
+      title: "Actions",
+      dataIndex: "actions",
+      key: "actions",
+      search: false,
+      width: 140,
+      align: "center",
+
+      render: (_, record) => [
+        canOpen && (
+          <ViewActionButton
+            key="view-button"
+            to={`${record.id}`}
+            itemLabel={record.name}
+          />
+        ),
+        canEdit && (
+          <EditActionButton
+            key="edit"
+            itemLabel={record.name}
+            onClick={() => onEdit(record)}
+          />
+        ),
+
+        canDelete && (
+          <DeleteActionButton
+            key="delete"
+            entityName="group"
+            itemLabel={record.name}
+            onConfirm={() => onDelete(record)}
+          />
+        ),
+      ],
+    },
+  ];
+};

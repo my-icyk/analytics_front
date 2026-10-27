@@ -17,6 +17,7 @@ export default function GroupsPage() {
   const [createOpen, setCreateOpen] = useState(false);
 
   const access = useAccess();
+  const canCreate = access[PERMISSIONS.FINANCE.GROUP.CREATE];
 
   const canDeleteGroup = access[PERMISSIONS.FINANCE.GROUP.DELETE];
   const handleEdit = (record: Group) => {
@@ -42,8 +43,8 @@ export default function GroupsPage() {
   const { data: divisions = [] } = useDivisions();
 
   const columns = useMemo(
-    () => getColumns(types, divisions, handleEdit, handleDelete),
-    [types, divisions, canDeleteGroup],
+    () => getColumns(access, types, divisions, handleEdit, handleDelete),
+    [access, types, divisions, canDeleteGroup],
   );
   return (
     <PageContainer>
@@ -52,6 +53,7 @@ export default function GroupsPage() {
         rowKey="id"
         columns={columns}
         form={{ syncToUrl: true }}
+
         search={{
           labelWidth: "auto",
           searchText: "Filter",
@@ -80,14 +82,16 @@ export default function GroupsPage() {
           return { data, total, success };
         }}
         toolBarRender={() => [
-          <Button
-            key="create"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setCreateOpen(true)}
-          >
-            Create Group
-          </Button>,
+          canCreate && (
+            <Button
+              key="create"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setCreateOpen(true)}
+            >
+              Create Group
+            </Button>
+          ),
         ]}
       />
       <GroupFormModal
