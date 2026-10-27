@@ -1,48 +1,23 @@
 import { ProCard, ProDescriptions } from "@ant-design/pro-components";
-import { Statistic, Tag } from "antd";
+import type { ProDescriptionsItemProps } from "@ant-design/pro-components";
+import { InfoCircleFilled } from "@ant-design/icons";
 import type { Group } from "@/types/groups";
 
+const columns: ProDescriptionsItemProps<Group>[] = [
+  { title: "Group ID", dataIndex: "id", copyable: true },
+  { title: "Name", dataIndex: "name" },
+  { title: "Division", dataIndex: "division_name" },
+  { title: "Group Type", dataIndex: "group_type_name" },
+];
+
 export default function GroupOverview(group: Group) {
-  const stats = [
-    {
-      title: "Rules",
-      value: group.rules_count,
-    },
-    {
-      title: "Repartitions",
-      value: group.repartitions_count,
-    },
-  ];
-
   return (
-    <ProCard ghost direction="column">
-      <ProCard
-        headerBordered
-        title={group.name}
-        extra={<Tag color="blue">ID: {group.id}</Tag>}
-      >
-        <ProDescriptions<Group>
-          column={{ xs: 1, md: 2 }}
-          dataSource={group}
-          columns={[
-            { title: "Division", dataIndex: "division_name" },
-            { title: "Group type", dataIndex: "group_type_name" },
-          ]}
-        />
-      </ProCard>
-
-      <ProCard ghost gutter={[16, 16]} wrap>
-        {stats.map(({ title, value }) => (
-          <ProCard
-            key={title}
-            bordered
-            colSpan={{ xs: 24, sm: 12, lg: 8 }}
-            hoverable
-          >
-            <Statistic title={title} value={value ?? 0} />
-          </ProCard>
-        ))}
-      </ProCard>
+    <ProCard
+      title="Group Information"
+      extra={<InfoCircleFilled style={{ color: "#1677ff", fontSize: 18 }} />}
+      bordered
+    >
+      <ProDescriptions<Group> dataSource={group} columns={columns} />
     </ProCard>
   );
 }
