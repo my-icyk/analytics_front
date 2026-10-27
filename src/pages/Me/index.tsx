@@ -46,6 +46,22 @@ const accountColumns: ProDescriptionsItemProps<CurrentUser>[] = [
     render: (_, u) => roleTag(u.is_admin, "Administrator", "Standard User"),
   },
   {
+    title: "Roles",
+    dataIndex: "roles",
+    render: (_, user) =>
+      user.roles?.length ? (
+        <Space size={[4, 4]} wrap>
+          {user.roles.map((role) => (
+            <Tag key={role} color="geekblue">
+              {role}
+            </Tag>
+          ))}
+        </Space>
+      ) : (
+        <Text type="secondary">No roles assigned</Text>
+      ),
+  },
+  {
     title: "Member since",
     dataIndex: "created_at",
     render: (_, u) => formatDate(u.created_at),
