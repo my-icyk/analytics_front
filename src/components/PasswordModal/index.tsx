@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, Form, Input, Modal, App, Typography } from "antd";
 import { LockOutlined } from "@ant-design/icons";
-
+import { message } from "antd";
 import { changePassword, resetPassword } from "@/services/users";
 
 type PasswordModalProps = {
@@ -27,7 +27,6 @@ export default function PasswordModal({
 }: PasswordModalProps) {
   const [form] = Form.useForm<FormValues>();
   const [loading, setLoading] = useState(false);
-  const { message } = App.useApp();
 
   const isReset = mode === "reset";
 
@@ -57,12 +56,11 @@ export default function PasswordModal({
           : "Password changed successfully",
       );
 
-      form.resetFields();
       onClose();
       onSuccess?.();
+      form.resetFields();
     } catch (error) {
-      // Your Umi request error handler can display API errors.
-      console.error(error);
+      message.error("Failed to update password");
     } finally {
       setLoading(false);
     }
