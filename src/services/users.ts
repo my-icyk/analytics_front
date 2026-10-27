@@ -6,8 +6,8 @@ import { RoleListItem } from "@/types/auth";
 
 const BASE = "/api/v1/users";
 
-export function fetchUsers(params: PageParams) {
-  return request<PageResult<User>>("/api/v1/users", { params });
+export function getUsers() {
+  return request<User[]>("/api/v1/users");
 }
 
 export function getUser(user_id: number) {

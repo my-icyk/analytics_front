@@ -2,6 +2,7 @@
 import { getDivisions } from "@/services/divisions";
 import { getGroupTypes, getRules, getDepartments } from "@/services/groups";
 import { getPermissions, getRoles } from "@/services/roles";
+import { getUsers } from "@/services/users";
 import { useRequest, clearCache } from "ahooks";
 
 const FIVE_MINUTES = 5 * 60 * 1000;
@@ -14,6 +15,7 @@ const CACHE_KEYS = {
   departments: "finance-departments",
   permissions: "auth-permissions",
   roles: "auth-roles",
+  users: "auth-users",
 };
 
 export function useDivisions() {
@@ -68,6 +70,21 @@ export function useRoles() {
   // forces a real refetch even while the cache is still fresh
   const hardRefresh = () => {
     clearCache(CACHE_KEYS.roles);
+    return refresh();
+  };
+
+  return { ...rest, hardRefresh };
+}
+
+export function useUsers() {
+  const { refresh, ...rest } = useRequest(getUsers, {
+    cacheKey: CACHE_KEYS.users,
+    staleTime: ONE_HOUR,
+  });
+
+  // forces a real refetch even while the cache is still fresh
+  const hardRefresh = () => {
+    clearCache(CACHE_KEYS.users);
     return refresh();
   };
 

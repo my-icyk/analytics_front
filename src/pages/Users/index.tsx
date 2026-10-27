@@ -1,31 +1,54 @@
-import { PageContainer, ProTable } from "@ant-design/pro-components";
-import { DEFAULT_PAGE_SIZE } from "@/constants/app";
+import { useMemo, useState } from "react";
+import { PageContainer } from "@ant-design/pro-components";
 import { useAccess } from "@umijs/max";
-import { fetchUsers } from "@/services/users";
-import type { User } from "@/types/user";
-import { getColumns } from "./columns";
-import { useMemo } from "react";
 
-/** Admin-only (see `access` in config/routes.ts). */
+import { EntityTable } from "@/components/EntityTable";
+import { useUsers } from "@/hooks/useReferenceData";
+import type { User } from "@/types/user";
+
+import UserFormModal from "./UserFormModal";
+import { getColumns } from "./columns";
+
 export default function UsersPage() {
   const access = useAccess();
+  const { data: users = [], loading, hardRefresh } = useUsers();
 
-  const columns = useMemo(() => getColumns(access), [access]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+
+  const handleCreate = () => {
+    setEditingUser(null);
+    setModalOpen(true);
+  };
+
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    setModalOpen(true);
+  };
+
+  const handleSuccess = () => {
+    setModalOpen(false);
+    setEditingUser(null);
+    hardRefresh();
+  };
+
+  const columns = useMemo(() => getColumns(access, handleEdit), [access]);
+
   return (
     <PageContainer>
-      <ProTable<User>
-        rowKey="id"
+      <EntityTable<User>
         columns={columns}
-        search={false} // no search form yet
-        pagination={{ defaultPageSize: DEFAULT_PAGE_SIZE }}
-        // ProTable calls this itself on load / page change and handles loading.
-        request={async ({ current = 1, pageSize = DEFAULT_PAGE_SIZE }) => {
-          const { data, total, success } = await fetchUsers({
-            page: current,
-            limit: pageSize,
-          });
-          return { data, total, success };
-        }}
+        data={users}
+        loading={loading}
+        createLabel="Create User"
+        onCreate={handleCreate}
+      />
+
+      <UserFormModal
+        open={modalOpen}
+        user={editingUser}
+        onCancel={() => setModalOpen(false)}
+        onSuccess={handleSuccess}
       />
     </PageContainer>
   );

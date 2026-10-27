@@ -8,8 +8,9 @@ import { PERMISSIONS } from "../../../config/permissions";
 /** Table columns of the Users page, kept apart so index.tsx stays short. */
 export const getColumns = (
   access: ReturnType<typeof useAccess>,
+  handleEdit: (user: User) => void,
 ): ProColumns<User>[] => [
-  { title: "ID", dataIndex: "id" },
+  { title: "ID", dataIndex: "id", search: false },
   { title: "Username", dataIndex: "username" },
   {
     title: "Admin",
@@ -31,6 +32,11 @@ export const getColumns = (
           onClick={() => history.push(`users/${record.id}`)}
         >
           View
+        </Button>
+      ),
+      access[PERMISSIONS.AUTH.USERS.UPDATE] && (
+        <Button key="edit" type="link" onClick={() => handleEdit(record)}>
+          Edit
         </Button>
       ),
     ],
