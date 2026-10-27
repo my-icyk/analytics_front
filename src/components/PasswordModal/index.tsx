@@ -120,8 +120,8 @@ export default function PasswordModal({
               message: "Enter a new password",
             },
             {
-              min: 12,
-              message: "Password must contain at least 12 characters",
+              min: 6,
+              message: "Password must contain at least 6 characters",
             },
           ]}
         >
