@@ -1,10 +1,6 @@
 import { request } from "@umijs/max";
-import type {
-  CurrentUser,
-  LoginParams,
-  LoginResult,
-  RefreshResponse,
-} from "@/types/auth";
+import type { LoginParams, LoginResult, RefreshResponse } from "@/types/auth";
+import { CurrentUser } from "@/types/user";
 
 /**
  * SERVICES = plain functions that talk to the backend. Nothing else.

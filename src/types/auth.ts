@@ -1,13 +1,4 @@
 /** Types for login / current user. */
-import type { PermissionName } from "../../config/permissions";
-export type CurrentUser = {
-  id: number;
-  username: string;
-  is_admin: boolean;
-  /** Drives permissions, see src/access.ts */
-  roles: string[];
-  permissions: PermissionName[];
-};
 
 export type LoginParams = {
   username: string;

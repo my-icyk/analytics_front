@@ -1,24 +1,15 @@
 import { useState } from "react";
 import { useRequest } from "ahooks";
+import { Avatar, Button, Result, Space, Tag, Typography } from "antd";
 import {
-  Avatar,
-  Button,
-  Card,
-  Col,
-  Descriptions,
-  Result,
-  Row,
-  Skeleton,
-  Space,
-  Tag,
-  Typography,
-} from "antd";
+  PageContainer,
+  ProCard,
+  ProDescriptions,
+} from "@ant-design/pro-components";
+import type { ProDescriptionsItemProps } from "@ant-design/pro-components";
 import {
-  CalendarOutlined,
-  ClockCircleOutlined,
   LockOutlined,
   MailOutlined,
-  PhoneOutlined,
   SafetyCertificateOutlined,
   UserOutlined,
 } from "@ant-design/icons";
@@ -26,109 +17,108 @@ import {
 import PasswordModal from "@/components/PasswordModal";
 import { fetchCurrentUser } from "@/services/auth";
 import { formatDate } from "@/utils/formatDate";
+import { CurrentUser } from "@/types/user";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
-type User = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string | null;
-  avatarUrl?: string | null;
-  is_admin: boolean;
-  status: string;
-  createdAt: string;
-  lastLoginAt?: string | null;
-};
+const roleTag = (
+  isAdmin: boolean,
+  adminLabel = "Administrator",
+  userLabel = "User",
+) => (
+  <Tag color={isAdmin ? "purple" : "blue"}>
+    {isAdmin ? adminLabel : userLabel}
+  </Tag>
+);
+
+const personalColumns = (
+  user: CurrentUser,
+): ProDescriptionsItemProps<CurrentUser>[] => [
+  { title: "Full name", dataIndex: "name" },
+  { title: "Email", dataIndex: "email", copyable: true },
+];
+
+const accountColumns: ProDescriptionsItemProps<CurrentUser>[] = [
+  { title: "User ID", dataIndex: "id", copyable: true },
+  {
+    title: "Account type",
+    dataIndex: "is_admin",
+    render: (_, u) => roleTag(u.is_admin, "Administrator", "Standard User"),
+  },
+  {
+    title: "Member since",
+    dataIndex: "created_at",
+    render: (_, u) => formatDate(u.created_at),
+  },
+];
 
 export default function MePage() {
   const [passwordOpen, setPasswordOpen] = useState(false);
-
   const { data: user, loading, error, refresh } = useRequest(fetchCurrentUser);
 
-  if (loading) {
+  if (error || (!loading && !user)) {
     return (
-      <Card style={{ borderRadius: 16 }}>
-        <Skeleton active avatar paragraph={{ rows: 8 }} />
-      </Card>
+      <PageContainer title="My Profile">
+        <Result
+          status="error"
+          title="Unable to load profile"
+          subTitle="We couldn't retrieve your account information."
+          extra={
+            <Button type="primary" onClick={refresh}>
+              Try again
+            </Button>
+          }
+        />
+      </PageContainer>
     );
   }
-
-  if (error || !user) {
-    return (
-      <Result
-        status="error"
-        title="Unable to load profile"
-        subTitle="We couldn't retrieve your account information."
-        extra={
-          <Button type="primary" onClick={refresh}>
-            Try again
-          </Button>
-        }
-      />
-    );
-  }
-
-  const fullName = `${user.firstName} ${user.lastName}`.trim() || user.email;
 
   return (
-    <div
-      style={{
-        maxWidth: 1200,
-        margin: "0 auto",
-        paddingBottom: 32,
-      }}
+    <PageContainer
+      title="My Profile"
+      subTitle="View your personal information and manage account security."
+      loading={loading}
+      extra={[
+        <Button
+          key="password"
+          type="primary"
+          icon={<LockOutlined />}
+          onClick={() => setPasswordOpen(true)}
+        >
+          Change Password
+        </Button>,
+      ]}
     >
-      {/* Page heading */}
-      <div style={{ marginBottom: 24 }}>
-        <Title level={3} style={{ marginBottom: 4 }}>
-          My Profile
-        </Title>
-        <Text type="secondary">
-          View your personal information and manage account security.
-        </Text>
-      </div>
-
-      {/* Profile hero */}
-      <Card
-        style={{
-          marginBottom: 24,
-          borderRadius: 16,
-          overflow: "hidden",
-          background: "linear-gradient(120deg, #f8faff 0%, #eaf1ff 100%)",
-          border: "1px solid #e6edff",
-        }}
-        styles={{ body: { padding: 28 } }}
-      >
-        <Row gutter={[24, 24]} align="middle" justify="space-between">
-          <Col flex="auto">
+      {user && (
+        <ProCard ghost gutter={[24, 24]} wrap>
+          {/* Hero */}
+          <ProCard
+            colSpan={24}
+            bordered
+            style={{
+              background: "linear-gradient(120deg, #f8faff 0%, #eaf1ff 100%)",
+              borderColor: "#e6edff",
+            }}
+          >
             <Space size={20} align="center" wrap>
               <Avatar
                 size={88}
-                src={user.avatarUrl}
+                src={
+                  <img
+                    src={`https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(user.id)}`}
+                    alt="User avatar"
+                    style={{ width: "100%", height: "100%" }}
+                  />
+                }
                 icon={<UserOutlined />}
-                style={{
-                  backgroundColor: "#d6e4ff",
-                  color: "#1677ff",
-                }}
               />
-
               <div>
                 <Title level={3} style={{ margin: "0 0 8px" }}>
-                  {fullName}
+                  {user.name}
                 </Title>
-
                 <Space wrap size={8}>
-                  <Tag color={user.is_admin ? "purple" : "blue"}>
-                    {user.is_admin ? "Administrator" : "User"}
-                  </Tag>
-
-                  <Tag color={user.status === "ACTIVE" ? "success" : "default"}>
-                    {user.status}
-                  </Tag>
+                  {roleTag(user.is_admin)}
                 </Space>
-
                 <div style={{ marginTop: 10 }}>
                   <Text type="secondary">
                     <MailOutlined style={{ marginRight: 8 }} />
@@ -137,110 +127,53 @@ export default function MePage() {
                 </div>
               </div>
             </Space>
-          </Col>
+          </ProCard>
 
-          <Col>
-            <Button
-              type="primary"
-              size="large"
-              icon={<LockOutlined />}
-              onClick={() => setPasswordOpen(true)}
-            >
-              Change Password
-            </Button>
-          </Col>
-        </Row>
-      </Card>
-
-      <Row gutter={[24, 24]} align="stretch">
-        {/* Personal information */}
-        <Col xs={24} lg={12}>
-          <Card
+          {/* Personal information */}
+          <ProCard
+            colSpan={{ xs: 24, lg: 12 }}
+            bordered
             title={
               <Space>
                 <UserOutlined style={{ color: "#1677ff" }} />
                 Personal Information
               </Space>
             }
-            style={{ height: "100%", borderRadius: 16 }}
           >
-            <Descriptions
+            <ProDescriptions<CurrentUser>
               column={1}
-              colon={false}
-              labelStyle={{
-                color: "#8c8c8c",
-                width: 150,
-              }}
-            >
-              <Descriptions.Item label="First name">
-                {user.firstName}
-              </Descriptions.Item>
+              dataSource={user}
+              columns={personalColumns(user)}
+              labelStyle={{ color: "#8c8c8c", width: 150 }}
+            />
+          </ProCard>
 
-              <Descriptions.Item label="Last name">
-                {user.lastName}
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
-
-              {user.phone && (
-                <Descriptions.Item label="Phone">
-                  <PhoneOutlined style={{ marginRight: 8 }} />
-                  {user.phone}
-                </Descriptions.Item>
-              )}
-            </Descriptions>
-          </Card>
-        </Col>
-
-        {/* Account information */}
-        <Col xs={24} lg={12}>
-          <Card
+          {/* Account information */}
+          <ProCard
+            colSpan={{ xs: 24, lg: 12 }}
+            bordered
             title={
               <Space>
                 <SafetyCertificateOutlined style={{ color: "#1677ff" }} />
                 Account Information
               </Space>
             }
-            style={{ height: "100%", borderRadius: 16 }}
           >
-            <Descriptions
+            <ProDescriptions<CurrentUser>
               column={1}
-              colon={false}
-              labelStyle={{
-                color: "#8c8c8c",
-                width: 150,
-              }}
-            >
-              <Descriptions.Item label="User ID">
-                <Text copyable>{String(user.id)}</Text>
-              </Descriptions.Item>
+              dataSource={user}
+              columns={accountColumns}
+              labelStyle={{ color: "#8c8c8c", width: 150 }}
+            />
+          </ProCard>
+        </ProCard>
+      )}
 
-              <Descriptions.Item label="Account type">
-                <Tag color={user.is_admin ? "purple" : "blue"}>
-                  {user.is_admin ? "Administrator" : "Standard User"}
-                </Tag>
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Member since">
-                <CalendarOutlined style={{ marginRight: 8 }} />
-                {formatDate(user.createdAt)}
-              </Descriptions.Item>
-
-              <Descriptions.Item label="Last login">
-                <ClockCircleOutlined style={{ marginRight: 8 }} />
-                {formatDate(user.lastLoginAt)}
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Password modal */}
       <PasswordModal
         open={passwordOpen}
         mode="change"
         onClose={() => setPasswordOpen(false)}
       />
-    </div>
+    </PageContainer>
   );
 }
