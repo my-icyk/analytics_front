@@ -18,6 +18,10 @@ export default [
     layout: false,
   },
   {
+    path: "/",
+    redirect: "/me",
+  },
+  {
     path: "/me",
     name: "My Profile",
     icon: "user",
