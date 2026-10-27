@@ -25,7 +25,6 @@ export default function DepartmentTab({ groupId }: { groupId: number }) {
     refresh,
   } = useRequest(() => getRepartitions(groupId), {
     refreshDeps: [groupId],
-    onError: () => message.error("Failed to load repartitions"),
   });
 
   const modal = useEditModal<Repartition>();
@@ -44,7 +43,6 @@ export default function DepartmentTab({ groupId }: { groupId: number }) {
         modal.close();
         refresh();
       },
-      onError: () => message.error("Could not save the repartition"),
     },
   );
 

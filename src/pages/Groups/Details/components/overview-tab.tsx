@@ -1,6 +1,6 @@
 import { ProCard, ProDescriptions } from "@ant-design/pro-components";
 import type { ProDescriptionsItemProps } from "@ant-design/pro-components";
-import { InfoCircleFilled } from "@ant-design/icons";
+import { InfoCircleTwoTone } from "@ant-design/icons";
 import type { Group } from "@/types/groups";
 
 const columns: ProDescriptionsItemProps<Group>[] = [
@@ -12,11 +12,7 @@ const columns: ProDescriptionsItemProps<Group>[] = [
 
 export default function GroupOverview(group: Group) {
   return (
-    <ProCard
-      title="Group Information"
-      extra={<InfoCircleFilled style={{ color: "#1677ff", fontSize: 18 }} />}
-      bordered
-    >
+    <ProCard title="Group Information" extra={<InfoCircleTwoTone />} bordered>
       <ProDescriptions<Group> dataSource={group} columns={columns} />
     </ProCard>
   );
