@@ -15,13 +15,14 @@ import { useDivisions, useGroupTypes } from "@/hooks/useReferenceData";
 
 export default function GroupsPage() {
   const [createOpen, setCreateOpen] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<Group>();
 
   const access = useAccess();
   const canCreate = access[PERMISSIONS.FINANCE.GROUP.CREATE];
 
   const canDeleteGroup = access[PERMISSIONS.FINANCE.GROUP.DELETE];
   const handleEdit = (record: Group) => {
-    // Implement your edit logic here
+    setEditingGroup(record);
   };
 
   const actionRef = useRef<ActionType>();
@@ -95,10 +96,16 @@ export default function GroupsPage() {
         ]}
       />
       <GroupFormModal
-        open={createOpen}
-        onCancel={() => setCreateOpen(false)}
+        key={editingGroup?.id ?? "create"}
+        open={createOpen || !!editingGroup}
+        group={editingGroup}
+        onCancel={() => {
+          setCreateOpen(false);
+          setEditingGroup(undefined);
+        }}
         onSuccess={() => {
           setCreateOpen(false);
+          setEditingGroup(undefined);
           actionRef.current?.reload();
         }}
       />
