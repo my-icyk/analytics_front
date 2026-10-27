@@ -1,7 +1,6 @@
 import { Group, GroupType } from "@/types/groups";
 import type { Division } from "@/types/divisions";
 import type { ProColumns } from "@ant-design/pro-components";
-import { Link } from "@umijs/max";
 import { GroupTabKey } from "@/constants/groups";
 import { EditActionButton } from "@/components/EditActionButton";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
@@ -10,6 +9,7 @@ import { numericIdsValueProps } from "@/utils/formProps";
 import { ViewActionButton } from "@/components/TableActions/ViewActionButton";
 import { useAccess } from "@umijs/max";
 import { PERMISSIONS } from "../../../config/permissions";
+import { PermissionLink } from "@/components/PermissionLink";
 /** Table columns of the Users page, kept apart so index.tsx stays short. */
 export const getColumns = (
   access: ReturnType<typeof useAccess>,
@@ -21,13 +21,26 @@ export const getColumns = (
   const canOpen = access[PERMISSIONS.FINANCE.GROUP.READ];
   const canEdit = access[PERMISSIONS.FINANCE.GROUP.UPDATE];
   const canDelete = access[PERMISSIONS.FINANCE.GROUP.DELETE];
+
+  const canOpenRepartitions =
+    access[PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.READ];
+  const canOpenRules = access[PERMISSIONS.FINANCE.RULE.READ];
+
   return [
-    { title: "ID", dataIndex: "id", search: false },
+    {
+      title: "ID",
+      dataIndex: "id",
+      search: false,
+      render: (_, group) => (
+        <PermissionLink canAccess={canOpen} to={`${group.id}`}>
+          {group.id}
+        </PermissionLink>
+      ),
+    },
     {
       title: "Name",
       dataIndex: "name",
       key: "search",
-      render: (_, group) => <Link to={`${group.id}`}>{group.name}</Link>,
     },
     {
       title: "Division",
@@ -65,9 +78,12 @@ export const getColumns = (
       key: "repartition_count",
       search: false,
       render: (_, group) => (
-        <Link to={`${group.id}?tab=${GroupTabKey.Departments}`}>
+        <PermissionLink
+          canAccess={canOpenRepartitions}
+          to={`${group.id}?tab=${GroupTabKey.Departments}`}
+        >
           {group.repartitions_count}
-        </Link>
+        </PermissionLink>
       ),
     },
     {
@@ -75,9 +91,12 @@ export const getColumns = (
       key: "rules_count",
       search: false,
       render: (_, group) => (
-        <Link to={`${group.id}?tab=${GroupTabKey.Rules}`}>
+        <PermissionLink
+          canAccess={canOpenRules}
+          to={`${group.id}?tab=${GroupTabKey.Rules}`}
+        >
           {group.rules_count}
-        </Link>
+        </PermissionLink>
       ),
     },
 
