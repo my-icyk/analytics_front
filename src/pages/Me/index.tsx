@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRequest } from "ahooks";
+import { useModel } from "@umijs/max";
 import { Avatar, Button, Result, Space, Tag, Typography } from "antd";
 import {
   PageContainer,
@@ -15,7 +15,6 @@ import {
 } from "@ant-design/icons";
 
 import PasswordModal from "@/components/PasswordModal";
-import { fetchCurrentUser } from "@/services/auth";
 import { formatDate } from "@/utils/formatDate";
 import { CurrentUser } from "@/types/user";
 
@@ -70,9 +69,10 @@ const accountColumns: ProDescriptionsItemProps<CurrentUser>[] = [
 
 export default function MePage() {
   const [passwordOpen, setPasswordOpen] = useState(false);
-  const { data: user, loading, error, refresh } = useRequest(fetchCurrentUser);
+  const { initialState, refresh, loading } = useModel("@@initialState");
+  const user = initialState?.currentUser;
 
-  if (error || (!loading && !user)) {
+  if (!loading && !user) {
     return (
       <PageContainer title="My Profile">
         <Result
