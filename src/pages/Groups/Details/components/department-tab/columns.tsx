@@ -1,5 +1,5 @@
 import type { ProColumns } from "@ant-design/pro-components";
-
+import { useAccess } from "@umijs/max";
 import type { Repartition } from "@/types/departments";
 import { formatDate } from "@/utils/formatDate";
 import {
@@ -11,16 +11,21 @@ import {
 } from "@/utils/sorters";
 import { EditActionButton } from "@/components/EditActionButton";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
+import { PERMISSIONS } from "../../../../../../config/permissions";
 
 type GetColumnsParams = {
+  access: ReturnType<typeof useAccess>;
   onEdit: (record: Repartition) => void;
   onDelete: (id: number) => void;
 };
 
 export function getColumns({
+  access,
   onEdit,
   onDelete,
 }: GetColumnsParams): ProColumns<Repartition>[] {
+  const canEdit = access[PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.UPDATE];
+  const canDelete = access[PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.DELETE];
   return [
     {
       title: "ID",
@@ -70,18 +75,22 @@ export function getColumns({
       align: "right",
       fixed: "right",
       render: (_, record) => [
-        <EditActionButton
-          key="edit"
-          itemLabel={record.department_name}
-          onClick={() => onEdit(record)}
-        />,
+        canEdit && (
+          <EditActionButton
+            key="edit"
+            itemLabel={record.department_name}
+            onClick={() => onEdit(record)}
+          />
+        ),
 
-        <DeleteActionButton
-          key="delete"
-          entityName="department"
-          itemLabel={record.department_name}
-          onConfirm={() => onDelete(record.id)}
-        />,
+        canDelete && (
+          <DeleteActionButton
+            key="delete"
+            entityName="department"
+            itemLabel={record.department_name}
+            onConfirm={() => onDelete(record.id)}
+          />
+        ),
       ],
     },
   ];

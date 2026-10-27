@@ -56,13 +56,17 @@ export default function DepartmentTab({ groupId }: { groupId: number }) {
         message.success("Repartition deleted");
         refresh();
       },
-      onError: () => message.error("Could not delete the repartition"),
     },
   );
 
   const columns = useMemo(
-    () => getColumns({ onEdit: modal.openEdit, onDelete: removeRepartition }),
-    [modal.openEdit, removeRepartition],
+    () =>
+      getColumns({
+        access,
+        onEdit: modal.openEdit,
+        onDelete: removeRepartition,
+      }),
+    [access, modal.openEdit, removeRepartition],
   );
   return (
     <>
