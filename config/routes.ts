@@ -18,8 +18,10 @@ export default [
     layout: false,
   },
   {
-    path: "/",
-    redirect: "/404",
+    path: "/me",
+    name: "My Profile",
+    icon: "user",
+    component: "./Me",
   },
   {
     path: "/auth",

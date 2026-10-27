@@ -1,6 +1,11 @@
 import { request } from "@umijs/max";
-import type { PageParams, PageResult } from "@/types/api";
-import type { User, UserCreate, UserUpdate } from "@/types/user";
+import type {
+  User,
+  UserCreate,
+  UserUpdate,
+  PasswordReset,
+  PasswordChange,
+} from "@/types/user";
 import type { LookupOption } from "@/types/common";
 import { RoleListItem } from "@/types/auth";
 
@@ -29,6 +34,19 @@ export function createUser(payload: UserCreate) {
 
 export function updateUser(user_id: number, payload: UserUpdate) {
   return request(`${BASE}/${user_id}`, {
+    method: "PUT",
+    data: payload,
+  });
+}
+export function resetPassword(user_id: number, payload: PasswordReset) {
+  return request(`${BASE}/${user_id}/password`, {
+    method: "PUT",
+    data: payload,
+  });
+}
+
+export function changePassword(payload: PasswordChange) {
+  return request(`${BASE}/me/password`, {
     method: "PUT",
     data: payload,
   });

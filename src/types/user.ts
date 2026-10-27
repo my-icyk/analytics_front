@@ -25,3 +25,12 @@ export type UserUpdate = {
   name: string;
   is_active: boolean;
 };
+
+export type PasswordReset = {
+  new_password: string;
+};
+
+export type PasswordChange = {
+  current_password: string;
+  new_password: string;
+};

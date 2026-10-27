@@ -1,4 +1,5 @@
 // hooks/useReferenceData.ts
+import { fetchCurrentUser } from "@/services/auth";
 import { getDivisions } from "@/services/divisions";
 import { getGroupTypes, getRules, getDepartments } from "@/services/groups";
 import { getPermissions, getRoles } from "@/services/roles";
@@ -16,6 +17,7 @@ const CACHE_KEYS = {
   permissions: "auth-permissions",
   roles: "auth-roles",
   users: "auth-users",
+  me: "auth-me",
 };
 
 export function useDivisions() {
@@ -44,6 +46,13 @@ export function useRules() {
   return useRequest(getRules, {
     cacheKey: CACHE_KEYS.rules,
     staleTime: ONE_HOUR,
+  });
+}
+
+export function useMe() {
+  return useRequest(fetchCurrentUser, {
+    cacheKey: CACHE_KEYS.me,
+    staleTime: Infinity,
   });
 }
 
