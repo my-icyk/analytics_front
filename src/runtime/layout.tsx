@@ -4,6 +4,7 @@ import AvatarDropdown from "@/components/AvatarDropdown";
 import Footer from "@/components/Footer";
 import { LOGIN_PATH } from "@/constants/app";
 import { getLoginUrl } from "@/utils/navigation";
+import { UserOutlined } from "@ant-design/icons";
 
 /**
  * The frame around every page (sidebar, header, footer) AND the login guard.
@@ -18,17 +19,17 @@ export const buildLayout: RunTimeLayoutConfig = ({ initialState }) => {
   const currentUser = initialState?.currentUser;
 
   return {
+    layout: "mix", // header on top + sider menu below it
+    logo: "/logo.svg", // file in /public, shown next to the title
+    fixedHeader: true,
     footerRender: () => <Footer />,
 
     avatarProps: currentUser
       ? {
+          icon: <UserOutlined />,
           title: currentUser.username,
-          size: "large",
-          render: (_, dom) => (
-            <div style={{ width: "100%", minWidth: 0 }}>
-              <AvatarDropdown>{dom}</AvatarDropdown>
-            </div>
-          ),
+          size: "small",
+          render: (_, dom) => <AvatarDropdown>{dom}</AvatarDropdown>,
         }
       : undefined,
 

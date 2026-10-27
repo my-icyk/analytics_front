@@ -1,6 +1,6 @@
-import { fetchCurrentUser } from '@/services/auth';
-import type { CurrentUser } from '@/types/auth';
-import { clearToken, getToken } from '@/utils/token';
+import { fetchCurrentUser } from "@/services/auth";
+import type { CurrentUser } from "@/types/user";
+import { clearToken, getToken } from "@/utils/token";
 
 /** Global state available everywhere via `useModel('@@initialState')`. */
 export type InitialState = {

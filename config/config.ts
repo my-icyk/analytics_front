@@ -13,9 +13,13 @@ export default defineConfig({
   proxy,
   antd: { theme }, // colors / sizes live in config/theme.ts (no CSS needed)
   layout: {
-    title: "My App",
-    layout: "side",
+    layout: "mix", // header on top, menu in the sider
+    fixedHeader: true,
+    fixSiderbar: true,
+    splitMenus: true, // header: Auth / Finance, sider: their children
+    contentWidth: "Fluid", // or "Fixed" for a centered, narrower page
     siderWidth: 240,
+    locale: false, // you use plain names, no i18n
   }, // enables the Pro layout (sidebar, header, menu)
   access: {}, // enables src/access.ts (role-based permissions)
   model: {}, // enables global models, optional
