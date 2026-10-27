@@ -15,9 +15,11 @@ import { EntityTable } from "@/components/EntityTable";
 import type { Division } from "@/types/divisions";
 import DivisionFormModal from "./DivisionFormModal";
 import { getColumns } from "./columns";
+import { PERMISSIONS } from "../../../config/permissions";
 
 export default function DivisionsPage() {
   const access = useAccess();
+  const canCreate = access[PERMISSIONS.FINANCE.DIVISION.CREATE];
   const modal = useEditModal<Division>();
   const { data: divisions = [], loading, hardRefresh } = useDivisions();
 
@@ -51,7 +53,7 @@ export default function DivisionsPage() {
         data={divisions}
         loading={loading}
         createLabel="New division"
-        onCreate={modal.openCreate}
+        onCreate={canCreate ? modal.openCreate : undefined}
       />
       <DivisionFormModal
         open={modal.open}
