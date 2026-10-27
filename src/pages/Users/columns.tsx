@@ -7,6 +7,7 @@ import { useAccess } from "@@/plugin-access";
 import { PERMISSIONS } from "../../../config/permissions";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
 import { EditActionButton } from "@/components/EditActionButton";
+import { boolSorter, numberSorter, stringSorter } from "@/utils/sorters";
 
 /** Table columns of the Users page, kept apart so index.tsx stays short. */
 export const getColumns = (
@@ -18,8 +19,31 @@ export const getColumns = (
   const canEdit = access[PERMISSIONS.AUTH.USERS.UPDATE];
   const canDelete = access[PERMISSIONS.AUTH.USERS.DELETE];
   return [
-    { title: "ID", dataIndex: "id", search: false },
-    { title: "Username", dataIndex: "username" },
+    {
+      title: "ID",
+      dataIndex: "id",
+      search: false,
+      sorter: numberSorter<User>("id"),
+    },
+    {
+      title: "Username",
+      dataIndex: "username",
+      search: true,
+      sorter: stringSorter<User>("username"),
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      search: true,
+      sorter: stringSorter<User>("name"),
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      search: false,
+      sorter: stringSorter<User>("email"),
+    },
+
     {
       title: "Admin",
       dataIndex: "is_admin",
@@ -28,6 +52,7 @@ export const getColumns = (
         true: { text: "Admin" },
         false: { text: "User" },
       },
+      sorter: boolSorter<User>("is_admin"),
       render: (_, user) => (
         <Tag color={user.is_admin ? "gold" : "default"}>
           {user.is_admin ? "admin" : "user"}
