@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { PageContainer } from "@ant-design/pro-components";
 import { useAccess } from "@umijs/max";
+import { message } from "antd";
 
 import { EntityTable } from "@/components/EntityTable";
 import { useUsers } from "@/hooks/useReferenceData";
@@ -8,6 +9,7 @@ import type { User } from "@/types/user";
 
 import UserFormModal from "./UserFormModal";
 import { getColumns } from "./columns";
+import { deleteUser } from "@/services/users";
 
 export default function UsersPage() {
   const access = useAccess();
@@ -15,6 +17,17 @@ export default function UsersPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+
+  const handleDelete = async (user: User) => {
+    try {
+      await deleteUser(user.id);
+      message.success(`User "${user.username}" deleted`);
+      await hardRefresh();
+    } catch (error) {
+      // Your global request error handler can display the error.
+      console.error("Failed to delete user:", error);
+    }
+  };
 
   const handleCreate = () => {
     setEditingUser(null);
@@ -32,7 +45,10 @@ export default function UsersPage() {
     hardRefresh();
   };
 
-  const columns = useMemo(() => getColumns(access, handleEdit), [access]);
+  const columns = useMemo(
+    () => getColumns(access, handleEdit, handleDelete),
+    [access],
+  );
 
   return (
     <PageContainer>
