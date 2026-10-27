@@ -112,13 +112,27 @@ export default function PasswordModal({
           name="new_password"
           label="New password"
           rules={[
+            { required: true, message: "Enter a new password" },
+            { min: 8, message: "Password must be at least 8 characters" },
+            { max: 128, message: "Password must not exceed 128 characters" },
             {
-              required: true,
-              message: "Enter a new password",
-            },
-            {
-              min: 6,
-              message: "Password must contain at least 6 characters",
+              validator: (_, value) => {
+                if (!value) return Promise.resolve();
+
+                if (
+                  !/[A-Z]/.test(value) ||
+                  !/[a-z]/.test(value) ||
+                  !/[0-9]/.test(value)
+                ) {
+                  return Promise.reject(
+                    new Error(
+                      "Password must contain uppercase, lowercase, and numeric characters",
+                    ),
+                  );
+                }
+
+                return Promise.resolve();
+              },
             },
           ]}
         >
