@@ -101,16 +101,16 @@ export default [
       },
     ],
   },
-  {
-    path: "/params",
-    name: "Params",
-    routes: [
-      {
-        path: "counters",
-        name: "Counters",
-      },
-    ],
-  },
+  // {
+  //   path: "/params",
+  //   name: "Params",
+  //   routes: [
+  //     {
+  //       path: "counters",
+  //       name: "Counters",
+  //     },
+  //   ],
+  // },
 
   {
     // Unknown URL. Inside the layout, so it is guarded too.
