@@ -65,6 +65,7 @@ export default [
   {
     path: "/finance",
     name: "Finance",
+    icon: "dollar",
     routes: [
       {
         path: "groups",
