@@ -13,8 +13,12 @@ import { EntityTable } from "@/components/EntityTable";
 import type { Repartition, RepartitionCreate } from "@/types/departments";
 import { RepartitionModal } from "./RepartitionModal";
 import { getColumns } from "./columns";
+import { useAccess } from "@umijs/max";
+import { PERMISSIONS } from "../../../../../../config/permissions";
 
 export default function DepartmentTab({ groupId }: { groupId: number }) {
+  const access = useAccess();
+  const canCreate = access[PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.CREATE];
   const {
     data: repartitions = [],
     loading,
@@ -67,7 +71,7 @@ export default function DepartmentTab({ groupId }: { groupId: number }) {
         data={repartitions}
         loading={loading}
         createLabel="New repartition"
-        onCreate={modal.openCreate}
+        onCreate={canCreate ? modal.openCreate : undefined}
       />
       <RepartitionModal
         open={modal.open}
