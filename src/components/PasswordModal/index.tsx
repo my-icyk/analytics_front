@@ -60,7 +60,6 @@ export default function PasswordModal({
       onSuccess?.();
       form.resetFields();
     } catch (error) {
-      message.error("Failed to update password");
     } finally {
       setLoading(false);
     }
