@@ -33,7 +33,6 @@ export default function TargetsDrawer({ open, groupId, rule, onClose }: Props) {
   } = useRequest(() => getTargets(groupId, ruleId!), {
     ready: ruleId !== undefined, // don't fetch while the drawer is closed
     refreshDeps: [groupId, ruleId],
-    onError: () => message.error("Failed to load targets"),
   });
 
   const modal = useEditModal<Target>();
@@ -46,7 +45,6 @@ export default function TargetsDrawer({ open, groupId, rule, onClose }: Props) {
         message.success("Target deleted");
         refresh();
       },
-      onError: () => message.error("Could not delete the target"),
     },
   );
 
@@ -62,12 +60,6 @@ export default function TargetsDrawer({ open, groupId, rule, onClose }: Props) {
         modal.close();
         refresh();
       },
-      // Duplicates are rejected by the backend (unique constraint),
-      // so the message covers that case too.
-      onError: () =>
-        message.error(
-          "Could not save the target (this group may already be a target of the rule)",
-        ),
     },
   );
 

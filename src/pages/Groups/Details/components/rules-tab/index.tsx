@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { message } from "antd";
+import { PERMISSIONS } from "../../../../../../config/permissions";
 import { useState } from "react";
 import { useRequest } from "ahooks";
 
@@ -9,7 +10,7 @@ import {
   updateRule,
   deleteRule,
 } from "@/services/groups";
-
+import { useAccess } from "@umijs/max";
 import { useEditModal } from "@/hooks/useEditModal";
 import { EntityTable } from "@/components/EntityTable";
 import type { Rule, RuleCreate } from "@/types/rules";
@@ -18,13 +19,14 @@ import { getColumns } from "./columns";
 import TargetsDrawer from "../rule-targets-drower/TargetDrawer";
 
 export default function RulesTab({ groupId }: { groupId: number }) {
+  const access = useAccess();
+  const canCreate = access[PERMISSIONS.FINANCE.RULE.CREATE];
   const {
     data: rules = [],
     loading,
     refresh,
   } = useRequest(() => getRules(groupId), {
     refreshDeps: [groupId],
-    onError: () => message.error("Failed to load rules"),
   });
 
   const modal = useEditModal<Rule>();
@@ -37,7 +39,6 @@ export default function RulesTab({ groupId }: { groupId: number }) {
         message.success("Rule deleted");
         refresh();
       },
-      onError: () => message.error("Could not delete the rule"),
     },
   );
 
@@ -58,8 +59,8 @@ export default function RulesTab({ groupId }: { groupId: number }) {
   );
 
   const columns = useMemo(
-    () => getColumns(modal.openEdit, removeRule, setTargetsRule),
-    [modal.openEdit, removeRule],
+    () => getColumns(access, modal.openEdit, removeRule, setTargetsRule),
+    [access, modal.openEdit, removeRule],
   );
 
   return (
@@ -69,7 +70,7 @@ export default function RulesTab({ groupId }: { groupId: number }) {
         data={rules}
         loading={loading}
         createLabel="New rule"
-        onCreate={modal.openCreate}
+        onCreate={canCreate ? modal.openCreate : undefined}
       />
       <RuleFormModal
         open={modal.open}
