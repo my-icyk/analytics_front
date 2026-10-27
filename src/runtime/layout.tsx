@@ -1,9 +1,9 @@
-import type { RunTimeLayoutConfig } from '@umijs/max';
-import { history } from '@umijs/max';
-import AvatarDropdown from '@/components/AvatarDropdown';
-import Footer from '@/components/Footer';
-import { LOGIN_PATH } from '@/constants/app';
-import { getLoginUrl } from '@/utils/navigation';
+import type { RunTimeLayoutConfig } from "@umijs/max";
+import { history } from "@umijs/max";
+import AvatarDropdown from "@/components/AvatarDropdown";
+import Footer from "@/components/Footer";
+import { LOGIN_PATH } from "@/constants/app";
+import { getLoginUrl } from "@/utils/navigation";
 
 /**
  * The frame around every page (sidebar, header, footer) AND the login guard.
@@ -23,8 +23,12 @@ export const buildLayout: RunTimeLayoutConfig = ({ initialState }) => {
     avatarProps: currentUser
       ? {
           title: currentUser.username,
-          size: 'small',
-          render: (_, dom) => <AvatarDropdown>{dom}</AvatarDropdown>,
+          size: "large",
+          render: (_, dom) => (
+            <div style={{ width: "100%", minWidth: 0 }}>
+              <AvatarDropdown>{dom}</AvatarDropdown>
+            </div>
+          ),
         }
       : undefined,
 
