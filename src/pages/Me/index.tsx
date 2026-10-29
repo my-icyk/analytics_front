@@ -11,12 +11,13 @@ import {
   LockOutlined,
   MailOutlined,
   SafetyCertificateOutlined,
+  TeamOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 
 import PasswordModal from "@/components/PasswordModal";
 import { formatDate } from "@/utils/formatDate";
-import { CurrentUser } from "@/types/user";
+import { CurrentUser, EmployeeDetails } from "@/types/user";
 
 const { Title, Text } = Typography;
 
@@ -30,11 +31,28 @@ const roleTag = (
   </Tag>
 );
 
-const personalColumns = (
-  user: CurrentUser,
-): ProDescriptionsItemProps<CurrentUser>[] => [
+const personalColumns = (): ProDescriptionsItemProps<CurrentUser>[] => [
   { title: "Full name", dataIndex: "name" },
   { title: "Email", dataIndex: "email", copyable: true },
+];
+
+const employeeColumns = (): ProDescriptionsItemProps<EmployeeDetails>[] => [
+  { title: "Department", dataIndex: ["departament_name"] },
+  {
+    title: "Hire date",
+    dataIndex: ["hire_date"],
+    render: (_, r) => (r?.hire_date ? formatDate(r.hire_date) : "-"),
+  },
+  { title: "Work", dataIndex: ["work"] },
+  {
+    title: "Birth date",
+    dataIndex: ["birth_date"],
+    render: (_, r) => (r?.birth_date ? formatDate(r.birth_date) : "-"),
+  },
+  {
+    title: "Top department",
+    dataIndex: ["top_departament_name"],
+  },
 ];
 
 const accountColumns: ProDescriptionsItemProps<CurrentUser>[] = [
@@ -159,7 +177,7 @@ export default function MePage() {
             <ProDescriptions<CurrentUser>
               column={1}
               dataSource={user}
-              columns={personalColumns(user)}
+              columns={personalColumns()}
               labelStyle={{ color: "#8c8c8c", width: 150 }}
             />
           </ProCard>
@@ -179,6 +197,24 @@ export default function MePage() {
               column={1}
               dataSource={user}
               columns={accountColumns}
+              labelStyle={{ color: "#8c8c8c", width: 150 }}
+            />
+          </ProCard>
+          {/* Employee information */}
+          <ProCard
+            colSpan={{ xs: 24, lg: 12 }}
+            bordered
+            title={
+              <Space>
+                <TeamOutlined style={{ color: "#1677ff" }} />
+                Employee Information
+              </Space>
+            }
+          >
+            <ProDescriptions<EmployeeDetails>
+              column={1}
+              dataSource={user.employee_details ?? undefined}
+              columns={employeeColumns()}
               labelStyle={{ color: "#8c8c8c", width: 150 }}
             />
           </ProCard>

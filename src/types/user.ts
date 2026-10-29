@@ -38,6 +38,14 @@ export type PasswordChange = {
   new_password: string;
 };
 
+export type EmployeeDetails = {
+  departament_name: string | null;
+  hire_date: string | null;
+  work: string | null;
+  birth_date: string | null;
+  top_departament_name: string | null;
+};
+
 export type CurrentUser = {
   id: number;
   username: string;
@@ -48,4 +56,6 @@ export type CurrentUser = {
 
   roles: string[];
   permissions: PermissionName[];
+
+  employee_details: EmployeeDetails | null;
 };
