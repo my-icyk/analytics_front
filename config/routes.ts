@@ -106,6 +106,12 @@ export default [
         component: "./finance/snapshot/details",
         access: PERMISSIONS.FINANCE.SNAPSHOT.READ,
       },
+      {
+        path: "department-repartitions",
+        name: "Department Repartitions",
+        access: PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.READ,
+        component: "./finance/DepartmentRepartition",
+      },
     ],
   },
   // {

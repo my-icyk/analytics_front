@@ -45,8 +45,8 @@ export type GroupFilterParams = {
 };
 
 export type fetchGroupsParams = {
-  page?: number;
   limit?: number;
+  offset?: number;
   group_type_ids?: number[];
   division_ids?: number[];
   search?: string;

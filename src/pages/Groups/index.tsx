@@ -74,8 +74,8 @@ export default function GroupsPage() {
           search,
         }) => {
           const { data, total, success } = await fetchGroups({
-            page: current,
             limit: pageSize,
+            offset: (current - 1) * pageSize,
             group_type_ids,
             division_ids,
             search,

@@ -1,6 +1,12 @@
-import { DefaultFooter } from '@ant-design/pro-components';
+import { DefaultFooter } from "@ant-design/pro-components";
 
-/** Footer shown under every page of the layout. */
+const APP_NAME = "Analytics Department";
+
 export default function Footer() {
-  return <DefaultFooter copyright={`${new Date().getFullYear()} My App`} links={[]} />;
+  return (
+    <DefaultFooter
+      copyright={`${new Date().getFullYear()} ${APP_NAME}`}
+      links={[]}
+    />
+  );
 }
