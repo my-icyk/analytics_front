@@ -1,16 +1,16 @@
-import { request } from "@umijs/max";
-import type { PageResult } from "@/types/api";
 import {
   DepartmentRepartitionDetails,
-  DepartmentRepartitionFilter,
+  GetDepartmentRepartitionsParams,
 } from "@/types/finance/DepartmentReaprtitions";
+import { getPage } from "@/utils/api";
 
-const BASE = "/api/v1/finance/department-repartitions/";
+const BASE = "/api/v1/finance/department-repartitions";
 
 export function getDepartmentRepartitions(
-  filters: DepartmentRepartitionFilter,
+  params: GetDepartmentRepartitionsParams,
 ) {
-  return request<PageResult<DepartmentRepartitionDetails>>(BASE, {
-    params: filters,
-  });
+  return getPage<DepartmentRepartitionDetails, GetDepartmentRepartitionsParams>(
+    BASE,
+    params,
+  );
 }

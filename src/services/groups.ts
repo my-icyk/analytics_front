@@ -1,4 +1,5 @@
 import { request } from "@umijs/max";
+import { getPage } from "@/utils/api";
 import type { PageResult } from "@/types/api";
 import type {
   Rule,
@@ -10,7 +11,7 @@ import type {
 } from "@/types/rules";
 
 import {
-  fetchGroupsParams,
+  getGroupsParams,
   Group,
   GroupCreate,
   GroupType,
@@ -21,8 +22,8 @@ import { LookupOption } from "@/types/common";
 
 const BASE = "/api/v1/finance/groups";
 
-export function fetchGroups(params: fetchGroupsParams) {
-  return request<PageResult<Group>>(`${BASE}`, { params });
+export function getGroups(params: getGroupsParams) {
+  return getPage<Group, getGroupsParams>(BASE, params);
 }
 
 export function getGroup(id: number) {

@@ -1,3 +1,5 @@
+import { TablePagination } from "../api";
+
 export type DepartmentRepartitionDetails = {
   id: number;
   department_id: number;
@@ -8,9 +10,7 @@ export type DepartmentRepartitionDetails = {
   is_active: boolean;
 };
 
-export type DepartmentRepartitionFilter = {
+export type GetDepartmentRepartitionsParams = TablePagination & {
   department_ids?: number[];
   group_ids?: number[];
-  limit?: number;
-  offset?: number;
 };

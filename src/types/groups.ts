@@ -1,4 +1,5 @@
 import type { Division } from "@/types/divisions";
+import { TablePagination } from "./api";
 
 export type GroupType = {
   id: number;
@@ -44,10 +45,8 @@ export type GroupFilterParams = {
   offset?: number;
 };
 
-export type fetchGroupsParams = {
-  limit?: number;
-  offset?: number;
+export type getGroupsParams = TablePagination & {
+  search?: string;
   group_type_ids?: number[];
   division_ids?: number[];
-  search?: string;
 };

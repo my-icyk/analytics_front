@@ -2,7 +2,7 @@ import { PageContainer, ProTable } from "@ant-design/pro-components";
 import { useMemo, useRef, useState } from "react";
 import type { ActionType } from "@ant-design/pro-components";
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from "@/constants/app";
-import { fetchGroups, deleteGroup } from "@/services/groups";
+import { getGroups, deleteGroup } from "@/services/groups";
 import type { Group } from "@/types/groups";
 import { getColumns } from "./columns";
 
@@ -66,22 +66,7 @@ export default function GroupsPage() {
           showTotal: (total) => `Total ${total} items`,
           showSizeChanger: true,
         }}
-        request={async ({
-          current = 1,
-          pageSize = DEFAULT_PAGE_SIZE,
-          group_type_ids,
-          division_ids,
-          search,
-        }) => {
-          const { data, total, success } = await fetchGroups({
-            limit: pageSize,
-            offset: (current - 1) * pageSize,
-            group_type_ids,
-            division_ids,
-            search,
-          });
-          return { data, total, success };
-        }}
+        request={getGroups}
         toolBarRender={() => [
           canCreate && (
             <Button

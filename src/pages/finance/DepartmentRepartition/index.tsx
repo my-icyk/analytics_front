@@ -13,24 +13,24 @@ type SearchParams = {
   group_ids?: number[];
 };
 
-const requestRepartitions: ProTableProps<
-  DepartmentRepartitionDetails,
-  SearchParams
->["request"] = async ({
-  current = 1,
-  pageSize = DEFAULT_PAGE_SIZE,
-  department_ids,
-  group_ids,
-}) => {
-  const { data, total } = await getDepartmentRepartitions({
-    limit: pageSize,
-    offset: (current - 1) * pageSize,
-    department_ids,
-    group_ids,
-  });
+// const requestRepartitions: ProTableProps<
+//   DepartmentRepartitionDetails,
+//   SearchParams
+// >["request"] = async ({
+//   current = 1,
+//   pageSize = DEFAULT_PAGE_SIZE,
+//   department_ids,
+//   group_ids,
+// }) => {
+//   const { data, total } = await getDepartmentRepartitions({
+//     limit: pageSize,
+//     offset: (current - 1) * pageSize,
+//     department_ids,
+//     group_ids,
+//   });
 
-  return { data, total, success: true };
-};
+//   return { data, total, success: true };
+// };
 
 export default function DepartmentRepartitionsPage() {
   return (
@@ -38,7 +38,7 @@ export default function DepartmentRepartitionsPage() {
       <ProTable<DepartmentRepartitionDetails, SearchParams>
         rowKey="id"
         columns={columns}
-        request={requestRepartitions}
+        request={getDepartmentRepartitions}
         pagination={{
           defaultPageSize: DEFAULT_PAGE_SIZE,
           showSizeChanger: true,
