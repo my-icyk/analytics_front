@@ -2,6 +2,7 @@ import { defineConfig } from "@umijs/max";
 import routes from "./routes";
 import proxy from "./proxy";
 import theme from "./theme";
+import pkg from "../package.json";
 
 /**
  * Main Umi config: it only wires the other config files together.
@@ -28,4 +29,7 @@ export default defineConfig({
   request: {}, // enables `request` and `useRequest`
   mock: { exclude: ["mock/helpers/**"] }, // helpers are not API endpoints
   npmClient: "npm",
+  define: {
+    APP_VERSION: pkg.version,
+  },
 });
