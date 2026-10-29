@@ -1,11 +1,9 @@
 import { PageContainer, ProTable } from "@ant-design/pro-components";
-import type { ProTableProps } from "@ant-design/pro-components";
 
 import type { DepartmentRepartitionDetails } from "@/types/finance/DepartmentReaprtitions";
 import { columns } from "./columns";
 import { getDepartmentRepartitions } from "@/services/finance/DepartmentRepartitions";
-
-const DEFAULT_PAGE_SIZE = 50;
+import { DEFAULT_PAGE_SIZE } from "@/constants/app";
 
 // what the search form can send (must match the dataIndex of the search columns)
 type SearchParams = {
