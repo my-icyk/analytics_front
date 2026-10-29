@@ -7,6 +7,7 @@ import {
   createTarget,
   updateTarget,
   deleteTarget,
+  copyTargetsFromRule,
 } from "@/services/groups";
 import { useEditModal } from "@/hooks/useEditModal";
 import { EntityTable } from "@/components/EntityTable";
@@ -15,15 +16,23 @@ import type { Target, TargetCreate } from "@/types/rules";
 import { summarizeAllocation } from "@/types/rules";
 import TargetFormModal from "./TargetFormModal";
 import { getColumns } from "./columns";
+import { CopyTargetsFromRule } from "./CopyTargetsFromRule";
 
 type Props = {
   open: boolean;
   groupId: number;
   rule?: Rule;
+  rules: Rule[];
   onClose: () => void;
 };
 
-export default function TargetsDrawer({ open, groupId, rule, onClose }: Props) {
+export default function TargetsDrawer({
+  open,
+  groupId,
+  rule,
+  rules,
+  onClose,
+}: Props) {
   const ruleId = rule?.id;
 
   const {
@@ -37,6 +46,17 @@ export default function TargetsDrawer({ open, groupId, rule, onClose }: Props) {
 
   const modal = useEditModal<Target>();
 
+  const { runAsync: copyTargets } = useRequest(
+    (sourceRuleId: number) =>
+      copyTargetsFromRule(groupId, ruleId!, sourceRuleId),
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success("Targets copied");
+        refresh();
+      },
+    },
+  );
   const { run: removeTarget } = useRequest(
     (id: number) => deleteTarget(groupId, ruleId!, id),
     {
@@ -95,6 +115,16 @@ export default function TargetsDrawer({ open, groupId, rule, onClose }: Props) {
         message={summaryText}
         style={{ marginBottom: 16 }}
       />
+      {rule && (
+        <CopyTargetsFromRule
+          rules={rules}
+          currentRuleId={rule.id}
+          currentTargetsCount={targets.length}
+          onCopy={async (sourceId) => {
+            await copyTargets(sourceId);
+          }}
+        />
+      )}
       <EntityTable<Target>
         columns={columns}
         data={targets}

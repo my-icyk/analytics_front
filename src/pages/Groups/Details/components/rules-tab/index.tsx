@@ -83,6 +83,7 @@ export default function RulesTab({ groupId }: { groupId: number }) {
         open={!!targetsRule}
         groupId={groupId}
         rule={targetsRule}
+        rules={rules}
         onClose={() => setTargetsRule(undefined)}
       />
     </>

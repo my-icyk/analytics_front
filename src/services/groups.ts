@@ -138,3 +138,14 @@ export function deleteTarget(
 ) {
   return request(url(groupId, ruleId, targetId), { method: "DELETE" });
 }
+
+export function copyTargetsFromRule(
+  groupId: number,
+  ruleId: number,
+  sourceRuleId: number,
+) {
+  return request(`${BASE}/${groupId}/rules/${ruleId}/targets/copy-from`, {
+    method: "POST",
+    data: { source_rule_id: sourceRuleId },
+  });
+}
