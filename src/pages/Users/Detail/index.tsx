@@ -2,7 +2,7 @@ import { PageContainer } from "@ant-design/pro-components";
 import { useState } from "react";
 import { history, useAccess, useParams } from "@umijs/max";
 import { Button, Card, Popconfirm, Space, Tabs, message } from "antd";
-import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, KeyOutlined } from "@ant-design/icons";
 import { useRequest } from "ahooks";
 
 import { deleteUser, getUser } from "@/services/users";
@@ -10,6 +10,7 @@ import { PERMISSIONS } from "../../../../config/permissions";
 import UserFormModal from "../UserFormModal";
 import RoleAssignment from "./components/roleAsigment";
 import { UserDetails } from "./components/UserDetails";
+import PasswordModal from "@/components/PasswordModal";
 
 export default function UserDetail() {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +18,7 @@ export default function UserDetail() {
   const access = useAccess();
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false); // NEW
 
   const valid = !!id && !Number.isNaN(userId);
 
@@ -47,6 +49,15 @@ export default function UserDetail() {
             onClick={() => setModalOpen(true)}
           >
             Edit
+          </Button>
+        ),
+        access[PERMISSIONS.AUTH.USERS.CHANGE_PASSWORD] && (
+          <Button
+            key="reset-password"
+            icon={<KeyOutlined />}
+            onClick={() => setPasswordModalOpen(true)}
+          >
+            Reset password
           </Button>
         ),
         access[PERMISSIONS.AUTH.USERS.DELETE] && (
@@ -93,6 +104,13 @@ export default function UserDetail() {
           message.success(user ? "User updated" : "User created");
           refresh();
         }}
+      />
+      {/* NEW */}
+      <PasswordModal
+        open={passwordModalOpen}
+        mode="reset"
+        userId={userId}
+        onClose={() => setPasswordModalOpen(false)}
       />
     </PageContainer>
   );
