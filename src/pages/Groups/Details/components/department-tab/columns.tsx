@@ -1,14 +1,8 @@
 import type { ProColumns } from "@ant-design/pro-components";
 import { useAccess } from "@umijs/max";
 import type { Repartition } from "@/types/departments";
-import { formatDate } from "@/utils/formatDate";
-import {
-  boolSorter,
-  dateSorter,
-  dateSorterNullAsMax,
-  numberSorter,
-  stringSorter,
-} from "@/utils/sorters";
+import { periodColumn } from "@/components/columns";
+import { boolSorter, numberSorter, stringSorter } from "@/utils/sorters";
 import { EditActionButton } from "@/components/EditActionButton";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
 import { PERMISSIONS } from "../../../../../../config/permissions";
@@ -42,20 +36,7 @@ export function getColumns({
       render: (_, record) =>
         `${record.department_name} (${record.department_id})`,
     },
-    {
-      title: "Valid From",
-      dataIndex: "valid_from",
-      search: false,
-      sorter: dateSorter<Repartition>("valid_from"),
-      render: (_, { valid_from }) => formatDate(valid_from),
-    },
-    {
-      title: "Valid To",
-      dataIndex: "valid_to",
-      search: false,
-      sorter: dateSorterNullAsMax<Repartition>("valid_to"),
-      render: (_, { valid_to }) => formatDate(valid_to),
-    },
+    periodColumn<Repartition>({ sortable: true }),
     {
       title: "Active",
       dataIndex: "is_active",
