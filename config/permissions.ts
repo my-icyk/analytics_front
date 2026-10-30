@@ -1,4 +1,9 @@
 export const PERMISSIONS = {
+  APP: {
+    CHANGELOG: {
+      READ: "changelog:read",
+    },
+  },
   AUTH: {
     USERS: {
       READ: "auth:users:read",

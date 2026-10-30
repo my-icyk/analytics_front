@@ -114,6 +114,13 @@ export default [
       },
     ],
   },
+  {
+    path: "/changelog",
+    name: "Changelog",
+    icon: "history",
+    component: "./admin/Changelog",
+    access: PERMISSIONS.APP.CHANGELOG.READ,
+  },
   // {
   //   path: "/params",
   //   name: "Params",
