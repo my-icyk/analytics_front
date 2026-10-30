@@ -1,9 +1,9 @@
 import type { ProColumns } from "@ant-design/pro-components";
 import type { DepartmentRepartitionDetails } from "@/types/finance/DepartmentReaprtitions";
-import { periodColumn } from "@/components/columns";
+import { lookupSelectColumn, periodColumn } from "@/components/columns";
 import { DefaultOptionType } from "antd/es/select";
 import { lookupGroups } from "@/services/groups";
-import { Flex, Space, Typography } from "antd";
+import { Space, Typography } from "antd";
 
 export const getColumns = (
   departmentOptions: DefaultOptionType[],
@@ -22,7 +22,7 @@ export const getColumns = (
         {row.department_name}
 
         <Typography.Text type="secondary" italic>
-          · {row.brand_name} · {row.department_code}
+          {row.brand_name} · {row.department_code}
         </Typography.Text>
       </Space>
     ),
@@ -40,22 +40,12 @@ export const getColumns = (
       allowClear: true,
     },
   },
-  {
+  lookupSelectColumn<DepartmentRepartitionDetails>({
     title: "Group",
     dataIndex: "group_ids",
-    hideInTable: true,
-    valueType: "select",
-    debounceTime: 300,
-    fieldProps: {
-      mode: "multiple",
-      showSearch: true,
-      allowClear: true,
-      placeholder: "Select groups",
-    },
-    request: async ({ keyWords }) => {
-      return lookupGroups(keyWords ?? "");
-    },
-  },
+    lookup: lookupGroups,
+    placeholder: "Select groups",
+  }),
   {
     title: "Group",
     dataIndex: "group_name",
