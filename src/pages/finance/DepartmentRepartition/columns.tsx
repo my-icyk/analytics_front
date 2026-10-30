@@ -1,8 +1,13 @@
 import type { ProColumns } from "@ant-design/pro-components";
 import type { DepartmentRepartitionDetails } from "@/types/finance/DepartmentReaprtitions";
-import { formatDate } from "@/utils/formatDate";
+import { periodColumn } from "@/components/columns";
+import { DefaultOptionType } from "antd/es/select";
+import { lookupGroups } from "@/services/groups";
+import { Flex, Space, Typography } from "antd";
 
-export const columns: ProColumns<DepartmentRepartitionDetails>[] = [
+export const getColumns = (
+  departmentOptions: DefaultOptionType[],
+): ProColumns<DepartmentRepartitionDetails>[] => [
   {
     title: "ID",
     dataIndex: "id",
@@ -11,25 +16,53 @@ export const columns: ProColumns<DepartmentRepartitionDetails>[] = [
   {
     title: "Department",
     dataIndex: "department_name",
+    search: false,
+    render: (_, row) => (
+      <Space size={6} style={{ whiteSpace: "nowrap" }}>
+        {row.department_name}
+
+        <Typography.Text type="secondary" italic>
+          · {row.brand_name} · {row.department_code}
+        </Typography.Text>
+      </Space>
+    ),
+  },
+  {
+    title: "Department",
+    dataIndex: "department_ids",
+    hideInTable: true,
+    valueType: "select",
+    fieldProps: {
+      mode: "multiple",
+      options: departmentOptions,
+      showSearch: true,
+      optionFilterProp: "label",
+      allowClear: true,
+    },
+  },
+  {
+    title: "Group",
+    dataIndex: "group_ids",
+    hideInTable: true,
+    valueType: "select",
+    debounceTime: 300,
+    fieldProps: {
+      mode: "multiple",
+      showSearch: true,
+      allowClear: true,
+      placeholder: "Select groups",
+    },
+    request: async ({ keyWords }) => {
+      return lookupGroups(keyWords ?? "");
+    },
   },
   {
     title: "Group",
     dataIndex: "group_name",
-  },
-  {
-    title: "Valid From",
-    dataIndex: "valid_from",
-    valueType: "date",
     search: false,
-    render: (_, { valid_from }) => formatDate(valid_from),
   },
-  {
-    title: "Valid To",
-    dataIndex: "valid_to",
-    valueType: "date",
-    search: false,
-    render: (_, { valid_to }) => formatDate(valid_to),
-  },
+  periodColumn<DepartmentRepartitionDetails>(),
+
   {
     title: "Active",
     dataIndex: "is_active",
