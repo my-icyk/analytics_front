@@ -115,6 +115,25 @@ export default [
     ],
   },
   {
+    path: "/analytics",
+    name: "Analytics",
+    routes: [
+      {
+        path: "procedures",
+        name: "Procedures",
+        component: "./analytics/Procedures",
+        access: PERMISSIONS.ANALYTICS.PROCEDURE.READ,
+      },
+      {
+        path: "procedures/:id",
+        name: "Procedure Details",
+        hideInMenu: true,
+        component: "./analytics/Procedures/Detail",
+        access: PERMISSIONS.ANALYTICS.PROCEDURE.READ,
+      },
+    ],
+  },
+  {
     path: "/changelog",
     name: "Changelog",
     icon: "history",

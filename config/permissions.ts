@@ -1,4 +1,13 @@
 export const PERMISSIONS = {
+  ANALYTICS: {
+    PROCEDURE: {
+      READ: "analytics:procedure:read",
+      CREATE: "analytics:procedure:create",
+      UPDATE: "analytics:procedure:update",
+      DELETE: "analytics:procedure:delete",
+      RUN: "analytics:procedure:run",
+    },
+  },
   APP: {
     CHANGELOG: {
       READ: "changelog:read",
