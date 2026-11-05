@@ -1,8 +1,18 @@
-import { LookupOption } from "@/types/common";
-import { Division } from "@/types/divisions";
+import {
+  Division,
+  DivisionCreate,
+  DivisionUpdate,
+  Company,
+} from "@/types/divisions";
 import { request } from "@umijs/max";
 
 const BASE = "/api/v1/finance/divisions";
+
+export function getCompanies() {
+  return request<Company[]>("/api/v1/finance/companies", {
+    method: "GET",
+  });
+}
 
 export function getDivisions() {
   return request<Division[]>(BASE, {
@@ -10,14 +20,14 @@ export function getDivisions() {
   });
 }
 
-export function createDivision(data: { name: string }) {
+export function createDivision(data: DivisionCreate) {
   return request<Division>(BASE, {
     method: "POST",
     data,
   });
 }
 
-export function updateDivision(id: number, data: { name: string }) {
+export function updateDivision(id: number, data: DivisionUpdate) {
   return request<Division>(`${BASE}/${id}`, {
     method: "PUT",
     data,
@@ -25,7 +35,7 @@ export function updateDivision(id: number, data: { name: string }) {
 }
 
 export function deleteDivision(id: number) {
-  return request<Division>(`${BASE}/abvc/${id}`, {
+  return request<Division>(`${BASE}/${id}`, {
     method: "DELETE",
   });
 }

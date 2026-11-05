@@ -6,6 +6,7 @@ import { DeleteActionButton } from "@/components/DeleteActionButton";
 import { PermissionLink } from "@/components/PermissionLink";
 import { EditActionButton } from "@/components/EditActionButton";
 import { numberSorter, stringSorter } from "@/utils/sorters";
+import { Tag } from "antd";
 
 export const getColumns = (
   onDelete: (record: Division) => void,
@@ -30,6 +31,22 @@ export const getColumns = (
       key: "name",
       valueType: "text",
       sorter: stringSorter<Division>("name"),
+    },
+    {
+      title: "Administrative+",
+      tooltip: "Groups in this division collect administrative expenses",
+      dataIndex: "is_administrative",
+      key: "is_administrative",
+      search: false,
+      render: (_, row) =>
+        row.is_administrative ? <Tag color="blue">Yes</Tag> : <Tag>No</Tag>,
+    },
+    {
+      title: "Company",
+      dataIndex: "company_name",
+      key: "company_id",
+      search: false,
+      valueType: "text",
     },
     {
       title: "Groups Nr:",

@@ -1,5 +1,11 @@
-import { ModalForm, ProFormText } from "@ant-design/pro-components";
+import {
+  ModalForm,
+  ProFormSelect,
+  ProFormSwitch,
+  ProFormText,
+} from "@ant-design/pro-components";
 import type { Division, DivisionCreate } from "@/types/divisions";
+import { useCompanies } from "@/hooks/useReferenceData";
 
 type Props = {
   open: boolean;
@@ -17,6 +23,7 @@ export default function DivisionFormModal({
   onSubmit,
 }: Props) {
   const isEdit = !!initialValues;
+  const { data: companies, loading: companiesLoading } = useCompanies();
 
   return (
     <ModalForm<DivisionCreate>
@@ -33,7 +40,11 @@ export default function DivisionFormModal({
         submitButtonProps: { loading: saving },
         resetButtonProps: { onClick: onCancel },
       }}
-      initialValues={{ name: initialValues?.name ?? "" }}
+      initialValues={{
+        name: initialValues?.name ?? "",
+        company_id: initialValues?.company_id,
+        is_administrative: initialValues?.is_administrative ?? false,
+      }}
       onFinish={async (values) => {
         try {
           await onSubmit(values);
@@ -48,6 +59,25 @@ export default function DivisionFormModal({
         label="Division name"
         placeholder="Enter a division name"
         rules={[{ required: true, message: "Enter a division name" }]}
+      />
+
+      <ProFormSelect
+        name="company_id"
+        label="Company"
+        placeholder="Select a company"
+        options={(companies ?? []).map((c) => ({ value: c.id, label: c.name }))}
+        fieldProps={{
+          loading: companiesLoading,
+          showSearch: true,
+          optionFilterProp: "label",
+        }}
+        rules={[{ required: true, message: "Select a company" }]}
+      />
+
+      <ProFormSwitch
+        name="is_administrative"
+        label="Administrative expenses"
+        tooltip="All groups in this division collect administrative expenses and must be cost centers"
       />
     </ModalForm>
   );
