@@ -9,6 +9,7 @@ import type {
   TargetCreate,
   TargetUpdate,
 } from "@/types/rules";
+import type { GroupFolder } from "@/types/groups";
 
 import {
   getGroupsParams,
@@ -34,6 +35,12 @@ export function getGroup(id: number) {
 
 export function getDepartments() {
   return request<Department[]>(`${BASE}/departments`, {
+    method: "GET",
+  });
+}
+
+export function getGroupFolders() {
+  return request<GroupFolder[]>(`${BASE}/folders`, {
     method: "GET",
   });
 }

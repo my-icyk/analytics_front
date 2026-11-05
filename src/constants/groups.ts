@@ -10,3 +10,5 @@ export const GroupTABS = [
   { tab: "Departments", key: GroupTabKey.Departments },
   { tab: "Rules", key: GroupTabKey.Rules },
 ];
+
+export const FOLDER_TYPE_ID = 4;

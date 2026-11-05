@@ -1,7 +1,14 @@
 // hooks/useReferenceData.ts
+import { FOLDER_TYPE_ID } from "@/constants/groups";
 import { fetchCurrentUser } from "@/services/auth";
 import { getCompanies, getDivisions } from "@/services/divisions";
-import { getGroupTypes, getRules, getDepartments } from "@/services/groups";
+import {
+  getGroupTypes,
+  getRules,
+  getDepartments,
+  getGroups,
+  getGroupFolders,
+} from "@/services/groups";
 import { getPermissions, getRoles } from "@/services/roles";
 import { getUsers } from "@/services/users";
 import { useRequest, clearCache } from "ahooks";
@@ -19,11 +26,19 @@ const CACHE_KEYS = {
   users: "auth-users",
   me: "auth-me",
   companies: "finance-companies",
+  folderGroups: "finance-folder-groups",
 };
 
 export function useCompanies() {
   return useRequest(getCompanies, {
     cacheKey: CACHE_KEYS.companies,
+    staleTime: Infinity,
+  });
+}
+
+export function useFolderGroups() {
+  return useRequest(getGroupFolders, {
+    cacheKey: CACHE_KEYS.folderGroups,
     staleTime: Infinity,
   });
 }

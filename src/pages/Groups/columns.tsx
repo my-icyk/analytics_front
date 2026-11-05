@@ -43,6 +43,12 @@ export const getColumns = (
       key: "search",
     },
     {
+      title: "Parent",
+      dataIndex: "parent_name",
+      key: "parent_id",
+      search: false,
+    },
+    {
       title: "Division",
       dataIndex: "division_name",
       key: "division_ids",

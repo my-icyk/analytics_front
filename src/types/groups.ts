@@ -10,6 +10,11 @@ export type GroupTypeDetails = GroupType & {
   group_count: number;
 };
 
+export type GroupFolder = {
+  id: number;
+  name: string;
+};
+
 export type Group = {
   id: number;
   name: string;
@@ -20,6 +25,8 @@ export type Group = {
   is_active: boolean;
   rules_count: number;
   repartitions_count: number;
+  parent_id?: number;
+  parent_name?: string;
 };
 
 export type GroupPage = {
@@ -33,6 +40,7 @@ export type GroupCreate = {
   name: string;
   division_id: number;
   group_type_id: number;
+  parent_id?: number | null;
 };
 
 export type GroupUpdate = GroupCreate;
