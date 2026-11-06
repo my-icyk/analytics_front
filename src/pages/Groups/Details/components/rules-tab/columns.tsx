@@ -12,6 +12,7 @@ import { DeleteActionButton } from "@/components/DeleteActionButton";
 import { EditActionButton } from "@/components/EditActionButton";
 import { PERMISSIONS } from "../../../../../../config/permissions";
 import { Can } from "@/access";
+import { periodColumn } from "@/components/columns";
 
 export const getColumns = (
   can: Can,
@@ -39,22 +40,7 @@ export const getColumns = (
       valueType: "text",
     },
 
-    {
-      title: "Valid From",
-      dataIndex: "valid_from",
-      key: "valid_from",
-      search: false,
-      sorter: dateSorter<Rule>("valid_from"),
-      valueType: "date",
-    },
-    {
-      title: "Valid To",
-      dataIndex: "valid_to",
-      key: "valid_to",
-      search: false,
-      sorter: dateSorterNullAsMax<Rule>("valid_to"),
-      valueType: "date",
-    },
+    periodColumn<Rule>({ sortable: true }),
     {
       title: "Percentage",
       dataIndex: "percent_value",
