@@ -1,20 +1,22 @@
 import { ProColumns } from "@ant-design/pro-components";
 import type { Division } from "@/types/divisions";
-import { useAccess } from "@umijs/max";
-import { PERMISSIONS } from "../../../config/permissions";
+import { PERMISSIONS } from "../../../../config/permissions";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
 import { PermissionLink } from "@/components/PermissionLink";
 import { EditActionButton } from "@/components/EditActionButton";
 import { numberSorter, stringSorter } from "@/utils/sorters";
 import { Tag } from "antd";
+import { Can } from "@/access";
 
 export const getColumns = (
   onDelete: (record: Division) => void,
   onEdit: (record: Division) => void,
-  access: ReturnType<typeof useAccess>,
+  can: Can,
 ): ProColumns<Division>[] => {
-  const canDelete = access[PERMISSIONS.FINANCE.DIVISION.DELETE];
-  const canEdit = access[PERMISSIONS.FINANCE.DIVISION.UPDATE];
+  const canEdit = can(PERMISSIONS.FINANCE.DIVISION.UPDATE);
+  const canDelete = can(PERMISSIONS.FINANCE.DIVISION.DELETE);
+  const canAccess = can(PERMISSIONS.FINANCE.GROUP.READ);
+  const hideActions = !(canEdit || canDelete);
 
   return [
     {
@@ -57,7 +59,7 @@ export const getColumns = (
       sorter: numberSorter<Division>("group_count"),
       render: (_, record) => (
         <PermissionLink
-          canAccess={access[PERMISSIONS.FINANCE.GROUP.READ]}
+          canAccess={canAccess}
           to={`/finance/groups?division_ids=${record.id}`}
         >
           {record.group_count}
@@ -70,6 +72,7 @@ export const getColumns = (
       key: "actions",
       search: false,
       width: 120,
+      hideInTable: hideActions,
       align: "right",
       fixed: "right",
       render: (_, record) => [

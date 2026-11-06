@@ -8,6 +8,11 @@ import {
 /**
 TODO: de verificat daca modalitatea data este ok
  */
+
+export type Can = (permission: PermissionName) => boolean;
+export type CanAny = (permissions: PermissionName[]) => boolean;
+export type CanAll = (permissions: PermissionName[]) => boolean;
+
 const ALL_PERMISSIONS = getPermissionValues(PERMISSIONS);
 
 export default function access(initialState?: InitialState) {
@@ -15,13 +20,12 @@ export default function access(initialState?: InitialState) {
   const isAdmin = currentUser?.is_admin === true;
   const userPermissions = new Set<string>(currentUser?.permissions ?? []);
 
-  const can = (permission: PermissionName): boolean =>
-    isAdmin || userPermissions.has(permission);
+  const can: Can = (permission) => isAdmin || userPermissions.has(permission);
 
-  const canAny = (permissions: PermissionName[]): boolean =>
+  const canAny: CanAny = (permissions) =>
     isAdmin || permissions.some((p) => userPermissions.has(p));
 
-  const canAll = (permissions: PermissionName[]): boolean =>
+  const canAll: CanAll = (permissions) =>
     isAdmin || permissions.every((p) => userPermissions.has(p));
 
   return {

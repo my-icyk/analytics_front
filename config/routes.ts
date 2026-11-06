@@ -85,7 +85,7 @@ export default [
         path: "divisions",
         name: "Divisions",
         access: PERMISSIONS.FINANCE.DIVISION.READ,
-        component: "./Divisions",
+        component: "./finance/Divisions",
       },
       {
         path: "departments",

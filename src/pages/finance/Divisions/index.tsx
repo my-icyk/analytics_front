@@ -15,11 +15,12 @@ import { EntityTable } from "@/components/EntityTable";
 import type { Division } from "@/types/divisions";
 import DivisionFormModal from "./DivisionFormModal";
 import { getColumns } from "./columns";
-import { PERMISSIONS } from "../../../config/permissions";
+import { PERMISSIONS } from "../../../../config/permissions";
 
 export default function DivisionsPage() {
-  const access = useAccess();
-  const canCreate = access[PERMISSIONS.FINANCE.DIVISION.CREATE];
+  const { can } = useAccess();
+  const canCreate = can(PERMISSIONS.FINANCE.DIVISION.CREATE);
+
   const modal = useEditModal<Division>();
   const { data: divisions = [], loading, hardRefresh } = useDivisions();
 
@@ -42,8 +43,8 @@ export default function DivisionsPage() {
   });
 
   const columns = useMemo(
-    () => getColumns(removeDivision, modal.openEdit, access),
-    [removeDivision, modal.openEdit, access],
+    () => getColumns(removeDivision, modal.openEdit, can),
+    [removeDivision, modal.openEdit, can],
   );
 
   return (
