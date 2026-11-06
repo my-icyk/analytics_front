@@ -1,21 +1,25 @@
-import access from "@/access";
+import { ACTIVE_STATUS, JOB_STATUS } from "@/constants/statuses";
 import { ProColumns } from "@ant-design/pro-components";
 import { Procedure } from "@/types/analytics";
-import { useAccess } from "@umijs/max";
 import { numberSorter, stringSorter } from "@/utils/sorters";
 import { PERMISSIONS } from "../../../../config/permissions";
 import { EditActionButton } from "@/components/EditActionButton";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
+import { RunActionButton } from "@/components/RunActionButton";
 import { formatDateTime, formatDuration } from "@/utils/formatDate";
+import { Can } from "@/access";
 
 export const getColumns = (
-  access: ReturnType<typeof useAccess>,
+  can: Can,
   onDelete: (procedure: Procedure) => void,
   onEdit: (id: number) => void,
+  onRun: (procedure: Procedure) => void,
+  runningIds: number[],
 ): ProColumns<Procedure>[] => {
-  const canOpen = access[PERMISSIONS.ANALYTICS.PROCEDURE.READ];
-  const canEdit = access[PERMISSIONS.ANALYTICS.PROCEDURE.UPDATE];
-  const canDelete = access[PERMISSIONS.ANALYTICS.PROCEDURE.DELETE];
+  const canOpen = can(PERMISSIONS.ANALYTICS.PROCEDURE.READ);
+  const canEdit = can(PERMISSIONS.ANALYTICS.PROCEDURE.UPDATE);
+  const canDelete = can(PERMISSIONS.ANALYTICS.PROCEDURE.DELETE);
+  const canRun = can(PERMISSIONS.ANALYTICS.PROCEDURE.RUN);
   return [
     {
       title: "ID",
@@ -30,6 +34,7 @@ export const getColumns = (
       dataIndex: "name",
       key: "name",
       valueType: "text",
+      search: true,
       sorter: stringSorter<Procedure>("name"),
     },
     {
@@ -41,13 +46,12 @@ export const getColumns = (
       sorter: numberSorter<Procedure>("exec_order"),
     },
     {
-      title: "Status",
+      title: "Active",
       dataIndex: "is_active",
-      search: true,
-      valueEnum: {
-        true: { text: "Active", status: "Success" },
-        false: { text: "Inactive", status: "Default" },
-      },
+      search: false,
+      valueEnum: ACTIVE_STATUS,
+      filters: true,
+      onFilter: true,
     },
     {
       title: "Run",
@@ -61,14 +65,10 @@ export const getColumns = (
     {
       title: "Status",
       dataIndex: "last_status",
-      valueType: "select",
-      valueEnum: {
-        success: { text: "Success", status: "Success" },
-        running: { text: "Running", status: "Processing" },
-        error: { text: "Error", status: "Error" },
-        blank: { text: "No status", status: "" },
-      },
-      fieldProps: { mode: "multiple", allowClear: true },
+      valueEnum: JOB_STATUS,
+      search: false,
+      filters: true,
+      onFilter: true,
       sorter: stringSorter<Procedure>("last_status"),
     },
     {
@@ -86,6 +86,15 @@ export const getColumns = (
       key: "actions",
       valueType: "option",
       render: (_, record) => [
+        canRun && (
+          <RunActionButton
+            key="run"
+            itemLabel={record.name}
+            loading={runningIds.includes(record.id)}
+            disabled={record.last_status === "Running"}
+            onClick={() => onRun(record)}
+          />
+        ),
         canEdit && (
           <EditActionButton
             key="edit"
