@@ -117,6 +117,7 @@ export default [
   {
     path: "/analytics",
     name: "Analytics",
+    icon: "FundOutlined",
     routes: [
       {
         path: "procedures",
