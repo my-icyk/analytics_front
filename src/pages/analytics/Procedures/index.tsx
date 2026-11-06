@@ -56,6 +56,7 @@ export default function Procedures() {
         loading={loading}
         createLabel="New procedure"
         onCreate={modal.openCreate}
+        onRefresh={refresh}
       />
       {modal.isOpen && (
         <ProcedureFormModal

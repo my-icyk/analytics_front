@@ -10,6 +10,7 @@ type Props<T> = {
   loading: boolean;
   createLabel?: string;
   onCreate?: () => void;
+  onRefresh?: () => void;
 };
 
 export function EntityTable<T extends { id: number }>(p: Props<T>) {
@@ -22,6 +23,11 @@ export function EntityTable<T extends { id: number }>(p: Props<T>) {
       loading={p.loading}
       form={{ syncToUrl: true }}
       search={{ labelWidth: "auto", searchText: "Filter", resetText: "Reset" }}
+      options={{
+        reload: p.onRefresh ?? false,
+        density: true,
+        setting: true,
+      }}
       onSubmit={(params) => setFilters(params as Partial<T>)}
       onReset={resetFilters}
       toolBarRender={
