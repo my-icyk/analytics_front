@@ -92,8 +92,7 @@ export default function TargetsDrawer({
   const summary = useMemo(() => summarizeAllocation(targets), [targets]);
 
   const summaryText = [
-    `Direct ${summary.direct}%`,
-    `Static ${summary.static}%`,
+    `Fixed ${summary.fixed}%`,
     summary.proportionalCount > 0
       ? `Proportional shares the remaining ${summary.remaining}% (${summary.proportionalCount} ${
           summary.proportionalCount === 1 ? "target" : "targets"

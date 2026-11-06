@@ -21,14 +21,15 @@ export type RuleUpdate = {
   percent_value?: number;
 };
 
-export type AllocationType = "STATIC" | "DIRECT" | "PROPORTIONAL";
+export type AllocationType = "FIXED" | "PROPORTIONAL";
 
-export const ALLOCATION_OPTIONS: { value: AllocationType; label: string }[] = [
-  { value: "STATIC", label: "Static" },
-  { value: "DIRECT", label: "Direct" },
+export const ALLOCATION_OPTIONS: {
+  value: AllocationType;
+  label: string;
+}[] = [
+  { value: "FIXED", label: "Fixed" },
   { value: "PROPORTIONAL", label: "Proportional" },
 ];
-
 // Fields the user can edit (what the API accepts)
 export type TargetBase = {
   group_id: number; // the target group, not the group that owns the rule
@@ -65,13 +66,9 @@ export function summarizeAllocation(
         .reduce((total, t) => total + Number(t.percent_value ?? 0), 0),
     );
 
-  const direct = sumOf("DIRECT");
-  const fixedStatic = sumOf("STATIC");
-  const fixed = round2(direct + fixedStatic);
+  const fixed = sumOf("FIXED");
 
   return {
-    direct,
-    static: fixedStatic,
     fixed,
     // what proportional targets share between them
     remaining: round2(Math.max(0, 100 - fixed)),
