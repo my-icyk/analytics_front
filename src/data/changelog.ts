@@ -17,6 +17,42 @@ export type ChangelogRelease = {
 
 export const changelog: ChangelogRelease[] = [
   {
+    version: "1.0.3",
+    date: "2026-11-06",
+    title: "New Features and Improvements",
+    changes: [
+      {
+        type: "added",
+        module: "Finance",
+        description: "Introduced new allocation types for financial rules.",
+      },
+      {
+        type: "fixed",
+        module: "Finance",
+        description:
+          "Fixed better sorting and filters for pages Groups, Department, and Rules",
+      },
+      {
+        type: "changed",
+        module: "App",
+        description:
+          "Removed logic for ahooks, updated data fetching and state management with UMIJS max",
+      },
+      {
+        type: "changed",
+        module: "App",
+        description:
+          "Fixed bug in data fetching and state management with UMIJS max",
+      },
+      {
+        type: "added",
+        module: "App",
+        description:
+          "Added new hooks useRunEntity, useEntityAction, useDeleteEntity",
+      },
+    ],
+  },
+  {
     version: "1.0.2",
     date: "2026-11-05",
     title: "Major Updates",
