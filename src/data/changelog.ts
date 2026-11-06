@@ -50,6 +50,11 @@ export const changelog: ChangelogRelease[] = [
         description:
           "Added new hooks useRunEntity, useEntityAction, useDeleteEntity",
       },
+      {
+        type: "added",
+        module: "App",
+        description: "Added onRefresh support to EntityTable component.",
+      },
     ],
   },
   {
