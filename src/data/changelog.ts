@@ -1,8 +1,10 @@
 export type ChangeType = "added" | "changed" | "fixed" | "removed";
 
+type ModuleType = "App" | "Finance" | "Administration" | "Deployment";
+
 export type ChangelogEntry = {
   type: ChangeType;
-  module: string;
+  module: ModuleType;
   description: string;
 };
 
@@ -14,6 +16,41 @@ export type ChangelogRelease = {
 };
 
 export const changelog: ChangelogRelease[] = [
+  {
+    version: "1.0.2",
+    date: "2026-10-31",
+    title: "Major Updates",
+    changes: [
+      {
+        type: "added",
+        module: "Finance",
+        description:
+          "Added company integration, Mapas, Ultra, Enter, manage by admins only",
+      },
+      {
+        type: "added",
+        module: "Finance",
+        description:
+          "Added new type Folder in group types, aslo renaming them by english convention Unnalocated | Sales Center | Cost Center | Folder",
+      },
+      {
+        type: "added",
+        module: "Finance",
+        description:
+          "For Groups ive added the ability to set folder structure.",
+      },
+      {
+        type: "changed",
+        module: "App",
+        description: "Define the logic of access check inside UMIJS max",
+      },
+      {
+        type: "changed",
+        module: "App",
+        description: "Define the logic of fetching data",
+      },
+    ],
+  },
   {
     version: "1.0.1",
     date: "2026-10-30",
