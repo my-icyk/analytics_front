@@ -2,7 +2,6 @@ import { PageContainer } from "@ant-design/pro-components";
 import { history, useAccess } from "@umijs/max";
 import { message } from "antd";
 import { useMemo, useState } from "react";
-import { clearCache } from "ahooks";
 
 import { EntityTable } from "@/components/EntityTable";
 import { useRoles } from "@/hooks/useReferenceData";
@@ -14,7 +13,7 @@ import RoleFormModal from "./RoleFormModal";
 
 export default function RolesPage() {
   const access = useAccess();
-  const { data: roles = [], loading, hardRefresh } = useRoles();
+  const { data: roles = [], loading, refresh } = useRoles();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<RoleListItem | null>(null);
@@ -37,7 +36,7 @@ export default function RolesPage() {
     try {
       await deleteRole(id);
       message.success("Role deleted successfully");
-      hardRefresh();
+      refresh();
     } catch {
       message.error("Failed to delete role");
     }
@@ -45,7 +44,7 @@ export default function RolesPage() {
 
   const columns = useMemo(
     () => getColumns(handleDelete, handleEdit, handleView, access),
-    [access],
+    [access, handleDelete, handleEdit, handleView],
   );
 
   return (
@@ -65,7 +64,7 @@ export default function RolesPage() {
         onSuccess={() => {
           setModalOpen(false);
 
-          hardRefresh();
+          refresh();
         }}
       />
     </PageContainer>

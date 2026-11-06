@@ -13,7 +13,7 @@ import { deleteUser } from "@/services/users";
 
 export default function UsersPage() {
   const access = useAccess();
-  const { data: users = [], loading, hardRefresh } = useUsers();
+  const { data: users = [], loading, refresh } = useUsers();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -22,9 +22,8 @@ export default function UsersPage() {
     try {
       await deleteUser(user.id);
       message.success(`User "${user.username}" deleted`);
-      await hardRefresh();
+      await refresh();
     } catch (error) {
-      // Your global request error handler can display the error.
       console.error("Failed to delete user:", error);
     }
   };
@@ -42,12 +41,12 @@ export default function UsersPage() {
   const handleSuccess = () => {
     setModalOpen(false);
     setEditingUser(null);
-    hardRefresh();
+    refresh();
   };
 
   const columns = useMemo(
     () => getColumns(access, handleEdit, handleDelete),
-    [access],
+    [access, handleEdit, handleDelete],
   );
 
   return (
