@@ -1,7 +1,7 @@
 import type { ProColumns } from "@ant-design/pro-components";
 import { useAccess } from "@umijs/max";
 import type { Repartition } from "@/types/departments";
-import { periodColumn } from "@/components/columns";
+import { periodColumn, PrimaryWithDetails } from "@/components/columns";
 import { boolSorter, numberSorter, stringSorter } from "@/utils/sorters";
 import { EditActionButton } from "@/components/EditActionButton";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
@@ -35,8 +35,12 @@ export function getColumns({
       search: true,
       valueType: "text",
       sorter: stringSorter<Repartition>("department_name"),
-      render: (_, record) =>
-        `${record.department_name} (${record.department_id})`,
+      render: (_, record) => (
+        <PrimaryWithDetails
+          primary={record.department_name}
+          details={[record.department_id]}
+        />
+      ),
     },
     periodColumn<Repartition>({ sortable: true }),
     {

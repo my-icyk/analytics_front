@@ -1,6 +1,10 @@
 import type { ProColumns } from "@ant-design/pro-components";
 import type { DepartmentRepartitionDetails } from "@/types/finance/DepartmentReaprtitions";
-import { lookupSelectColumn, periodColumn } from "@/components/columns";
+import {
+  lookupSelectColumn,
+  periodColumn,
+  PrimaryWithDetails,
+} from "@/components/columns";
 import { DefaultOptionType } from "antd/es/select";
 import { lookupGroups } from "@/services/groups";
 import { Space, Typography } from "antd";
@@ -16,15 +20,11 @@ export const getColumns = (
   {
     title: "Department",
     dataIndex: "department_name",
-    search: false,
     render: (_, row) => (
-      <Space size={6} style={{ whiteSpace: "nowrap" }}>
-        {row.department_name}
-
-        <Typography.Text type="secondary" italic>
-          {row.brand_name} · {row.department_code}
-        </Typography.Text>
-      </Space>
+      <PrimaryWithDetails
+        primary={row.department_name}
+        details={[row.brand_name, row.department_code]}
+      />
     ),
   },
   {
