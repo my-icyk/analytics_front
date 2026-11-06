@@ -17,10 +17,10 @@ export default function GroupsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group>();
 
-  const access = useAccess();
-  const canCreate = access[PERMISSIONS.FINANCE.GROUP.CREATE];
+  const { can } = useAccess();
+  const canCreate = can(PERMISSIONS.FINANCE.GROUP.CREATE);
 
-  const canDeleteGroup = access[PERMISSIONS.FINANCE.GROUP.DELETE];
+  const canDeleteGroup = can(PERMISSIONS.FINANCE.GROUP.DELETE);
   const handleEdit = (record: Group) => {
     setEditingGroup(record);
   };
@@ -44,8 +44,8 @@ export default function GroupsPage() {
   const { data: divisions = [] } = useDivisions();
 
   const columns = useMemo(
-    () => getColumns(access, types, divisions, handleEdit, handleDelete),
-    [access, types, divisions, canDeleteGroup],
+    () => getColumns(can, types, divisions, handleEdit, handleDelete),
+    [can, types, divisions, canDeleteGroup],
   );
   return (
     <PageContainer>

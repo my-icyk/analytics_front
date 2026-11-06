@@ -7,24 +7,25 @@ import { DeleteActionButton } from "@/components/DeleteActionButton";
 import { Tag } from "antd";
 import { numericIdsValueProps } from "@/utils/formProps";
 import { ViewActionButton } from "@/components/TableActions/ViewActionButton";
-import { useAccess } from "@umijs/max";
+import type { Can } from "@/access";
 import { PERMISSIONS } from "../../../config/permissions";
 import { PermissionLink } from "@/components/PermissionLink";
-/** Table columns of the Users page, kept apart so index.tsx stays short. */
+
 export const getColumns = (
-  access: ReturnType<typeof useAccess>,
+  can: Can,
   groupTypes: GroupType[],
   divisions: Division[],
   onEdit: (record: Group) => void,
   onDelete: (record: Group) => void,
 ): ProColumns<Group>[] => {
-  const canOpen = access[PERMISSIONS.FINANCE.GROUP.READ];
-  const canEdit = access[PERMISSIONS.FINANCE.GROUP.UPDATE];
-  const canDelete = access[PERMISSIONS.FINANCE.GROUP.DELETE];
+  const canOpen = can(PERMISSIONS.FINANCE.GROUP.READ);
+  const canEdit = can(PERMISSIONS.FINANCE.GROUP.UPDATE);
+  const canDelete = can(PERMISSIONS.FINANCE.GROUP.DELETE);
 
-  const canOpenRepartitions =
-    access[PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.READ];
-  const canOpenRules = access[PERMISSIONS.FINANCE.RULE.READ];
+  const canOpenRepartitions = can(
+    PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.READ,
+  );
+  const canOpenRules = can(PERMISSIONS.FINANCE.RULE.READ);
 
   return [
     {
