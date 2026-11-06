@@ -9,13 +9,21 @@ import { RunActionButton } from "@/components/RunActionButton";
 import { formatDateTime, formatDuration } from "@/utils/formatDate";
 import { Can } from "@/access";
 
-export const getColumns = (
-  can: Can,
-  onDelete: (procedure: Procedure) => void,
-  onEdit: (id: number) => void,
-  onRun: (procedure: Procedure) => void,
-  runningIds: number[],
-): ProColumns<Procedure>[] => {
+type ColumnsOptions = {
+  can: Can;
+  onEdit: (id: number) => void;
+  onDelete: (item: Procedure) => void;
+  onRun: (item: Procedure) => void;
+  runningIds: number[];
+};
+
+export const getColumns = ({
+  can,
+  onEdit,
+  onDelete,
+  onRun,
+  runningIds,
+}: ColumnsOptions): ProColumns<Procedure>[] => {
   const canOpen = can(PERMISSIONS.ANALYTICS.PROCEDURE.READ);
   const canEdit = can(PERMISSIONS.ANALYTICS.PROCEDURE.UPDATE);
   const canDelete = can(PERMISSIONS.ANALYTICS.PROCEDURE.DELETE);

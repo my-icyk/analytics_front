@@ -8,75 +8,60 @@ import { ProcedureFormModal } from "./ProcedureFormModal";
 
 import { PageContainer } from "@ant-design/pro-components";
 import { useAccess } from "@umijs/max";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useEntityModal } from "@/hooks/useEntityModal";
 import { getColumns } from "./columns";
 import { EntityTable } from "@/components/EntityTable";
 import { useRequest } from "@umijs/max";
 import { useDeleteEntity } from "@/hooks/useDeleteEntity";
-import { message } from "antd";
+import { useRunEntity } from "@/hooks/useRunEntity";
 
 export default function Procedures() {
   const { can } = useAccess();
-  const {
-    data: procudures = [],
-    loading,
-    refresh,
-  } = useRequest<{ data: Procedure[] }>(getProcedures);
+  const { data: procedures = [], loading, refresh } = useRequest(getProcedures);
+  const modal = useEntityModal();
 
-  type ProcedureModalState =
-    { mode: "create" } | { mode: "edit"; id: number } | null;
-
-  const [modal, setModal] = useState<ProcedureModalState>(null);
-
-  const [runningIds, setRunningIds] = useState<number[]>([]);
-
-  const handleRun = async (procedure: Procedure) => {
-    setRunningIds((ids) => [...ids, procedure.id]);
-    try {
-      await runProcedure(procedure.id);
-      message.success(`"${procedure.name}" started`);
-      refresh(); // refetch the list so last_status / last_run update
-    } catch {
-      message.error("Failed to start");
-    } finally {
-      setRunningIds((ids) => ids.filter((id) => id !== procedure.id));
-    }
-  };
-
-  const { run: removeDivision } = useDeleteEntity<Procedure>({
+  const { run: removeProcedure } = useDeleteEntity<Procedure>({
     remove: deleteProcedure,
     entityName: "Procedure",
-    label: (d) => d.name,
+    label: (p) => p.name,
     onDone: refresh,
   });
 
+  const { run: runProcedureRow, pendingIds: runningIds } =
+    useRunEntity<Procedure>({
+      run: runProcedure,
+      entityName: "Procedure",
+      label: (p) => p.name,
+      onDone: refresh,
+    });
+
   const columns = useMemo(
     () =>
-      getColumns(
+      getColumns({
         can,
-        (id) => removeDivision(id),
-        (id) => setModal({ mode: "edit", id: Number(id) }),
-        handleRun,
+        onEdit: modal.openEdit,
+        onDelete: removeProcedure,
+        onRun: runProcedureRow,
         runningIds,
-      ),
-    [can],
+      }),
+    [can, modal.openEdit, removeProcedure, runProcedureRow, runningIds],
   );
+
   return (
     <PageContainer>
       <EntityTable<Procedure>
         columns={columns}
-        data={procudures}
+        data={procedures}
         loading={loading}
         createLabel="New procedure"
-        onCreate={() => setModal({ mode: "create" })}
+        onCreate={modal.openCreate}
       />
-      {modal && (
+      {modal.isOpen && (
         <ProcedureFormModal
-          open={modal !== null}
-          onOpenChange={(open) => {
-            if (!open) setModal(null);
-          }}
-          id={modal?.mode === "edit" ? modal.id : undefined}
+          open
+          onOpenChange={(open) => !open && modal.close()}
+          id={modal.editId}
           onSuccess={refresh}
         />
       )}

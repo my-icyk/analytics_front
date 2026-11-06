@@ -14,8 +14,7 @@ const BASE = "/api/v1/analytics/procedures";
 // }
 
 export async function getProcedures() {
-  const data = await request<Procedure[]>(BASE);
-  return { data };
+  return request<Procedure[]>(BASE);
 }
 
 export function getProcedure(id: number) {

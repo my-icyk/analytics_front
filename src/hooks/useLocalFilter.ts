@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 
-// hooks/useLocalFilter.ts
 export function useLocalFilter<T extends object>(data: T[]) {
   const [filters, setFilters] = useState<Partial<T>>({});
 
