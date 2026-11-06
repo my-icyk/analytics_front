@@ -17,8 +17,8 @@ import { useAccess } from "@umijs/max";
 import { PERMISSIONS } from "../../../../../../config/permissions";
 
 export default function DepartmentTab({ groupId }: { groupId: number }) {
-  const access = useAccess();
-  const canCreate = access[PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.CREATE];
+  const { can } = useAccess();
+  const canCreate = can(PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.CREATE);
   const {
     data: repartitions = [],
     loading,
@@ -60,11 +60,11 @@ export default function DepartmentTab({ groupId }: { groupId: number }) {
   const columns = useMemo(
     () =>
       getColumns({
-        access,
+        can,
         onEdit: modal.openEdit,
         onDelete: removeRepartition,
       }),
-    [access, modal.openEdit, removeRepartition],
+    [can, modal.openEdit, removeRepartition],
   );
   return (
     <>

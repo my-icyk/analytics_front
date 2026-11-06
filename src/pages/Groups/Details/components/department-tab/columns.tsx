@@ -6,20 +6,22 @@ import { boolSorter, numberSorter, stringSorter } from "@/utils/sorters";
 import { EditActionButton } from "@/components/EditActionButton";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
 import { PERMISSIONS } from "../../../../../../config/permissions";
+import { ACTIVE_STATUS } from "@/constants/statuses";
+import { Can } from "@/access";
 
 type GetColumnsParams = {
-  access: ReturnType<typeof useAccess>;
+  can: Can;
   onEdit: (record: Repartition) => void;
   onDelete: (id: number) => void;
 };
 
 export function getColumns({
-  access,
+  can,
   onEdit,
   onDelete,
 }: GetColumnsParams): ProColumns<Repartition>[] {
-  const canEdit = access[PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.UPDATE];
-  const canDelete = access[PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.DELETE];
+  const canEdit = can(PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.UPDATE);
+  const canDelete = can(PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.DELETE);
   return [
     {
       title: "ID",
@@ -42,17 +44,13 @@ export function getColumns({
       dataIndex: "is_active",
       width: 110,
       sorter: boolSorter<Repartition>("is_active"),
-      valueEnum: {
-        true: { text: "Active", status: "Success" },
-        false: { text: "Inactive", status: "Default" },
-      },
+      valueEnum: ACTIVE_STATUS,
     },
     {
       title: "Actions",
       dataIndex: "actions",
       key: "actions",
       search: false,
-      width: 100,
       align: "right",
       fixed: "right",
       render: (_, record) => [
