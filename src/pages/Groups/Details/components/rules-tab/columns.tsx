@@ -10,18 +10,18 @@ import { Button, Tooltip } from "antd";
 import { ApartmentOutlined } from "@ant-design/icons";
 import { DeleteActionButton } from "@/components/DeleteActionButton";
 import { EditActionButton } from "@/components/EditActionButton";
-import { useAccess } from "@umijs/max";
 import { PERMISSIONS } from "../../../../../../config/permissions";
+import { Can } from "@/access";
 
 export const getColumns = (
-  access: ReturnType<typeof useAccess>,
+  can: Can,
   onEdit: (record: Rule) => void,
   onDelete: (id: number) => void,
   onOpenTargets: (record: Rule) => void,
 ): ProColumns<Rule>[] => {
-  const canEdit = access[PERMISSIONS.FINANCE.RULE.UPDATE];
-  const canDelete = access[PERMISSIONS.FINANCE.RULE.DELETE];
-  const canManageTargets = access[PERMISSIONS.FINANCE.RULE_TARGET.READ];
+  const canEdit = can(PERMISSIONS.FINANCE.RULE.UPDATE);
+  const canDelete = can(PERMISSIONS.FINANCE.RULE.DELETE);
+  const canManageTargets = can(PERMISSIONS.FINANCE.RULE_TARGET.READ);
   return [
     {
       title: "ID",

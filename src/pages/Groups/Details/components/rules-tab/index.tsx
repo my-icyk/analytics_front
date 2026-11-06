@@ -19,8 +19,8 @@ import { getColumns } from "./columns";
 import TargetsDrawer from "../rule-targets-drower/TargetDrawer";
 
 export default function RulesTab({ groupId }: { groupId: number }) {
-  const access = useAccess();
-  const canCreate = access[PERMISSIONS.FINANCE.RULE.CREATE];
+  const { can } = useAccess();
+  const canCreate = can(PERMISSIONS.FINANCE.RULE.CREATE);
   const {
     data: rules = [],
     loading,
@@ -59,8 +59,8 @@ export default function RulesTab({ groupId }: { groupId: number }) {
   );
 
   const columns = useMemo(
-    () => getColumns(access, modal.openEdit, removeRule, setTargetsRule),
-    [access, modal.openEdit, removeRule],
+    () => getColumns(can, modal.openEdit, removeRule, setTargetsRule),
+    [can, modal.openEdit, removeRule],
   );
 
   return (
