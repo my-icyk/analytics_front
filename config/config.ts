@@ -26,7 +26,9 @@ export default defineConfig({
   access: {}, // enables src/access.ts (role-based permissions)
   model: {}, // enables global models, optional
   initialState: {}, // enables "who is logged in" global state
-  request: {}, // enables `request` and `useRequest`
+  request: {
+    dataField: "",
+  },
   mock: { exclude: ["mock/helpers/**"] }, // helpers are not API endpoints
   npmClient: "npm",
   define: {
