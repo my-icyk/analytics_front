@@ -11,7 +11,7 @@ import {
 } from "@/services/groups";
 import { getPermissions, getRoles } from "@/services/roles";
 import { getUsers } from "@/services/users";
-import { useRequest, clearCache } from "ahooks";
+import { useRequest } from "@umijs/max";
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 const ONE_HOUR = 60 * 60 * 1000;
@@ -44,18 +44,10 @@ export function useFolderGroups() {
 }
 
 export function useDivisions() {
-  const { refresh, ...rest } = useRequest(getDivisions, {
+  return useRequest(getDivisions, {
     cacheKey: CACHE_KEYS.divisions,
     staleTime: ONE_HOUR,
   });
-
-  // forces a real refetch even while the cache is still fresh
-  const hardRefresh = () => {
-    clearCache(CACHE_KEYS.divisions);
-    return refresh();
-  };
-
-  return { ...rest, hardRefresh };
 }
 
 export function useGroupTypes() {
@@ -101,7 +93,7 @@ export function useRoles() {
 
   // forces a real refetch even while the cache is still fresh
   const hardRefresh = () => {
-    clearCache(CACHE_KEYS.roles);
+    refresh();
     return refresh();
   };
 
@@ -116,7 +108,7 @@ export function useUsers() {
 
   // forces a real refetch even while the cache is still fresh
   const hardRefresh = () => {
-    clearCache(CACHE_KEYS.users);
+    refresh();
     return refresh();
   };
 

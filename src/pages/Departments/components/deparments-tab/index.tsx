@@ -4,14 +4,13 @@ import { useDepartments } from "@/hooks/useReferenceData";
 import { EntityTable } from "@/components/EntityTable";
 
 export default function DepartmentsTab() {
-  const { data: departments = [], loading: departmentsLoading } =
-    useDepartments();
+  const { data = [], loading } = useDepartments();
 
   return (
     <EntityTable<Department>
       columns={getColumns()}
-      data={departments}
-      loading={departmentsLoading}
+      data={data}
+      loading={loading}
     />
   );
 }

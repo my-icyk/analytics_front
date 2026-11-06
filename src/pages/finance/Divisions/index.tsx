@@ -22,13 +22,13 @@ export default function DivisionsPage() {
   const canCreate = can(PERMISSIONS.FINANCE.DIVISION.CREATE);
 
   const modal = useEditModal<Division>();
-  const { data: divisions = [], loading, hardRefresh } = useDivisions();
+  const { data: divisions = [], loading, refresh } = useDivisions();
 
   const { run: removeDivision } = useDeleteEntity<Division>({
     remove: deleteDivision,
     entityName: "Division",
     label: (d) => d.name,
-    onDone: hardRefresh,
+    onDone: refresh,
   });
 
   const { runAsync: saveDivision, loading: saving } = useSaveEntity({
@@ -38,7 +38,7 @@ export default function DivisionsPage() {
     entityName: "Division",
     onDone: () => {
       modal.close();
-      hardRefresh();
+      refresh();
     },
   });
 
