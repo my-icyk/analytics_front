@@ -1,4 +1,5 @@
 import { Department } from "@/types/departments";
+import { numberSorter, stringSorter } from "@/utils/sorters";
 import { ProColumns } from "@ant-design/pro-components";
 
 export const getColumns = (): ProColumns<Department>[] => [
@@ -7,14 +8,14 @@ export const getColumns = (): ProColumns<Department>[] => [
     dataIndex: "id",
     key: "id",
     search: false,
-    sorter: (a, b) => a.id - b.id,
+    sorter: numberSorter<Department>("id"),
   },
   {
     title: "Name",
     dataIndex: "name",
     key: "name",
     search: true,
-    sorter: (a, b) => a.name.localeCompare(b.name),
+    sorter: stringSorter<Department>("name"),
     valueType: "text",
   },
   {
@@ -22,7 +23,7 @@ export const getColumns = (): ProColumns<Department>[] => [
     dataIndex: "code",
     key: "code",
     search: true,
-    sorter: (a, b) => a.code.localeCompare(b.code),
+    sorter: stringSorter<Department>("code"),
     valueType: "text",
   },
   {
@@ -30,7 +31,7 @@ export const getColumns = (): ProColumns<Department>[] => [
     dataIndex: "brand",
     key: "brand",
     search: true,
-    sorter: (a, b) => a.brand.localeCompare(b.brand),
+    sorter: stringSorter<Department>("brand"),
     valueType: "text",
   },
 ];
