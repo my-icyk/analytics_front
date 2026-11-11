@@ -26,6 +26,12 @@ export const changelog: ChangelogRelease[] = [
         module: "App",
         description: "Updated application name to Analytics Hub.",
       },
+      {
+        type: "removed",
+        module: "Finance",
+        description:
+          "Removed department filter by name on page Department Repartition",
+      },
     ],
   },
   {

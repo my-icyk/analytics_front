@@ -20,6 +20,7 @@ export const getColumns = (
   {
     title: "Department",
     dataIndex: "department_name",
+    search: false,
     render: (_, row) => (
       <PrimaryWithDetails
         primary={row.department_name}
