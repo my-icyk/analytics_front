@@ -1,15 +1,26 @@
-import { LockOutlined, UserOutlined } from "@ant-design/icons";
-import { LoginForm, ProFormText } from "@ant-design/pro-components";
+import {
+  BarChartOutlined,
+  LockOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
+import {
+  LoginForm,
+  ProFormCheckbox,
+  ProFormText,
+} from "@ant-design/pro-components";
 import { history, useModel } from "@umijs/max";
-import { Flex } from "antd";
+import { Flex, Typography, theme } from "antd";
 import { useEffect } from "react";
 import { fetchCurrentUser, login } from "@/services/auth";
 import type { LoginParams } from "@/types/auth";
 import { getRedirectTarget } from "@/utils/navigation";
 import { clearToken, setToken } from "@/utils/token";
 
+const { Text } = Typography;
+
 /** The only public page. */
 export default function LoginPage() {
+  const { token } = theme.useToken();
   const { initialState, setInitialState } = useModel("@@initialState");
 
   const goBack = () =>
@@ -23,38 +34,79 @@ export default function LoginPage() {
   const handleSubmit = async (values: LoginParams) => {
     try {
       const { access_token } = await login(values);
-      setToken(access_token); // must be saved first: the next call needs it in the header
+      setToken(access_token);
       try {
-        const currentUser = await fetchCurrentUser(); // GET /api/v1/users/me
+        const currentUser = await fetchCurrentUser();
         await setInitialState({ currentUser });
       } catch (error) {
-        clearToken(); // token is useless if we cannot load the user
+        clearToken();
         throw error;
       }
       goBack();
       return true;
     } catch {
-      // The global error handler (src/requestConfig.ts) already showed the message.
       return false;
     }
   };
 
   return (
-    <Flex justify="center" align="center" style={{ minHeight: "100vh" }}>
-      <LoginForm<LoginParams> title="ANAL-ytics" onFinish={handleSubmit}>
-        <ProFormText
-          name="username"
-          fieldProps={{ size: "large", prefix: <UserOutlined /> }}
-          placeholder="Username"
-          rules={[{ required: true, message: "Please enter your username" }]}
-        />
-        <ProFormText.Password
-          name="password"
-          fieldProps={{ size: "large", prefix: <LockOutlined /> }}
-          placeholder="Password"
-          rules={[{ required: true, message: "Please enter your password" }]}
-        />
-      </LoginForm>
+    <Flex
+      justify="center"
+      align="center"
+      style={{
+        minHeight: "100vh",
+        background: `linear-gradient(135deg, ${token.colorPrimaryBg} 0%, ${token.colorBgLayout} 100%)`,
+      }}
+    >
+      <div
+        style={{
+          background: token.colorBgContainer,
+          borderRadius: token.borderRadiusLG,
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08)",
+          padding: "32px 16px 8px",
+        }}
+      >
+        <LoginForm<LoginParams>
+          logo={
+            <BarChartOutlined
+              style={{ fontSize: 40, color: token.colorPrimary }}
+            />
+          }
+          title="Analytics Hub"
+          subTitle="Insights that actually make sense"
+          onFinish={handleSubmit}
+          submitter={{
+            searchConfig: { submitText: "Sign in" },
+            submitButtonProps: { size: "large", style: { width: "100%" } },
+          }}
+        >
+          <ProFormText
+            name="username"
+            fieldProps={{ size: "large", prefix: <UserOutlined /> }}
+            placeholder="Username"
+            rules={[{ required: true, message: "Please enter your username" }]}
+          />
+          <ProFormText.Password
+            name="password"
+            fieldProps={{ size: "large", prefix: <LockOutlined /> }}
+            placeholder="Password"
+            rules={[{ required: true, message: "Please enter your password" }]}
+          />
+          {/* TODO: Ar fi probabil util asa posibilitate
+          <Flex justify="space-between" style={{ marginBottom: 24 }}>
+            <ProFormCheckbox noStyle name="remember">
+              Remember me
+            </ProFormCheckbox>
+            <a href="/forgot-password">Forgot password?</a>
+          </Flex> */}
+        </LoginForm>
+
+        <Flex justify="center" style={{ padding: "16px 0" }}>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            © {new Date().getFullYear()} Analytics Hub
+          </Text>
+        </Flex>
+      </div>
     </Flex>
   );
 }

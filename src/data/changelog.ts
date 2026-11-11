@@ -17,6 +17,18 @@ export type ChangelogRelease = {
 
 export const changelog: ChangelogRelease[] = [
   {
+    version: "1.0.4",
+    date: "2026-11-11",
+    title: "Update name to Analytics Hub",
+    changes: [
+      {
+        type: "changed",
+        module: "App",
+        description: "Updated application name to Analytics Hub.",
+      },
+    ],
+  },
+  {
     version: "1.0.3",
     date: "2026-11-06",
     title: "New Features and Improvements",

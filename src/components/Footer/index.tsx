@@ -1,6 +1,6 @@
 import { DefaultFooter } from "@ant-design/pro-components";
 
-const APP_NAME = "Analytics Department";
+const APP_NAME = "Analytics Hub";
 
 export default function Footer() {
   return (

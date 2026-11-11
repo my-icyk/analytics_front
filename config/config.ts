@@ -14,7 +14,7 @@ export default defineConfig({
   proxy,
   antd: { theme }, // colors / sizes live in config/theme.ts (no CSS needed)
   layout: {
-    title: "Analytics Department",
+    title: "Analytics Hub",
     layout: "mix", // header on top, menu in the sider
     fixedHeader: true,
     fixSiderbar: true,
