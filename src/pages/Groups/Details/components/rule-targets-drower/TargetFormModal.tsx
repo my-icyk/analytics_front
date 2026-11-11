@@ -71,7 +71,6 @@ export default function TargetFormModal({
         debounceTime={300}
         request={({ keyWords }) => lookupGroups(keyWords ?? "")}
         fieldProps={{ labelInValue: true }}
-        // form holds { value, label }, the API gets group_id
         transform={(v) => ({ group_id: Number(v.value) })}
         rules={[{ required: true, message: "Select a group" }]}
       />
@@ -80,6 +79,8 @@ export default function TargetFormModal({
         name="allocation_type"
         label="Allocation type"
         options={ALLOCATION_OPTIONS}
+        initialValue="PROPORTIONAL"
+        placeholder="Proportional/Fixed"
         allowClear={false}
         rules={[{ required: true, message: "Select an allocation type" }]}
       />
@@ -97,8 +98,22 @@ export default function TargetFormModal({
               label="Percentage"
               min={0}
               max={100}
-              fieldProps={{ precision: 2, step: 0.01 }}
-              rules={[{ required: true, message: "Enter a percentage" }]}
+              tooltip="Share of the total, from 0 to 100. Decimals are allowed (e.g. 12.5)."
+              placeholder="100"
+              fieldProps={{
+                precision: 2,
+                step: 1,
+                addonAfter: "%",
+              }}
+              rules={[
+                { required: true, message: "Enter a percentage" },
+                {
+                  type: "number",
+                  min: 0,
+                  max: 100,
+                  message: "Must be between 0 and 100",
+                },
+              ]}
             />
           )
         }

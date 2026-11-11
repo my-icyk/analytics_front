@@ -82,13 +82,25 @@ export default function RuleFormModal({
       <ProFormDigit
         name="percent_value"
         label="Percentage"
+        initialValue={100}
         min={0}
         max={100}
+        tooltip="Share of the total, from 0 to 100. Decimals are allowed (e.g. 12.5). Default is 100%."
+        placeholder="100"
         fieldProps={{
           precision: 2,
-          step: 0.01,
+          step: 1,
+          addonAfter: "%",
         }}
-        rules={[{ required: true, message: "Enter a percentage" }]}
+        rules={[
+          { required: true, message: "Enter a percentage" },
+          {
+            type: "number",
+            min: 0,
+            max: 100,
+            message: "Must be between 0 and 100",
+          },
+        ]}
       />
     </ModalForm>
   );

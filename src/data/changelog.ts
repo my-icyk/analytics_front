@@ -32,6 +32,12 @@ export const changelog: ChangelogRelease[] = [
         description:
           "Removed department filter by name on page Department Repartition",
       },
+      {
+        type: "changed",
+        module: "Finance",
+        description:
+          "Updated Create Modal for Rules, and for Rule-Targets, default value, hint, and percentage input.",
+      },
     ],
   },
   {
