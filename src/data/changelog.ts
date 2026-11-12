@@ -17,6 +17,19 @@ export type ChangelogRelease = {
 
 export const changelog: ChangelogRelease[] = [
   {
+    version: "1.0.5",
+    date: "2026-11-12",
+    title: "Bug Fixes",
+    changes: [
+      {
+        type: "changed",
+        module: "App",
+        description:
+          "Edit Modal for Department Repartition didnt send correct payload",
+      },
+    ],
+  },
+  {
     version: "1.0.4",
     date: "2026-11-11",
     title: "Update name to Analytics Hub",

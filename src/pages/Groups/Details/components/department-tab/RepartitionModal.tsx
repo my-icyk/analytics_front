@@ -38,10 +38,7 @@ export function RepartitionModal({
         initialValues
           ? {
               // labelInValue: the select shows a name instead of an id
-              department: {
-                value: initialValues.department_id,
-                label: `${initialValues.department_name} (${initialValues.department_id})`,
-              },
+              department_id: initialValues.department_id,
               valid_from: dayjs(initialValues.valid_from),
               valid_to: initialValues.valid_to
                 ? dayjs(initialValues.valid_to)
@@ -59,7 +56,7 @@ export function RepartitionModal({
       }}
     >
       <ProFormSelect
-        name="department"
+        name="department_id"
         label="Department"
         placeholder="Search department"
         showSearch
