@@ -64,13 +64,6 @@ export function useRules() {
   });
 }
 
-export function useMe() {
-  return useRequest(fetchCurrentUser, {
-    cacheKey: CACHE_KEYS.me,
-    staleTime: Infinity,
-  });
-}
-
 export function useDepartments() {
   return useRequest(getDepartments, {
     cacheKey: CACHE_KEYS.departments,

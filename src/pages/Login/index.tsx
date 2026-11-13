@@ -14,7 +14,6 @@ import { useEffect } from "react";
 import { fetchCurrentUser, login } from "@/services/auth";
 import type { LoginParams } from "@/types/auth";
 import { getRedirectTarget } from "@/utils/navigation";
-import { clearToken, setToken } from "@/utils/token";
 
 const { Text } = Typography;
 
@@ -33,16 +32,9 @@ export default function LoginPage() {
 
   const handleSubmit = async (values: LoginParams) => {
     try {
-      const { access_token } = await login(values);
-      setToken(access_token);
-      try {
-        const currentUser = await fetchCurrentUser();
-        await setInitialState({ currentUser });
-      } catch (error) {
-        clearToken();
-        throw error;
-      }
-      goBack();
+      await login(values);
+      const currentUser = await fetchCurrentUser();
+      await setInitialState({ currentUser });
       return true;
     } catch {
       return false;
