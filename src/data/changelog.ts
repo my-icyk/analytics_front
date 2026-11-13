@@ -1,6 +1,7 @@
 export type ChangeType = "added" | "changed" | "fixed" | "removed";
 
-type ModuleType = "App" | "Finance" | "Administration" | "Deployment";
+type ModuleType =
+  "App" | "Finance" | "Administration" | "Deployment" | "Authentication";
 
 export type ChangelogEntry = {
   type: ChangeType;
@@ -16,6 +17,19 @@ export type ChangelogRelease = {
 };
 
 export const changelog: ChangelogRelease[] = [
+  {
+    version: "1.0.6",
+    date: "2026-11-13",
+    title: "Session-based authentication",
+    changes: [
+      {
+        type: "changed",
+        module: "Authentication",
+        description:
+          "Sessions expire 10 hours after sign-in. Signing in from another browser ends your previous session.",
+      },
+    ],
+  },
   {
     version: "1.0.5",
     date: "2026-11-12",

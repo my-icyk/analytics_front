@@ -4,7 +4,6 @@ import { Dropdown } from "antd";
 import type { ReactNode } from "react";
 import { LOGIN_PATH } from "@/constants/app";
 import { logout } from "@/services/auth";
-import { clearToken } from "@/utils/token";
 
 /** Header user menu (top right). Wraps the avatar and adds "Log out". */
 export default function AvatarDropdown({ children }: { children: ReactNode }) {
@@ -14,10 +13,15 @@ export default function AvatarDropdown({ children }: { children: ReactNode }) {
     try {
       await logout();
     } catch {
-      // ignore: we log out locally anyway
+      // The global request handler shows the error.
+      return;
     }
-    clearToken();
-    await setInitialState((state) => ({ ...state, currentUser: undefined }));
+
+    await setInitialState((state) => ({
+      ...state,
+      currentUser: undefined,
+    }));
+
     history.replace(LOGIN_PATH);
   };
 

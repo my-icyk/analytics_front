@@ -5,15 +5,6 @@ export type LoginParams = {
   password: string;
 };
 
-export type LoginResult = {
-  access_token: string;
-};
-
-export type RefreshResponse = {
-  access_token: string;
-  token_type: string;
-};
-
 export type Role = {
   id: number;
   name: string;
