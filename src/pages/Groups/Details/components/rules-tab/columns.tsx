@@ -48,7 +48,7 @@ export const getColumns = (
       search: false,
       sorter: numberSorter<Rule>("percent_value"),
       valueType: "digit",
-      render: (_, record) => `${record.percent_value.toFixed(2)}%`,
+      render: (_, record) => `${Number(record.percent_value).toFixed(2)}%`,
     },
     {
       title: "Actions",
