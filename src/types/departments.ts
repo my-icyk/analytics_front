@@ -8,6 +8,8 @@ export type Department = {
 export type Repartition = {
   id: number;
   department_id: number;
+  department_code: string;
+  brand_name: string;
   department_name: string;
   valid_from: string;
   valid_to: string | null;

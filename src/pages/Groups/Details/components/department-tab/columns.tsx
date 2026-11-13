@@ -1,6 +1,6 @@
 import type { ProColumns } from "@ant-design/pro-components";
-import { useAccess } from "@umijs/max";
 import type { Repartition } from "@/types/departments";
+import type { DefaultOptionType } from "antd/es/select";
 import { periodColumn, PrimaryWithDetails } from "@/components/columns";
 import { boolSorter, numberSorter, stringSorter } from "@/utils/sorters";
 import { EditActionButton } from "@/components/EditActionButton";
@@ -13,12 +13,14 @@ type GetColumnsParams = {
   can: Can;
   onEdit: (record: Repartition) => void;
   onDelete: (id: number) => void;
+  departmentOptions: DefaultOptionType[];
 };
 
 export function getColumns({
   can,
   onEdit,
   onDelete,
+  departmentOptions,
 }: GetColumnsParams): ProColumns<Repartition>[] {
   const canEdit = can(PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.UPDATE);
   const canDelete = can(PERMISSIONS.FINANCE.DEPARTMENT_REPARTITION.DELETE);
@@ -32,16 +34,28 @@ export function getColumns({
     {
       title: "Department",
       dataIndex: "department_name",
-      search: true,
-      valueType: "text",
-      sorter: stringSorter<Repartition>("department_name"),
-      render: (_, record) => (
+      search: false,
+      render: (_, row) => (
         <PrimaryWithDetails
-          primary={record.department_name}
-          details={[record.department_id]}
+          primary={row.department_name}
+          details={[row.brand_name, row.department_code]}
         />
       ),
     },
+    {
+      title: "Department",
+      dataIndex: "department_ids",
+      hideInTable: true,
+      valueType: "select",
+      fieldProps: {
+        mode: "multiple",
+        options: departmentOptions,
+        showSearch: true,
+        optionFilterProp: "label",
+        allowClear: true,
+      },
+    },
+
     periodColumn<Repartition>({ sortable: true }),
     {
       title: "Active",
