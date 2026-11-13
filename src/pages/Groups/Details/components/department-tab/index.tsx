@@ -15,7 +15,7 @@ import { RepartitionModal } from "./RepartitionModal";
 import { getColumns } from "./columns";
 import { useAccess } from "@umijs/max";
 import { PERMISSIONS } from "../../../../../../config/permissions";
-import { useDepartments } from "@/hooks/useReferenceData";
+import { useDepartmentOptions } from "@/hooks/useReferenceData";
 
 export default function DepartmentTab({ groupId }: { groupId: number }) {
   const { can } = useAccess();
@@ -27,12 +27,7 @@ export default function DepartmentTab({ groupId }: { groupId: number }) {
   } = useRequest(() => getRepartitions(groupId), {
     refreshDeps: [groupId],
   });
-  const { data: departments = [] } = useDepartments();
-
-  const departmentOptions = departments.map(({ id, name }) => ({
-    label: name,
-    value: id,
-  }));
+  const { options: departmentOptions } = useDepartmentOptions();
 
   const modal = useEditModal<Repartition>();
 

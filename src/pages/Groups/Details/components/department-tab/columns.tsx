@@ -1,6 +1,6 @@
 import type { ProColumns } from "@ant-design/pro-components";
 import type { Repartition } from "@/types/departments";
-import type { DefaultOptionType } from "antd/es/select";
+import type { DefaultOptionType, SelectProps } from "antd/es/select";
 import { periodColumn, PrimaryWithDetails } from "@/components/columns";
 import { boolSorter, numberSorter, stringSorter } from "@/utils/sorters";
 import { EditActionButton } from "@/components/EditActionButton";
@@ -8,12 +8,33 @@ import { DeleteActionButton } from "@/components/DeleteActionButton";
 import { PERMISSIONS } from "../../../../../../config/permissions";
 import { ACTIVE_STATUS } from "@/constants/statuses";
 import { Can } from "@/access";
+import { Typography } from "antd";
+
+export type DepartmentOption = {
+  value: number;
+  label: string;
+  title: string;
+  subtitle: string;
+};
+
+export const renderDepartmentOption: NonNullable<
+  SelectProps<number[], DepartmentOption>["optionRender"]
+> = ({ data }) => (
+  <div>
+    <div>{data.title}</div>
+    {data.subtitle && (
+      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+        {data.subtitle}
+      </Typography.Text>
+    )}
+  </div>
+);
 
 type GetColumnsParams = {
   can: Can;
   onEdit: (record: Repartition) => void;
   onDelete: (id: number) => void;
-  departmentOptions: DefaultOptionType[];
+  departmentOptions: DepartmentOption[];
 };
 
 export function getColumns({
@@ -53,6 +74,7 @@ export function getColumns({
         showSearch: true,
         optionFilterProp: "label",
         allowClear: true,
+        optionRender: renderDepartmentOption,
       },
     },
 

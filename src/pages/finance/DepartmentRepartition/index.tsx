@@ -4,7 +4,7 @@ import type { DepartmentRepartitionDetails } from "@/types/finance/DepartmentRea
 import { getColumns } from "./columns";
 import { getDepartmentRepartitions } from "@/services/finance/DepartmentRepartitions";
 import { DEFAULT_PAGE_SIZE } from "@/constants/app";
-import { useDepartments } from "@/hooks/useReferenceData";
+import { useDepartmentOptions } from "@/hooks/useReferenceData";
 
 // what the search form can send (must match the dataIndex of the search columns)
 type SearchParams = {
@@ -13,12 +13,7 @@ type SearchParams = {
 };
 
 export default function DepartmentRepartitionsPage() {
-  const { data: departments = [] } = useDepartments();
-
-  const departmentOptions = departments.map(({ id, name }) => ({
-    label: name,
-    value: id,
-  }));
+  const { options: departmentOptions } = useDepartmentOptions();
   return (
     <PageContainer>
       <ProTable<DepartmentRepartitionDetails, SearchParams>
