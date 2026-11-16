@@ -1,8 +1,13 @@
+export type Company = {
+  id: number;
+  name: string;
+};
+
 export type Division = {
   id: number;
   name: string;
   is_administrative: boolean;
-  company_id: number;
+  company: Company;
   group_count: number;
 };
 
@@ -13,8 +18,3 @@ export type DivisionCreate = {
 };
 
 export type DivisionUpdate = DivisionCreate;
-
-export type Company = {
-  id: number;
-  name: string;
-};

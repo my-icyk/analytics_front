@@ -42,7 +42,7 @@ export default function DivisionFormModal({
       }}
       initialValues={{
         name: initialValues?.name ?? "",
-        company_id: initialValues?.company_id,
+        company_id: initialValues?.company?.id,
         is_administrative: initialValues?.is_administrative ?? false,
       }}
       onFinish={async (values) => {

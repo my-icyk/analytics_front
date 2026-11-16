@@ -45,9 +45,9 @@ export const getColumns = (
     },
     {
       title: "Company",
-      dataIndex: "company_name",
-      key: "company_id",
-      search: false,
+      dataIndex: ["company", "name"],
+      key: "company",
+      search: true,
       valueType: "text",
     },
     {
