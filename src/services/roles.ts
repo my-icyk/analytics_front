@@ -8,55 +8,58 @@ import {
   RoleUpdate,
 } from "@/types/auth";
 
+const PERMISSIONS = "/api/v1/auth/permissions";
+const ROLES = "/api/v1/auth/roles";
+
 export function getRoles(params: FetchRolesParams) {
-  return request<RoleListItem[]>("/api/v1/roles", { params });
+  return request<RoleListItem[]>(ROLES, { params });
 }
 
 export function getRole(id: number) {
-  return request<RoleListItem>(`/api/v1/roles/${id}`);
+  return request<RoleListItem>(`${ROLES}/${id}`);
 }
 
 export function createRole(data: RoleCreate) {
-  return request("/api/v1/roles", {
+  return request(ROLES, {
     method: "POST",
     data,
   });
 }
 
 export function updateRole(id: number, data: RoleUpdate) {
-  return request(`/api/v1/roles/${id}`, {
+  return request(`${ROLES}/${id}`, {
     method: "PUT",
     data,
   });
 }
 
 export function deleteRole(id: number) {
-  return request(`/api/v1/roles/${id}`, {
+  return request(`${ROLES}/${id}`, {
     method: "DELETE",
   });
 }
 
 export function getPermissions() {
-  return request("/api/v1/permissions");
+  return request(PERMISSIONS);
 }
 export function permissionsLookup(search: string) {
-  return request(`/api/v1/permissions/lookup?search=${search}`);
+  return request(`${PERMISSIONS}/lookup?search=${search}`);
 }
 
 export function getRolePermissions(roleId: number) {
-  return request<Permission[]>(`/api/v1/roles/${roleId}/permissions`);
+  return request<Permission[]>(`${ROLES}/${roleId}/permissions`);
 }
 
 export function assignRolePermissions(
   role_id: number,
   permission_ids: number[],
 ) {
-  return request(`/api/v1/roles/${role_id}/permissions`, {
+  return request(`${ROLES}/${role_id}/permissions`, {
     method: "PUT",
     data: { permission_ids },
   });
 }
 
 export function rolesLookup(search: string) {
-  return request(`/api/v1/roles/lookup?search=${search}`);
+  return request(`${ROLES}/lookup?search=${search}`);
 }

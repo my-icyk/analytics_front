@@ -4,21 +4,21 @@ export type Rule = {
   group_name: string;
   valid_from: string;
   valid_to: string;
-  percent_value: number;
+  percent_value: string;
 };
 
 export type RuleCreate = {
   name: string;
   valid_from: string;
   valid_to: string;
-  percent_value: number;
+  percent_value: string;
 };
 
 export type RuleUpdate = {
   name?: string;
   valid_from?: string;
   valid_to?: string;
-  percent_value?: number;
+  percent_value?: string;
 };
 
 export type AllocationType = "FIXED" | "PROPORTIONAL";

@@ -141,6 +141,26 @@ export default [
     component: "./admin/Changelog",
     access: PERMISSIONS.APP.CHANGELOG.READ,
   },
+  {
+    path: "/hr",
+    name: "HR",
+    icon: "team",
+    routes: [
+      {
+        path: "employees",
+        name: "Employees",
+        component: "./hr/Employees",
+        access: PERMISSIONS.HR.EMPLOYEES.READ,
+      },
+      {
+        path: "employees/:id",
+        name: "Employee Details",
+        hideInMenu: true,
+        component: "./hr/Employees/Detail",
+        access: PERMISSIONS.HR.EMPLOYEES.READ,
+      },
+    ],
+  },
   // {
   //   path: "/params",
   //   name: "Params",

@@ -1,17 +1,16 @@
 // hooks/useReferenceData.ts
-import { FOLDER_TYPE_ID } from "@/constants/groups";
-import { fetchCurrentUser } from "@/services/auth";
+
 import { getCompanies, getDivisions } from "@/services/divisions";
 import {
   getGroupTypes,
   getRules,
   getDepartments,
-  getGroups,
   getGroupFolders,
 } from "@/services/groups";
 import { getPermissions, getRoles } from "@/services/roles";
 import { getUsers } from "@/services/users";
 import { useRequest } from "@umijs/max";
+import { useMemo } from "react";
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 const ONE_HOUR = 60 * 60 * 1000;
@@ -69,6 +68,30 @@ export function useDepartments() {
     cacheKey: CACHE_KEYS.departments,
     staleTime: Infinity,
   });
+}
+
+export function useDepartmentOptions() {
+  const { data, loading } = useDepartments();
+
+  const options = useMemo(
+    () =>
+      (data ?? []).map(({ id, name, brand, code }) => {
+        const title = name?.trim() || `Department #${id}`;
+        const subtitle = [brand?.trim(), code?.trim()]
+          .filter(Boolean)
+          .join(" · ");
+
+        return {
+          value: id,
+          title,
+          subtitle,
+          label: title,
+        };
+      }),
+    [data],
+  );
+
+  return { options, loading };
 }
 
 export function usePermissions() {

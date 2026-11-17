@@ -7,7 +7,6 @@ import {
 } from "@/components/columns";
 import { DefaultOptionType } from "antd/es/select";
 import { lookupGroups } from "@/services/groups";
-import { Space, Typography } from "antd";
 
 export const getColumns = (
   departmentOptions: DefaultOptionType[],
