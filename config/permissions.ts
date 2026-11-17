@@ -90,15 +90,15 @@ export const PERMISSIONS = {
   },
   HR: {
     EMPLOYEES: {
-      READ: "hr:employees:read",
+      READ: "hr:employee:read",
     },
     CREDITS: {
-      READ: "hr:credits:read",
-      CREATE: "hr:credits:create",
-      UPDATE: "hr:credits:update",
-      DELETE: "hr:credits:delete",
-      PAY_OFF: "hr:credits:pay_off",
-      CANCEL: "hr:credits:cancel",
+      READ: "hr:employee_credit:read",
+      CREATE: "hr:employee_credit:create",
+      UPDATE: "hr:employee_credit:update",
+      DELETE: "hr:employee_credit:delete",
+      PAY_OFF: "hr:employee_credit:pay_off",
+      CANCEL: "hr:employee_credit:cancel",
     },
   },
 } as const;
