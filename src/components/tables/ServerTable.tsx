@@ -18,7 +18,6 @@ export function ServerTable<
   return (
     <ProTable<T, F>
       rowKey="id"
-      form={{ syncToUrl: true }}
       options={{
         reload: true,
         density: true,
