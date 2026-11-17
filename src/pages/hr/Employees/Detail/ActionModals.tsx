@@ -5,6 +5,8 @@ import type { ReactNode } from "react";
 
 import { cancelCredit, deleteCredit, payOffCredit } from "@/services/hr";
 import type { Credit } from "@/types/hr";
+import { ProFormDatePicker } from "@ant-design/pro-components";
+import dayjs from "dayjs";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -81,7 +83,7 @@ function BaseCreditActionModal<V extends object>({
       okText={okText}
       okButtonProps={{ danger: okDanger }}
       confirmLoading={loading}
-      destroyOnClose
+      destroyOnHidden
       onOk={handleOk}
       onCancel={onCancel}
     >
@@ -115,7 +117,16 @@ export function PayOffModal({ employeeId, ...props }: ActionModalProps) {
         label="Payment Date (Optional)"
         tooltip="Leave empty to use today's date"
       >
-        <DatePicker format="YYYY-MM-DD" />
+        <ProFormDatePicker
+          name="paid_off_on"
+
+          width="md"
+          fieldProps={{ picker: "month", format: "MMM YY" }}
+          transform={(value: dayjs.ConfigType) => ({
+            paid_off_on: dayjs(value).startOf("month").format("YYYY-MM-DD"),
+          })}
+          rules={[{ required: false }]}
+        />
       </Form.Item>
     </BaseCreditActionModal>
   );

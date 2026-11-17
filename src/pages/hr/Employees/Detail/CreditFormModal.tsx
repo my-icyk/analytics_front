@@ -99,14 +99,17 @@ export default function CreditFormModal({
         label="Number of Months"
         width="md"
         rules={[{ required: true, message: "Number of months is required" }]}
-        fieldProps={{ min: 1, step: 1, precision: 0 }}
+        fieldProps={{ min: 1, max: 24, step: 1, precision: 0 }}
       />
 
       <ProFormDatePicker
-        picker="month"
         name="start_month"
-        width="md"
         label="Start Month"
+        width="md"
+        fieldProps={{ picker: "month", format: "MMM YY" }}
+        transform={(value: dayjs.ConfigType) => ({
+          start_month: dayjs(value).startOf("month").format("YYYY-MM-DD"),
+        })}
         rules={[{ required: true, message: "Start month is required" }]}
       />
 

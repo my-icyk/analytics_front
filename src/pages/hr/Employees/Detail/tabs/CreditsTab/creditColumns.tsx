@@ -1,5 +1,6 @@
 import type { ProColumns } from "@ant-design/pro-components";
 import { Button, Space, Tag } from "antd";
+import dayjs from "dayjs";
 import {
   CheckCircleOutlined,
   DeleteOutlined,
@@ -8,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import type { Credit } from "@/types/hr";
 import { CreditActionType } from "../../ActionModals";
+import { formatDate } from "@/utils/formatDate";
 
 const statusColorMap: Record<Credit["status"], string> = {
   active: "blue",
@@ -46,11 +48,14 @@ export const getCreditColumns = ({
     dataIndex: "start_month",
     search: false,
     sorter: true,
+    renderText: (_, row) => dayjs(row.start_month).format("MMM YY"),
   },
   {
     title: "Paid Off",
     dataIndex: "paid_off_on",
     search: false,
+    renderText: (_, row) =>
+      row.paid_off_on ? dayjs(row.paid_off_on).format("MMM YY") : "",
   },
   {
     title: "Comments",
