@@ -88,6 +88,19 @@ export const PERMISSIONS = {
       POST: "finance:snapshot:post",
     },
   },
+  HR: {
+    EMPLOYEES: {
+      READ: "hr:employees:read",
+    },
+    CREDITS: {
+      READ: "hr:credits:read",
+      CREATE: "hr:credits:create",
+      UPDATE: "hr:credits:update",
+      DELETE: "hr:credits:delete",
+      PAY_OFF: "hr:credits:pay_off",
+      CANCEL: "hr:credits:cancel",
+    },
+  },
 } as const;
 
 // Collects every string value at any depth
