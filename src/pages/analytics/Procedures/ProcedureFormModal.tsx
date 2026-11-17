@@ -38,7 +38,7 @@ export function ProcedureFormModal({
       onOpenChange={onOpenChange}
       width={480}
       layout="vertical"
-      modalProps={{ destroyOnClose: true, maskClosable: false }}
+      modalProps={{ destroyOnHidden: true, maskClosable: false }}
       request={isEdit ? () => getProcedure(id) : undefined}
       onFinish={async (values) => {
         if (isEdit) {

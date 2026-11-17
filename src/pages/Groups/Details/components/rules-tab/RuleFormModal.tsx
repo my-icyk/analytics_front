@@ -29,7 +29,7 @@ export default function RuleFormModal({
       title={initialValues ? "Edit Rule" : "Create Rule"}
       width="min(400px, 95vw)"
       open={open}
-      modalProps={{ destroyOnClose: true, onCancel }}
+      modalProps={{ destroyOnHidden: true, onCancel }}
       submitter={{ submitButtonProps: { loading: saving } }}
       initialValues={
         initialValues
